@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>TIR.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>
