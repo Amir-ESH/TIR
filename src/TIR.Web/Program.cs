@@ -19,15 +19,17 @@ try
         .WriteTo.Console());
 
     builder.Services.AddApplication();
-    builder.Services.AddInfrastructure(
-        builder.Configuration.GetConnectionString("Test") ?? string.Empty);
+    builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Test") ?? string.Empty);
 
-    // فعال شدن Hangfire به آماده بودن دیتابیس نگهداری Job ها وابسته است.
+    // فعال کردن Hangfire و ایجاد جداول دو تنظیم مستقل هستند.
     if (builder.Configuration.GetValue<bool>("Hangfire:Enabled"))
     {
         var hangfireConnection = builder.Configuration.GetConnectionString("Hangfire");
         if (string.IsNullOrWhiteSpace(hangfireConnection))
             throw new InvalidOperationException("رشته اتصال Hangfire تنظیم نشده است.");
+
+        // ساخت خودکار جداول فقط هنگام فعال بودن AutoCreateSchema مجاز است.
+        var createSchema = builder.Configuration.GetValue<bool>("Hangfire:AutoCreateSchema");
 
         builder.Services.AddHangfire(configuration => configuration
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -35,13 +37,19 @@ try
             .UseRecommendedSerializerSettings()
             .UseSqlServerStorage(hangfireConnection, new SqlServerStorageOptions
             {
-                PrepareSchemaIfNecessary = false
+                // جدول های داخلی Hangfire در اسکیمای dbo ساخته می شوند.
+                SchemaName = "dbo",
+                PrepareSchemaIfNecessary = createSchema
             }));
         builder.Services.AddHangfireServer();
     }
 
     var app = builder.Build();
     app.UseSerilogRequestLogging();
+
+    // داشبورد فقط در محیط توسعه فعال است و دسترسی پیش فرض آن محلی است.
+    if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Hangfire:Enabled"))
+        app.UseHangfireDashboard("/hangfire");
 
     app.Run();
 }
