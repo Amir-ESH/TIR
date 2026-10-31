@@ -3,7 +3,8 @@ using TIR.Domain.Employees;
 
 namespace TIR.Application.Employees;
 
-/// <summary>تبدیل مدل دامنه به خروجی
+/// <summary>
+/// تبدیل مدل دامنه به خروجی
 /// Application توسط Mapperly.
 /// </summary>
 [Mapper]

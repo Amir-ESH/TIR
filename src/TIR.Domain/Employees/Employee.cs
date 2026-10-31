@@ -1,7 +1,7 @@
 namespace TIR.Domain.Employees;
 
 /// <summary>
-/// تصویر اطلاعات ثابت کارمند طبق خروجی پایگاه داده.
+/// اطلاعات ثابت کارمند طبق خروجی پایگاه داده.
 /// </summary>
 public sealed record Employee(
     long Id,

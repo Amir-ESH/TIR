@@ -1,7 +1,7 @@
 namespace TIR.Application.Employees;
 
 /// <summary>
-/// خروجی اطلاعات ثابت کارمند برای لایه ارائه.
+/// خروجی اطلاعات ثابت کارمند برای لایه presentations.
 /// </summary>
 public sealed record EmployeeDetailsDto(
     long Id,
