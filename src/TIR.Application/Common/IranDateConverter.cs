@@ -3,7 +3,7 @@ using System.Globalization;
 namespace TIR.Application.Common;
 
 /// <summary>
-/// این کلاس فقط تبدیل ورودی و نمایش تاریخ را انجام می دهد؛ صحت نهایی در SQL است.
+/// این کلاس فقط تبدیل ورودی و نمایش تاریخ را انجام می دهد. صحت نهایی در SQL است.
 /// </summary>
 public static class IranDateConverter
 {
@@ -11,6 +11,11 @@ public static class IranDateConverter
 
     public static TimeZoneInfo TehranTimeZone { get; } = LoadTehranTimeZone();
 
+    /// <summary>
+    /// تبدیل به تاریخ خورشیدی
+    /// </summary>
+    /// <param name="gregorianDate">تاریخ میلادی</param>
+    /// <returns></returns>
     public static string ToPersianDate(DateTime gregorianDate)
     {
         return string.Format(CultureInfo.InvariantCulture, "{0:0000}/{1:00}/{2:00}",
@@ -18,21 +23,35 @@ public static class IranDateConverter
             Calendar.GetDayOfMonth(gregorianDate));
     }
 
+    /// <summary>
+    /// تبدیل تاریخ خورشیدی به میلادی
+    /// </summary>
+    /// <param name="persianDate">تاریخ خورشیدی</param>
+    /// <returns></returns>
+    /// <exception cref="FormatException"></exception>
     public static DateTime ParsePersianDate(string persianDate)
     {
         if (string.IsNullOrWhiteSpace(persianDate))
-            throw new FormatException("تاریخ شمسی خالی است.");
+            throw new FormatException("تاریخ خورشیدی خالی است.");
 
         var normalized = NormalizeDigits(persianDate.Trim()).Replace('-', '/');
         var parts = normalized.Split('/');
-        if (parts.Length != 3 ||
-            !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var year) ||
-            !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var month) ||
-            !int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var day))
-            throw new FormatException("قالب تاریخ شمسی باید سال/ماه/روز باشد.");
+
+        if (parts.Length != 3
+            || !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var year)
+            || !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var month)
+            || !int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var day))
+            throw new FormatException("قالب تاریخ خورشیدی باید سال/ماه/روز باشد.");
+
         return Calendar.ToDateTime(year, month, day, 0, 0, 0, 0);
     }
 
+    /// <summary>
+    /// تبدیل زمان محلی تهران به گرینویچ
+    /// </summary>
+    /// <param name="localDateTime"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     public static DateTime TehranLocalToUtc(DateTime localDateTime)
     {
         var unspecified = DateTime.SpecifyKind(localDateTime, DateTimeKind.Unspecified);
@@ -41,6 +60,11 @@ public static class IranDateConverter
         return TimeZoneInfo.ConvertTimeToUtc(unspecified, TehranTimeZone);
     }
 
+    /// <summary>
+    /// تبدیل گرینویچ به زمان محلی تهران
+    /// </summary>
+    /// <param name="utcDateTime"></param>
+    /// <returns></returns>
     public static DateTime UtcToTehran(DateTime utcDateTime)
     {
         var utc = DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc);
@@ -65,18 +89,25 @@ public static class IranDateConverter
         throw new TimeZoneNotFoundException("منطقه زمانی ایران روی سرور موجود نیست.");
     }
 
+    /// <summary>
+    /// تبدیل اعداد فارسی به انگلیسی
+    /// </summary>
+    /// <param name="input">ورودی عددی</param>
+    /// <returns></returns>
     private static string NormalizeDigits(string input)
     {
         var result = new char[input.Length];
         for (var i = 0; i < input.Length; i++)
         {
             var digit = input[i];
+
             result[i] = digit is >= '۰' and <= '۹'
                 ? (char)('0' + digit - '۰')
                 : digit is >= '٠' and <= '٩'
                     ? (char)('0' + digit - '٠')
                     : digit;
         }
+
         return new string(result);
     }
 }
