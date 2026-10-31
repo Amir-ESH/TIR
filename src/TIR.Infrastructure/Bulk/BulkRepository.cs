@@ -14,6 +14,7 @@ internal sealed class BulkRepository(StoredProcedureExecutor executor) : IBulkRe
         {
             // ساخت Batch و بارگذاری تمام ورودی ها اتمیک است. بارگذاری ناقص ثبت نمی شود.
             await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(cancellationToken);
+
             var parameters = new DynamicParameters();
             parameters.Add("IdempotencyKey", options.IdempotencyKey);
             parameters.Add("BatchId", dbType: DbType.Guid, direction: ParameterDirection.Output);
@@ -29,12 +30,15 @@ internal sealed class BulkRepository(StoredProcedureExecutor executor) : IBulkRe
             await foreach (var input in employees.WithCancellation(cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
                 if (input is null || input.Values is null)
                     throw new ArgumentException("ورودی کارمند و فهرست مقادیر نمی تواند NULL باشد.");
+
                 if (inputOrdinal == int.MaxValue)
                     throw new ArgumentOutOfRangeException(nameof(employees), "تعداد ورودی ها بیش از ظرفیت است.");
 
                 inputOrdinal++;
+
                 employeeRows.Rows.Add(batchId, inputOrdinal, Db(input.EmployeeId));
 
                 var lineOrdinal = 0;
@@ -42,7 +46,9 @@ internal sealed class BulkRepository(StoredProcedureExecutor executor) : IBulkRe
                 {
                     if (value is null)
                         throw new ArgumentException("یک ردیف مقدار NULL است.");
+
                     lineOrdinal++;
+
                     if (value.ExpectedRowVersion is { Length: not 8 })
                         throw new ArgumentException("نسخه مقدار باید هشت بایت باشد.");
 
@@ -65,13 +71,13 @@ internal sealed class BulkRepository(StoredProcedureExecutor executor) : IBulkRe
 
             await CopyAsync(connection, transaction, "dbo.EmployeeInput", employeeRows, cancellationToken);
             await CopyAsync(connection, transaction, "dbo.ValueInput", valueRows, cancellationToken);
+
             await transaction.CommitAsync(cancellationToken);
             return batchId;
         }, false, cancellationToken);
 
-    public Task<BulkReportDto> ProcessAsync(Guid batchId, int employeesPerTransaction,
-        CancellationToken cancellationToken) =>
-        executor.WithConnectionAsync(async connection =>
+    public Task<BulkReportDto> ProcessAsync(Guid batchId, int employeesPerTransaction, CancellationToken cancellationToken)
+        => executor.WithConnectionAsync(async connection =>
         {
             // پردازش تنها یک بار برای هر Batch اجرا می شود. در خطای مبهم تکرار خودکار نداریم.
             using var results = await connection.QueryMultipleAsync(StoredProcedureExecutor.Command(

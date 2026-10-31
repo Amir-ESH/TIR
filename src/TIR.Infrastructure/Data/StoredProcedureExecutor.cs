@@ -12,30 +12,72 @@ namespace TIR.Infrastructure.Data;
 /// <param name="connectionFactory"></param>
 internal sealed class StoredProcedureExecutor(SqlConnectionFactory connectionFactory)
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="parameters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <param name="timeoutSeconds"></param>
+    /// <param name="transaction"></param>
+    /// <returns></returns>
     public static CommandDefinition Command(string name, object? parameters,
         CancellationToken cancellationToken, int timeoutSeconds = 90, IDbTransaction? transaction = null) =>
         new(name, parameters, transaction: transaction,
             commandTimeout: timeoutSeconds, commandType: CommandType.StoredProcedure,
             cancellationToken: cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="parameters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<T?> SingleOrDefaultAsync<T>(string name, object? parameters,
         CancellationToken cancellationToken) =>
         WithConnectionAsync(connection =>
             connection.QuerySingleOrDefaultAsync<T>(Command(name, parameters, cancellationToken)),
             true, cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="parameters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <param name="timeoutSeconds"></param>
+    /// <returns></returns>
     public Task<T> SingleAsync<T>(string name, object? parameters,
         CancellationToken cancellationToken, int timeoutSeconds = 90) =>
         WithConnectionAsync(connection =>
             connection.QuerySingleAsync<T>(Command(name, parameters, cancellationToken, timeoutSeconds)),
             false, cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="parameters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<IReadOnlyList<T>> ListAsync<T>(string name, object? parameters,
         CancellationToken cancellationToken) =>
         WithConnectionAsync<IReadOnlyList<T>>(async connection =>
             (await connection.QueryAsync<T>(Command(name, parameters, cancellationToken))).ToList(),
             true, cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <param name="parameters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<PageResult<T>> PageAsync<T>(string name, object? parameters,
         CancellationToken cancellationToken) =>
         WithConnectionAsync(async connection =>
@@ -46,15 +88,31 @@ internal sealed class StoredProcedureExecutor(SqlConnectionFactory connectionFac
             return new PageResult<T>(total, items);
         }, true, cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="parameters"></param>
+    /// <param name="cancellationToken"></param>
+    /// <param name="timeoutSeconds"></param>
+    /// <returns></returns>
     public Task ExecuteAsync(string name, object? parameters, CancellationToken cancellationToken,
         int timeoutSeconds = 90) =>
         WithConnectionAsync(async connection =>
         {
             await connection.ExecuteAsync(Command(name, parameters, cancellationToken, timeoutSeconds));
+
             return 0;
         }, false, cancellationToken);
 
-    // تلاش دوباره فقط روی خواندن بی اثر در صورت Deadlock انجام می شود.
+    /// <summary>
+    /// تلاش دوباره فقط روی خواندن بی اثر در صورت Deadlock انجام می شود.
+    /// </summary>
+    /// <typeparam name="TResult"></typeparam>
+    /// <param name="operation"></param>
+    /// <param name="readOnly"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<TResult> WithConnectionAsync<TResult>(
         Func<SqlConnection, Task<TResult>> operation, bool readOnly,
         CancellationToken cancellationToken)
@@ -79,6 +137,9 @@ internal sealed class StoredProcedureExecutor(SqlConnectionFactory connectionFac
     }
 }
 
+/// <summary>
+/// 
+/// </summary>
 internal static class DatabaseErrorMapper
 {
     // شماره خطاهایی که در زمان همزمانی برگشت داده می شود.
@@ -88,6 +149,11 @@ internal static class DatabaseErrorMapper
         52210, 52211, 52212, 52213, 52304, 52305
     ];
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="error"></param>
+    /// <returns></returns>
     public static DatabaseFailureException Map(SqlException error)
     {
         var kind = error.Number switch

@@ -30,17 +30,16 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
         return EmployeeDbMapper.ToDomain(row);
     }
 
-    public Task<ChangeStateDto> SoftDeleteAsync(StateChangeRequest request, CancellationToken cancellationToken) =>
-        executor.SingleAsync<ChangeStateDto>("dbo.SP_Employee_SoftDelete", request, cancellationToken);
+    public Task<ChangeStateDto> SoftDeleteAsync(StateChangeRequest request, CancellationToken cancellationToken)
+        => executor.SingleAsync<ChangeStateDto>("dbo.SP_Employee_SoftDelete", request, cancellationToken);
 
-    public Task<ChangeStateDto> RestoreAsync(StateChangeRequest request, CancellationToken cancellationToken) =>
-        executor.SingleAsync<ChangeStateDto>("dbo.SP_Employee_Restore", request, cancellationToken);
+    public Task<ChangeStateDto> RestoreAsync(StateChangeRequest request, CancellationToken cancellationToken)
+        => executor.SingleAsync<ChangeStateDto>("dbo.SP_Employee_Restore", request, cancellationToken);
 
-    public Task<PageResult<EmployeeListItem>> ListAsync(EmployeeListRequest request, CancellationToken cancellationToken) =>
-        executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_List", request, cancellationToken);
+    public Task<PageResult<EmployeeListItem>> ListAsync(EmployeeListRequest request, CancellationToken cancellationToken)
+        => executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_List", request, cancellationToken);
 
-    public Task<PageResult<EmployeeListItem>> SearchAdvancedAsync(AdvancedEmployeeSearchRequest request,
-        CancellationToken cancellationToken)
+    public Task<PageResult<EmployeeListItem>> SearchAdvancedAsync(AdvancedEmployeeSearchRequest request, CancellationToken cancellationToken)
     {
         // JSON مقدارها را به صورت داده ارسال می کند. SQL نام ستون و عملگر را کنترل می کند.
         var filtersJson = JsonSerializer.Serialize(request.Filters.Select(x => new
@@ -81,8 +80,10 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
             table.Rows.Add(value.AttributeId, Db(value.StringValue), Db(value.IntegerValue),
                 Db(value.DecimalValue), Db(value.DateValue?.Date), Db(value.TimeValue),
                 Db(value.DateTimeUtc), Db(value.BooleanValue), Db(value.OptionId));
-        return table;
-    }
 
-    private static object Db(object? value) => value ?? DBNull.Value;
+        return table;
+
+        static object Db(object? value)
+            => value ?? DBNull.Value;
+    }
 }

@@ -41,7 +41,7 @@ public sealed class FormulaMaintenanceJob(IFormulaService formulas, ILogger<Form
                 }
                 catch (DatabaseFailureException error) when (error.ErrorNumber == 52604)
                 {
-                    // تابع های اسکالر و SP در مسیر مجموعه ای SQL پشتیبانی نمی شوند.
+                    // توابع اسکالر و SP در مسیر مجموعه ای SQL پشتیبانی نمی شوند.
                     logger.LogWarning("فرمول {FormulaId} به دلیل نوع اجرا کننده از محاسبه مجموعه ای کنار گذاشته شد.",
                         formula.FormulaId);
                     break;
