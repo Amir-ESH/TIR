@@ -1,7 +1,7 @@
 namespace TIR.Application.Contracts;
 
 public sealed record EmployeeCreateRequest(
-    string EmployeeCode, string FirstName, string LastName,
+    string? EmployeeCode, string FirstName, string LastName,
     IReadOnlyList<TypedValueInput>? InitialValues = null);
 
 public sealed record EmployeeUpdateRequest(

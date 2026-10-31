@@ -15,12 +15,12 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
         parameters.Add("EmployeeCode", request.EmployeeCode);
         parameters.Add("FirstName", request.FirstName);
         parameters.Add("LastName", request.LastName);
-        var withValues = request.InitialValues is { Count: > 0 };
-        if (withValues)
-            parameters.Add("Values", CreateInitialValuesTable(request.InitialValues!).AsTableValuedParameter("dbo.EmployeeNewValueType"));
+        // مسیر واحد: TVP خالی به معنی نداشتن مشخصه اولیه است.
+        var initialValues = request.InitialValues ?? Array.Empty<TypedValueInput>();
+        parameters.Add("Values", CreateInitialValuesTable(initialValues).AsTableValuedParameter("dbo.EmployeeNewValueType"));
 
-        var row = await executor.SingleAsync<EmployeeDbRow>(withValues
-            ? "dbo.SP_Employee_CreateWithValues" : "dbo.SP_Employee_Create", parameters, cancellationToken);
+        var row = await executor.SingleAsync<EmployeeDbRow>(
+            "dbo.SP_Employee_Create", parameters, cancellationToken);
         return EmployeeDbMapper.ToDomain(row);
     }
 
@@ -42,7 +42,7 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
     public Task<PageResult<EmployeeListItem>> SearchAdvancedAsync(AdvancedEmployeeSearchRequest request,
         CancellationToken cancellationToken)
     {
-        // JSON مقدارها را به صورت داده ارسال می کند؛ SQL نام ستون و عملگر را کنترل می کند.
+        // JSON مقدارها را به صورت داده ارسال می کند. SQL نام ستون و عملگر را کنترل می کند.
         var filtersJson = JsonSerializer.Serialize(request.Filters.Select(x => new
         {
             group = x.Group,

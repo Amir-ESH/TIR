@@ -13,7 +13,8 @@ public sealed class EmployeeCreateRequestValidator : AbstractValidator<EmployeeC
 {
     public EmployeeCreateRequestValidator()
     {
-        RuleFor(x => x.EmployeeCode).NotEmpty().MaximumLength(50);
+        // کد پرسنلی اختیاری است. در صورت عدم ارسال، SQL آن را تولید می کند.
+        RuleFor(x => x.EmployeeCode).MaximumLength(50);
         RuleFor(x => x.FirstName).NotEmpty().MaximumLength(50);
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(50);
         RuleForEach(x => x.InitialValues).SetValidator(new TypedValueInputValidator());

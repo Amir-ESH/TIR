@@ -1,6 +1,6 @@
 # راهنمای پیاده سازی Backend پروژه TIR
 
-این نسخه بر اساس `database/DataBase.sql` موجود در بسته پروژه آماده شده است. ساختار دیتابیس و نام تمام رویه های `dbo.SP_*` تغییر نکرده است. نسخه هدف `net8.0` است و UI در این فاز ایجاد نشده است.
+این نسخه بر اساس `database/DataBase.sql` موجود در بسته پروژه آماده شده است. منطق ثبت کارمند در یک رویه `dbo.SP_Employee_Create` یکپارچه شده و رویه قدیمی `SP_Employee_CreateWithValues` حذف شده است. نسخه هدف `net8.0` است و UI در این فاز ایجاد نشده است.
 
 ## معماری
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | `TIR.Domain` | مدل مستقل کارمند |
 | `TIR.Application` | قراردادهای درخواست و پاسخ، FluentValidation، سرویس های هماهنگ کننده، تبدیل تاریخ شمسی |
-| `TIR.Infrastructure` | فراخوانی ۳۳ رویه با Dapper، SqlClient، انتقال حجیم با SqlBulkCopy و تبدیل خطاها |
+| `TIR.Infrastructure` | فراخوانی ۳۲ رویه با Dapper، SqlClient، انتقال حجیم با SqlBulkCopy و تبدیل خطاها |
 | `TIR.Web` | تنظیمات Host، Serilog، Hangfire Server، Jobهای دوره ای و داشبورد توسعه |
 
 قانون اصلی: **هیچ منطق CRUD، اعتبارسنجی تجاری، محاسبه فرمول یا مدیریت تراکنش تجاری در C# تکرار نشده است.**
@@ -16,7 +16,7 @@
 ## سرویس های آماده شده
 
 - `IEmployeeQueryService`: خواندن جزئیات یک کارمند و `RowVersion`.
-- `IEmployeeService`: ایجاد ساده یا با مقادیر اولیه، ویرایش، حذف منطقی، بازیابی، فهرست و جستجوی پیشرفته.
+- `IEmployeeService`: ایجاد کارمند از یک مسیر واحد، با کد پرسنلی و مقادیر اولیه اختیاری، ویرایش، حذف منطقی، بازیابی، فهرست و جستجوی پیشرفته.
 - `IAttributeService`: مدیریت تعریف مشخصه و گزینه های انتخاب تکی.
 - `IAttributeValueService`: دریافت مقدار، فهرست فرم و ذخیره یا خالی کردن مقدار نوع دار.
 - `IFormulaService`: ثبت فرمول، وابستگی، ترتیب، محاسبه فردی و مجموعه ای، نامعتبر کردن و تشخیص انقضا.
@@ -28,10 +28,19 @@
 | --- | --- |
 | مشخصه | `SP_AttributeDefinition_Create`, `SP_AttributeDefinition_Get`, `SP_AttributeDefinition_List`, `SP_AttributeDefinition_Update`, `SP_AttributeDefinition_SoftDelete`, `SP_AttributeDefinition_Restore` |
 | گزینه | `SP_AttributeOption_Create`, `SP_AttributeOption_List` |
-| کارمند | `SP_Employee_Create`, `SP_Employee_CreateWithValues`, `SP_Employee_Get`, `SP_Employee_List`, `SP_Employee_Update`, `SP_Employee_SoftDelete`, `SP_Employee_Restore`, `SP_Employee_SearchAdvanced` |
+| کارمند | `SP_Employee_Create`, `SP_Employee_Get`, `SP_Employee_List`, `SP_Employee_Update`, `SP_Employee_SoftDelete`, `SP_Employee_Restore`, `SP_Employee_SearchAdvanced` |
 | مقدار | `SP_EmployeeAttributeValue_Get`, `SP_EmployeeAttributeValue_List`, `SP_EmployeeAttributeValue_Save` |
 | فرمول | `SP_AttributeFormula_Register`, `SP_FormulaDependency_Add`, `SP_Formula_GetCalculationOrder`, `SP_Formula_Calculate`, `SP_Formula_CalculateAll`, `SP_Formula_CalculateSet`, `SP_Formula_MarkExpired`, `SP_Formula_InvalidateAll`, `SP_Formula_InvalidateDependents` |
 | گروهی | `SP_Batch_Create`, `SP_Batch_Process`, `SP_Batch_GetReport`, `SP_Batch_Delete`, `SP_Batch_Cleanup` |
+
+### قرارداد جدید ایجاد کارمند
+
+- تمام ثبت ها فقط از `dbo.SP_Employee_Create` انجام می شوند؛ `EmployeeRepository` دیگر مسیر جداگانه ای برای مشخصه های اولیه ندارد.
+- `EmployeeCreateRequest.EmployeeCode` اختیاری است. کد خالی یا `null` باعث تولید کد برابر بزرگ ترین کد **کاملاً عددی** موجود + ۱ می شود؛ کدهای `EMP0001` در شمارش شرکت نمی کنند. کدهای مربوط به کارمندان حذف نرم شده نیز رزرو باقی می مانند.
+- نام و نام خانوادگی همچنان اجباری هستند. `InitialValues` در صورت عدم ارسال به TVP خالی تبدیل می شود.
+- اگر مشخصه ورودی اجباری و فعال تعریف شده باشد، باید مقدار درست آن در `InitialValues` ارسال شود، وگرنه کل ثبت در SQL رد می شود. اعتبارسنجی نوع و گزینه انتخابی نیز در همین تراکنش انجام می شود.
+- تولید خودکار کد برای جلوگیری از تکرار همزمان از قفل انحصاری موقت روی جدول `Employee` استفاده می کند. در نرخ ثبت بسیار بالا، این قسمت باید با شمارنده مستقل و هماهنگ با ثبت کد دستی بهینه شود.
+- برای اعمال تغییر در دیتابیس موجود، ابتدا پس از گرفتن Backup فایل `database/20261031_UnifyEmployeeCreate.sql` را اجرا کنید. اجرای مجدد اسکریپت کامل `DataBase.sql` روی دیتابیس موجود توصیه نمی شود.
 
 ## قرارداد نسخه و همزمانی
 
