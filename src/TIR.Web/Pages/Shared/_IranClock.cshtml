@@ -1,0 +1,39 @@
+@* نمایش ساعت زنده ایران و تقویم خورشیدی ماه جاری *@
+<div class="tir-iran-clock badge text-bg-light border px-3 py-2" id="tirIranClock">
+    <button type="button"
+            class="tir-iran-clock__date"
+            id="tirIranDateTrigger"
+            aria-label="نمایش تقویم خورشیدی"
+            aria-expanded="false"
+            aria-controls="tirIranCalendar">
+        <span id="tirIranToday">در حال دریافت تاریخ...</span>
+        <span class="tir-iran-clock__arrow" aria-hidden="true">▾</span>
+    </button>
+
+    <span class="tir-iran-clock__divider" aria-hidden="true"></span>
+    <span class="tir-iran-clock__time" id="tirIranTime" dir="ltr" title="ساعت ایران">--:--:--</span>
+
+    <div class="tir-iran-calendar shadow" id="tirIranCalendar"
+         role="dialog" aria-label="تقویم ماه خورشیدی" aria-modal="false" hidden>
+        <div class="tir-iran-calendar__heading">
+            <button type="button" id="tirIranPreviousMonth" class="tir-iran-calendar__arrow"
+                    title="ماه قبل" aria-label="ماه قبل">❯</button>
+            <strong id="tirIranMonthTitle"></strong>
+            <button type="button" id="tirIranNextMonth" class="tir-iran-calendar__arrow"
+                    title="ماه بعد" aria-label="ماه بعد">❮</button>
+        </div>
+
+        <div class="tir-iran-calendar__grid tir-iran-calendar__weekdays" aria-hidden="true">
+            <span>ش</span><span>ی</span><span>د</span><span>س</span>
+            <span>چ</span><span>پ</span><span>ج</span>
+        </div>
+
+        <div class="tir-iran-calendar__grid tir-iran-calendar__days" id="tirIranCalendarDays"
+             role="grid" aria-label="روزهای ماه"></div>
+
+        <div class="tir-iran-calendar__footer">
+            <button type="button" id="tirIranGoToToday" class="btn btn-sm btn-outline-primary">امروز</button>
+            <button type="button" id="tirIranCloseCalendar" class="btn btn-sm btn-light">بستن</button>
+        </div>
+    </div>
+</div>

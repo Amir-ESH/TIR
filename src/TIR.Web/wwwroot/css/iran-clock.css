@@ -1,0 +1,120 @@
+/* ساعت و تقویم خورشیدی مستقل از استایل صفحات دیگر هستند. */
+.tir-iran-clock {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    max-width: 100%;
+    border-radius: .8rem;
+    font-size: .82rem;
+    font-weight: 500;
+    white-space: normal;
+    direction: rtl;
+}
+
+.tir-iran-clock__date {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border: 0;
+    padding: .15rem 0;
+    background: transparent;
+    color: #263555;
+    font-size: inherit;
+    font-weight: 600;
+    line-height: 1.6;
+    cursor: pointer;
+}
+
+.tir-iran-clock__date:hover,
+.tir-iran-clock__date[aria-expanded="true"] { color: #2359c5; }
+.tir-iran-clock__date:focus-visible { outline: 2px solid #3067cb; outline-offset: 3px; border-radius: .2rem; }
+.tir-iran-clock__arrow { font-size: .72rem; opacity: .7; }
+.tir-iran-clock__divider { width: 1px; height: 1.2rem; background: #cbd5e1; }
+.tir-iran-clock__time {
+    color: #36517f;
+    font-weight: 700;
+    font-size: .95rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.tir-iran-calendar {
+    position: absolute;
+    z-index: 1100;
+    inset-inline-end: 0;
+    top: calc(100% + .75rem);
+    width: 310px;
+    max-width: calc(100vw - 28px);
+    padding: 1rem;
+    background: #fff;
+    color: #243047;
+    border: 1px solid #e3e9f2;
+    border-radius: 16px;
+    direction: rtl;
+    text-align: center;
+    white-space: normal;
+    font-size: .88rem;
+    font-weight: 400;
+}
+
+.tir-iran-calendar[hidden] { display: none !important; }
+.tir-iran-calendar__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .4rem;
+    margin-bottom: .9rem;
+    color: #203c73;
+}
+.tir-iran-calendar__heading strong { font-size: .95rem; font-weight: 700; }
+.tir-iran-calendar__arrow {
+    display: grid;
+    place-items: center;
+    width: 31px;
+    height: 31px;
+    border: 1px solid #e1e7f2;
+    border-radius: 8px;
+    background: #f8fafd;
+    color: #345b93;
+    cursor: pointer;
+}
+.tir-iran-calendar__arrow:hover { background: #e8f0ff; }
+.tir-iran-calendar__grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+.tir-iran-calendar__weekdays { margin-bottom: .45rem; color: #718099; font-weight: 600; }
+.tir-iran-calendar__weekdays span,
+.tir-iran-calendar__days span { display: grid; place-items: center; min-height: 35px; }
+.tir-iran-calendar__days span { border-radius: 9px; }
+.tir-iran-calendar__days span.is-friday { color: #c34b5b; }
+.tir-iran-calendar__days span.is-today {
+    color: #fff;
+    background: #2864ca;
+    font-weight: 800;
+    box-shadow: 0 3px 10px #2864ca33;
+}
+.tir-iran-calendar__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: .85rem;
+    padding-top: .8rem;
+    border-top: 1px solid #edf1f7;
+}
+
+@media (max-width: 580px) {
+    .topbar { flex-wrap: wrap; }
+    .topbar-actions { flex-wrap: wrap; }
+    .topbar-actions .tir-iran-clock.badge { display: inline-flex; }
+    .tir-iran-clock { gap: .4rem; padding-inline: .55rem !important; }
+    .tir-iran-clock__date { font-size: .74rem; }
+    .tir-iran-clock__time { font-size: .82rem; }
+}
+
+@media (min-width: 581px) and (max-width: 650px) {
+    .topbar-actions .tir-iran-clock.badge { display: inline-flex; }
+}
