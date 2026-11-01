@@ -11,7 +11,7 @@
         <input asp-for="PageNumber" type="hidden" />
         <div class="row g-3 mb-3">
             <div class="col-md-7"><label asp-for="EmployeeSearch" class="form-label">جستجو در مشخصات ثابت کارمند</label><input asp-for="EmployeeSearch" class="form-control" placeholder="کد یا نام کارمند" /></div>
-            <div class="col-md-5"><label asp-for="SortAttributeId" class="form-label">مرتب سازی بر اساس مشخصه داینامیک</label><select asp-for="SortAttributeId" class="form-select"><option value="">بدون مرتب سازی داینامیک</option>@foreach (var attribute in Model.Attributes) { <option value="@attribute.Id">@attribute.Title</option> }</select></div>
+            <div class="col-md-5"><label asp-for="SortAttributeId" class="form-label">مرتب سازی بر اساس مشخصه داینامیک</label><select asp-for="SortAttributeId" class="form-select"><option value="">بدون مرتب سازی داینامیک</option>@foreach (var attribute in Model.Attributes) { <option value="@(attribute.Id)">@(attribute.Title)</option> }</select></div>
             <div class="col-md-6"><label asp-for="SortBy" class="form-label">مرتب سازی فیلد ثابت</label><select asp-for="SortBy" class="form-select"><option value="Id">شناسه</option><option value="EmployeeCode">کد کارمند</option><option value="FirstName">نام</option><option value="LastName">نام خانوادگی</option></select></div>
             <div class="col-md-6"><label asp-for="SortDescending" class="form-label">جهت مرتب سازی</label><select asp-for="SortDescending" class="form-select"><option value="false">صعودی</option><option value="true">نزولی</option></select></div>
         </div>
