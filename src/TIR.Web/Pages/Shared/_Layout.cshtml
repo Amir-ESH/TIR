@@ -17,9 +17,9 @@
         <aside class="app-sidebar" id="appSidebar">
             <a asp-page="/Index" class="brand" aria-label="صفحه اصلی">
                 <span class="brand-mark">T</span>
-                <span><strong>TIR</strong><small>مدیریت هوشمند پرسنل</small></span>
+                <span><strong>TIR</strong><small>مدیریت داینامیک پرسنل</small></span>
             </a>
-            <div class="nav-caption">مدیریت سازمان</div>
+            <div class="nav-caption">منو مدیریت سازمان</div>
             <nav class="side-nav" aria-label="منوی اصلی">
                 <a asp-page="/Index"><span class="nav-symbol">▦</span> داشبورد</a>
                 <a asp-page="/Employees/Index"><span class="nav-symbol">♙</span> کارمندان</a>
@@ -28,7 +28,7 @@
                 <a asp-page="/Bulk/Index"><span class="nav-symbol">⇄</span> عملیات گروهی</a>
                 <a href="/hangfire" target="_blank" rel="noopener"><span class="nav-symbol">◷</span> داشبورد Hangfire</a>
             </nav>
-            <div class="sidebar-bottom"><span class="status-pulse"></span> نسخه MVP · محیط سازمانی</div>
+            <div class="sidebar-bottom"><span class="status-pulse"></span> نسخه MVP | مدل سازمانی</div>
         </aside>
 
         <div class="app-main">
@@ -62,7 +62,7 @@
                 @RenderBody()
             </main>
 
-            <footer class="app-footer">TIR · پایگاه داده SQL Server · همه حقوق محفوظ است</footer>
+            <footer class="app-footer">پروژه مدیریت منابع انسانی | نسخه ابتدایی</footer>
         </div>
     </div>
 
