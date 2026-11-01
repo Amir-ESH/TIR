@@ -18,7 +18,7 @@
             <div class="col-md-6 d-flex align-items-center"><div class="form-check form-switch"><input asp-for="Input.IsRequired" class="form-check-input" /><label asp-for="Input.IsRequired" class="form-check-label">ثبت مقدار اجباری باشد</label></div></div>
             <div class="col-12"><label asp-for="Input.Description" class="form-label">توضیح</label><textarea asp-for="Input.Description" class="form-control" rows="3" maxlength="1000"></textarea></div>
         </div>
-        <div class="alert alert-info mt-3 mb-0">گزینه های نوع انتخاب تکی و اجرا کننده فرمول در این نسخه با اسکریپت SQL مدیریت می شوند.</div>
+        <div class="alert alert-info mt-3 mb-0">گزینه های نوع انتخاب تکی پس از ثبت مشخصه، از طریق دکمه «مدیریت گزینه ها» در فهرست مشخصه ها تنظیم می شوند. اجرا کننده فرمول همچنان در SQL Server ثبت می شود.</div>
     </div>
     <div class="card-body border-top d-flex gap-2"><button class="btn btn-primary">ثبت مشخصه</button><a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a></div>
 </form>

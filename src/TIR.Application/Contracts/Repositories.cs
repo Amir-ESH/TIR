@@ -116,6 +116,10 @@ public interface IAttributeRepository
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<AttributeOptionDto> CreateOptionAsync(AttributeOptionCreateRequest request, CancellationToken cancellationToken);
+
+    Task<AttributeOptionDto> UpdateOptionAsync(AttributeOptionUpdateRequest request, CancellationToken cancellationToken);
+
+    Task<AttributeOptionDto> SetOptionEnabledAsync(AttributeOptionStateRequest request, CancellationToken cancellationToken);
     
     /// <summary>
     /// 

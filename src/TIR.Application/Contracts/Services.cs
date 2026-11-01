@@ -93,6 +93,10 @@ public interface IAttributeService
 
     Task<AttributeOptionDto> CreateOptionAsync(AttributeOptionCreateRequest request, CancellationToken cancellationToken = default);
 
+    Task<AttributeOptionDto> UpdateOptionAsync(AttributeOptionUpdateRequest request, CancellationToken cancellationToken = default);
+
+    Task<AttributeOptionDto> SetOptionEnabledAsync(AttributeOptionStateRequest request, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<AttributeOptionDto>> ListOptionsAsync(long attributeId, bool includeDisabled, CancellationToken cancellationToken = default);
 }
 
@@ -101,6 +105,8 @@ public sealed class AttributeService(IAttributeRepository repository,
     IValidator<AttributeUpdateRequest> updateValidator,
     IValidator<AttributeListRequest> listValidator,
     IValidator<AttributeOptionCreateRequest> optionValidator,
+    IValidator<AttributeOptionUpdateRequest> optionUpdateValidator,
+    IValidator<AttributeOptionStateRequest> optionStateValidator,
     IValidator<StateChangeRequest> stateValidator) : IAttributeService
 {
     public async Task<AttributeDefinitionDto> CreateAsync(AttributeCreateRequest request, CancellationToken cancellationToken = default)
@@ -156,6 +162,22 @@ public sealed class AttributeService(IAttributeRepository repository,
 
         await optionValidator.ValidateAndThrowAsync(request, cancellationToken);
         return await repository.CreateOptionAsync(request, cancellationToken);
+    }
+
+    public async Task<AttributeOptionDto> UpdateOptionAsync(AttributeOptionUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        await optionUpdateValidator.ValidateAndThrowAsync(request, cancellationToken);
+        return await repository.UpdateOptionAsync(request, cancellationToken);
+    }
+
+    public async Task<AttributeOptionDto> SetOptionEnabledAsync(AttributeOptionStateRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        await optionStateValidator.ValidateAndThrowAsync(request, cancellationToken);
+        return await repository.SetOptionEnabledAsync(request, cancellationToken);
     }
 
     public Task<IReadOnlyList<AttributeOptionDto>> ListOptionsAsync(long attributeId, bool includeDisabled, CancellationToken cancellationToken = default)

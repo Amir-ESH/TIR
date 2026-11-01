@@ -117,6 +117,29 @@ public sealed class AttributeOptionCreateRequestValidator : AbstractValidator<At
     }
 }
 
+public sealed class AttributeOptionUpdateRequestValidator : AbstractValidator<AttributeOptionUpdateRequest>
+{
+    public AttributeOptionUpdateRequestValidator()
+    {
+        RuleFor(x => x.AttributeId).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.ExpectedRowVersion).Must(InputRules.HasVersion)
+            .WithMessage("نسخه گزینه معتبر نیست.");
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
+    }
+}
+
+public sealed class AttributeOptionStateRequestValidator : AbstractValidator<AttributeOptionStateRequest>
+{
+    public AttributeOptionStateRequestValidator()
+    {
+        RuleFor(x => x.AttributeId).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.ExpectedRowVersion).Must(InputRules.HasVersion)
+            .WithMessage("نسخه گزینه معتبر نیست.");
+    }
+}
+
 public sealed class TypedValueInputValidator : AbstractValidator<TypedValueInput>
 {
     public TypedValueInputValidator()

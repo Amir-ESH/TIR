@@ -146,7 +146,7 @@ internal static class DatabaseErrorMapper
     private static readonly HashSet<int> ConcurrencyNumbers =
     [
         52005, 52006, 52008, 52010, 52105, 52106, 52108, 52110,
-        52210, 52211, 52212, 52213, 52304, 52305
+        52210, 52211, 52212, 52213, 52304, 52305, 52502
     ];
 
     /// <summary>

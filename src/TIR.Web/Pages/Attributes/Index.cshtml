@@ -25,9 +25,13 @@
                 <td>@(item.SourceKind == 2 ? "فرمول" : "ورودی")</td>
                 <td>@(item.IsRequired ? "بله" : "خیر")</td><td>@item.DisplayOrder</td>
                 <td><span class="badge text-bg-@(item.IsDeleted ? "danger" : "success")">@(item.IsDeleted ? "حذف شده" : "فعال")</span></td>
-                <td><div class="d-flex gap-2">
+                <td><div class="d-flex flex-wrap gap-2">
                     @if (!item.IsDeleted)
                     {
+                        @if (item.SourceKind == 1 && item.DataKind == 8)
+                        {
+                            <a asp-page="/Attributes/Options" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success">مدیریت گزینه ها</a>
+                        }
                         <a asp-page="/Attributes/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
                         <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا از حذف منطقی این مشخصه مطمئن هستید؟">
                             <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />

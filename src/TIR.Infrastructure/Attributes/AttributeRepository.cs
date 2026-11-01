@@ -27,6 +27,12 @@ internal sealed class AttributeRepository(StoredProcedureExecutor executor) : IA
     public Task<AttributeOptionDto> CreateOptionAsync(AttributeOptionCreateRequest request, CancellationToken cancellationToken)
         => executor.SingleAsync<AttributeOptionDto>("dbo.SP_AttributeOption_Create", request, cancellationToken);
 
+    public Task<AttributeOptionDto> UpdateOptionAsync(AttributeOptionUpdateRequest request, CancellationToken cancellationToken)
+        => executor.SingleAsync<AttributeOptionDto>("dbo.SP_AttributeOption_Update", request, cancellationToken); // TODO: Add this SP
+
+    public Task<AttributeOptionDto> SetOptionEnabledAsync(AttributeOptionStateRequest request, CancellationToken cancellationToken)
+        => executor.SingleAsync<AttributeOptionDto>("dbo.SP_AttributeOption_SetEnabled", request, cancellationToken); // TODO: Add this SP
+
     public Task<IReadOnlyList<AttributeOptionDto>> ListOptionsAsync(long attributeId, bool includeDisabled, CancellationToken cancellationToken)
         => executor.ListAsync<AttributeOptionDto>("dbo.SP_AttributeOption_List",
             new { AttributeId = attributeId, IncludeDisabled = includeDisabled }, cancellationToken);

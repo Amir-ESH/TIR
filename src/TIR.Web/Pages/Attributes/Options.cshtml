@@ -1,0 +1,92 @@
+@page "{id:long}"
+@model TIR.Web.Pages.Attributes.OptionsModel
+@{
+    ViewData["Title"] = "مدیریت گزینه های مشخصه";
+}
+
+<div class="toolbar">
+    <div>
+        <h2 class="section-title mb-1">گزینه های مشخصه «@Model.Attribute.Title»</h2>
+        <p class="page-lead mb-0">کد مشخصه: <span class="mono">@Model.Attribute.AttributeCode</span></p>
+    </div>
+    <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت به مشخصه ها</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header"><h3 class="section-title mb-0">افزودن گزینه جدید</h3></div>
+    <form method="post" asp-page-handler="Create" asp-route-id="@Model.Attribute.Id">
+        <div class="card-body">
+            <partial name="_Validation" />
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <label asp-for="Input.OptionCode" class="form-label">کد یکتا</label>
+                    <input asp-for="Input.OptionCode" class="form-control" maxlength="100" placeholder="Single" required />
+                </div>
+                <div class="col-lg-5">
+                    <label asp-for="Input.Title" class="form-label">عنوان گزینه</label>
+                    <input asp-for="Input.Title" class="form-control" maxlength="200" placeholder="مجرد" required />
+                </div>
+                <div class="col-lg-3">
+                    <label asp-for="Input.DisplayOrder" class="form-label">ترتیب نمایش</label>
+                    <input asp-for="Input.DisplayOrder" type="number" class="form-control" />
+                </div>
+            </div>
+            <div class="form-text mt-2">کد گزینه پس از ثبت ثابت می ماند. ترتیب نمایش در فهرست انتخاب کارمند اعمال می شود.</div>
+        </div>
+        <div class="card-body border-top d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">+ افزودن گزینه</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+        <h3 class="section-title mb-0">فهرست گزینه ها</h3>
+        <span class="badge text-bg-light border">تعداد: @Model.Options.Count</span>
+    </div>
+    @if (Model.Options.Count == 0)
+    {
+        <div class="card-body"><p class="text-muted mb-0">برای این مشخصه هنوز گزینه ای ثبت نشده است.</p></div>
+    }
+    else
+    {
+        @foreach (var option in Model.Options)
+        {
+            <div class="card-body border-bottom">
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-3 flex-wrap">
+                    <div>
+                        <span class="fw-semibold">@option.Title</span>
+                        <span class="mono text-muted small ms-2">@option.OptionCode</span>
+                    </div>
+                    <span class="badge text-bg-@(option.IsEnabled ? "success" : "secondary")">
+                        @(option.IsEnabled ? "فعال" : "غیرفعال")
+                    </span>
+                </div>
+
+                <form method="post" asp-page-handler="Update" asp-route-id="@Model.Attribute.Id" class="row g-2 align-items-end mb-2">
+                    <input type="hidden" name="optionId" value="@option.Id" />
+                    <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(option.RowVersion)" />
+                    <div class="col-lg-7">
+                        <label class="form-label" for="option-title-@option.Id">عنوان گزینه</label>
+                        <input id="option-title-@option.Id" name="title" value="@option.Title" class="form-control" maxlength="200" required />
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label" for="option-order-@option.Id">ترتیب نمایش</label>
+                        <input id="option-order-@option.Id" name="displayOrder" value="@option.DisplayOrder" type="number" class="form-control" required />
+                    </div>
+                    <div class="col-lg-2 d-grid"><button class="btn btn-outline-primary" type="submit">ذخیره تغییرات</button></div>
+                </form>
+
+                <form method="post" asp-page-handler="SetEnabled" asp-route-id="@Model.Attribute.Id"
+                      data-confirm="@(option.IsEnabled ? "آیا این گزینه غیرفعال شود؟ گزینه استفاده شده قابل غیرفعال کردن نیست." : "آیا این گزینه فعال شود؟")">
+                    <input type="hidden" name="optionId" value="@option.Id" />
+                    <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(option.RowVersion)" />
+                    <input type="hidden" name="isEnabled" value="@(!option.IsEnabled)" />
+                    <button type="submit" class="btn btn-sm btn-outline-@(option.IsEnabled ? "danger" : "success")">
+                        @(option.IsEnabled ? "غیرفعال کردن" : "فعال کردن")
+                    </button>
+                </form>
+            </div>
+        }
+    }
+</div>
