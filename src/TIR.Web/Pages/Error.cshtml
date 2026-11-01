@@ -1,0 +1,12 @@
+@page
+@model TIR.Web.Pages.ErrorModel
+@{
+    ViewData["Title"] = "خطای برنامه";
+}
+<div class="card text-center mx-auto" style="max-width:680px">
+    <div class="card-body p-5">
+        <h2 class="mb-3">متاسفانه درخواست انجام نشد</h2>
+        <p class="page-lead">خطای @Model.StatusCode رخ داده است. لطفا دوباره تلاش کنید یا به صفحه اصلی برگردید.</p>
+        <a asp-page="/Index" class="btn btn-primary">بازگشت به داشبورد</a>
+    </div>
+</div>

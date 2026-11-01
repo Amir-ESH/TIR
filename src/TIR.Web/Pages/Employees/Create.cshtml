@@ -1,0 +1,31 @@
+@page
+@model TIR.Web.Pages.Employees.CreateModel
+@{
+    ViewData["Title"] = "افزودن کارمند";
+}
+<div class="toolbar"><div><h2 class="section-title mb-1">ثبت کارمند جدید</h2><p class="page-lead mb-0">اطلاعات ثابت و مقدارهای اولیه در یک تراکنش SQL ثبت می شوند.</p></div><a asp-page="/Employees/Index" class="btn btn-outline-secondary">بازگشت</a></div>
+<form method="post" id="employee-create-form">
+    <partial name="_Validation" />
+    <div class="card mb-4">
+        <div class="card-header"><h3 class="section-title mb-0">اطلاعات اصلی کارمند</h3></div>
+        <div class="card-body"><div class="row g-3">
+            <div class="col-lg-4"><label asp-for="EmployeeCode" class="form-label">کد کارمند</label><input asp-for="EmployeeCode" class="form-control" maxlength="50" placeholder="خالی بماند تا خودکار تولید شود" /><div class="form-text">ثبت خودکار کد توسط SQL انجام می شود.</div></div>
+            <div class="col-lg-4"><label asp-for="FirstName" class="form-label">نام <span class="text-danger">*</span></label><input asp-for="FirstName" class="form-control" maxlength="50" required /></div>
+            <div class="col-lg-4"><label asp-for="LastName" class="form-label">نام خانوادگی <span class="text-danger">*</span></label><input asp-for="LastName" class="form-control" maxlength="50" required /></div>
+        </div></div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap"><h3 class="section-title mb-0">مشخصه های داینامیک</h3><input class="form-control form-control-sm w-auto js-filter-fields" placeholder="جستجو در مشخصه ها" aria-label="جستجو در مشخصه ها" /></div>
+        <div class="card-body"><div class="field-grid">
+            @for (var i = 0; i < Model.Fields.Count; i++)
+            {
+                var field = Model.Fields[i];
+                field.Prefix = $"Fields[{i}]";
+                <partial name="_Field" model="field" />
+            }
+        </div>
+        @if (Model.Fields.Count == 0) { <p class="text-muted mb-0">هنوز مشخصه فعالی تعریف نشده است.</p> }
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-2 justify-content-end"><a asp-page="/Employees/Index" class="btn btn-light">انصراف</a><button class="btn btn-primary px-5">ثبت کارمند</button></div>
+</form>

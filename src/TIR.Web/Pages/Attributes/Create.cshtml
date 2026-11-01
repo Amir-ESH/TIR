@@ -1,0 +1,25 @@
+@page
+@model TIR.Web.Pages.Attributes.CreateModel
+@{
+    ViewData["Title"] = "ایجاد مشخصه";
+}
+<div class="toolbar"><div><h2 class="section-title mb-1">مشخصه جدید</h2><p class="page-lead mb-0">نوع داده پس از ثبت مقدار فقط با مهاجرت مستقل قابل تغییر است.</p></div><a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت</a></div>
+<form method="post" class="card" id="attributeCreateForm">
+    <div class="card-body">
+        <partial name="_Validation" />
+        <div class="row g-3">
+            <div class="col-md-6"><label asp-for="Input.AttributeCode" class="form-label">کد یکتا</label><input asp-for="Input.AttributeCode" class="form-control" required maxlength="100" placeholder="BirthDate" /></div>
+            <div class="col-md-6"><label asp-for="Input.Title" class="form-label">عنوان</label><input asp-for="Input.Title" class="form-control" required maxlength="200" placeholder="تاریخ تولد" /></div>
+            <div class="col-md-6"><label asp-for="Input.SourceKind" class="form-label">منبع مقدار</label><select asp-for="Input.SourceKind" class="form-select" id="sourceKind"><option value="1">ورودی کاربر</option><option value="2">فرمول محاسباتی</option></select></div>
+            <div class="col-md-6"><label asp-for="Input.DataKind" class="form-label">نوع داده</label><select asp-for="Input.DataKind" class="form-select" id="dataKind">
+                <option value="1">متن</option><option value="2">عدد صحیح</option><option value="3">اعشار</option><option value="4">تاریخ</option><option value="5">ساعت</option><option value="6">تاریخ و ساعت</option><option value="7">بولین</option><option value="8">انتخاب تکی</option>
+            </select></div>
+            <div class="col-md-6"><label asp-for="Input.DisplayOrder" class="form-label">ترتیب نمایش</label><input asp-for="Input.DisplayOrder" class="form-control" type="number" /></div>
+            <div class="col-md-6 d-flex align-items-center"><div class="form-check form-switch"><input asp-for="Input.IsRequired" class="form-check-input" /><label asp-for="Input.IsRequired" class="form-check-label">ثبت مقدار اجباری باشد</label></div></div>
+            <div class="col-12"><label asp-for="Input.Description" class="form-label">توضیح</label><textarea asp-for="Input.Description" class="form-control" rows="3" maxlength="1000"></textarea></div>
+        </div>
+        <div class="alert alert-info mt-3 mb-0">گزینه های نوع انتخاب تکی و اجرا کننده فرمول در این نسخه با اسکریپت SQL مدیریت می شوند.</div>
+    </div>
+    <div class="card-body border-top d-flex gap-2"><button class="btn btn-primary">ثبت مشخصه</button><a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a></div>
+</form>
+@section Scripts { <script>$(function(){ $('#sourceKind').on('change',function(){ var f=$(this).val()==='2'; $('#dataKind option').each(function(){ var v=Number($(this).val()); $(this).prop('disabled',f && ![1,2,3,4,7].includes(v)); }); if (f && $('#dataKind option:selected').prop('disabled')) $('#dataKind').val('3'); }).trigger('change'); });</script> }

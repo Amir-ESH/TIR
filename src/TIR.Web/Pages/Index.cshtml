@@ -1,0 +1,43 @@
+@page
+@model TIR.Web.Pages.IndexModel
+@{
+    ViewData["Title"] = "داشبورد مدیریت";
+}
+<div class="mb-4">
+    <h2 class="section-title">نمای کلی سازمان</h2>
+    <p class="page-lead">مدیریت کارمندان، مشخصه های قابل توسعه و پردازش گروهی، همه در یک محیط.</p>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card metric-card d-flex justify-content-between flex-row">
+            <div><div class="metric-label">کارمندان فعال</div><div class="metric-number">@Model.EmployeeCount.ToString("N0")</div></div>
+            <div class="metric-glyph">♙</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card metric-card d-flex justify-content-between flex-row">
+            <div><div class="metric-label">مشخصه های فعال</div><div class="metric-number">@Model.AttributeCount.ToString("N0")</div></div>
+            <div class="metric-glyph">☷</div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card metric-card d-flex justify-content-between flex-row">
+            <div><div class="metric-label">امکانات آماده</div><div class="metric-number">۵</div></div>
+            <div class="metric-glyph">✧</div>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <h3 class="section-title">دسترسی سریع</h3>
+        <div class="row g-3">
+            <div class="col-md-4"><a asp-page="/Employees/Create" class="btn btn-primary w-100 py-3">+ ثبت کارمند جدید</a></div>
+            <div class="col-md-4"><a asp-page="/Attributes/Create" class="btn btn-outline-primary w-100 py-3">+ تعریف مشخصه جدید</a></div>
+            <div class="col-md-4"><a asp-page="/Bulk/Index" class="btn btn-outline-secondary w-100 py-3">⇄ پردازش گروهی</a></div>
+        </div>
+    </div>
+</div>
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-warning mt-3">@Model.ErrorMessage</div>
+}

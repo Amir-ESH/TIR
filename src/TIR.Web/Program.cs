@@ -1,5 +1,6 @@
 using Hangfire;
 using Hangfire.SqlServer;
+using Microsoft.AspNetCore.Http.Features;
 using Serilog;
 using TIR.Application;
 using TIR.Application.Common;
@@ -22,6 +23,9 @@ try
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Test") ?? string.Empty);
+    builder.Services.AddRazorPages();
+    builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 256L * 1024 * 1024);
+    builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 256L * 1024 * 1024);
 
     if (builder.Configuration.GetValue<bool>("Hangfire:Enabled"))
     {
@@ -47,6 +51,14 @@ try
 
     var app = builder.Build();
     app.UseSerilogRequestLogging();
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Error");
+        app.UseHsts();
+    }
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+    app.UseRouting();
 
     // داشبورد بدون احراز هویت فقط در محیط توسعه و برای درخواست محلی فعال است.
     if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Hangfire:Enabled"))
@@ -73,6 +85,7 @@ try
             new RecurringJobOptions { TimeZone = IranDateConverter.TehranTimeZone });
     }
 
+    app.MapRazorPages();
     app.Run();
 }
 catch (Exception exception)

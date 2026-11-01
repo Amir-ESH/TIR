@@ -1,0 +1,37 @@
+@page
+@model TIR.Web.Pages.Bulk.IndexModel
+@{
+    ViewData["Title"] = "عملیات گروهی";
+}
+<div class="toolbar"><div><h2 class="section-title mb-1">بارگذاری تغییرات گروهی</h2><p class="page-lead mb-0">برای پردازش چند هزار تا چند صد هزار کارمند از فایل CSV استفاده کنید.</p></div><a asp-page="/Employees/Index" class="btn btn-outline-secondary">فهرست کارمندان</a></div>
+<div class="steps"><span class="step is-current">۱. انتخاب فایل</span><span class="step">۲. انتقال به Staging</span><span class="step">۳. دریافت گزارش</span></div>
+<form method="post" enctype="multipart/form-data" class="card" id="bulkUploadForm">
+    <div class="card-body">
+        <partial name="_Validation" />
+        <div class="file-zone" id="bulkFileZone">
+            <div class="file-icon mb-2">⇪</div>
+            <h3 class="section-title mb-2">فایل CSV خود را انتخاب کنید</h3>
+            <p class="text-muted">حداکثر حجم ۲۵۰ مگابایت، کدگذاری UTF-8، ردیف ها بر اساس EmployeeId مرتب شده باشند.</p>
+            <input asp-for="CsvFile" class="form-control mx-auto" style="max-width:440px" type="file" accept=".csv,text/csv,text/plain" required />
+            <div class="small mt-3 text-muted" id="bulkFileInfo">فایلی انتخاب نشده است.</div>
+        </div>
+        <div class="row g-3 mt-2">
+            <div class="col-md-6"><label asp-for="TransferBatchSize" class="form-label">اندازه بخش انتقال</label><input asp-for="TransferBatchSize" class="form-control" type="number" min="100" max="10000" /></div>
+            <div class="col-md-6"><label asp-for="EmployeesPerTransaction" class="form-label">کارمند در هر تراکنش SQL</label><input asp-for="EmployeesPerTransaction" class="form-control" type="number" min="100" max="10000" /></div>
+        </div>
+        <div class="alert alert-info mt-4 mb-0">
+            <strong>فرمت فایل:</strong> پنج ستون <span class="mono">EmployeeId,AttributeId,OperationKind,Value,ExpectedRowVersion</span>.
+            عملیات ۱ ثبت مقدار و عملیات ۲ خالی کردن است. برای درج جدید نسخه را خالی بگذارید؛ برای ویرایش مقدار موجود، RowVersion هشت بایتی به صورت Base64 الزامی است.
+        </div>
+        <div class="result-box mt-3">
+            <p class="fw-semibold mb-2">نمونه ورودی</p>
+            <pre class="text-start mb-0 small" dir="ltr">EmployeeId,AttributeId,OperationKind,Value,ExpectedRowVersion
+102,5,1,4500000.000,AAAAAAAABkE=
+102,8,2,,AAAAAAAABlM=
+103,5,1,5200000.000,AAAAAAAABlQ=</pre>
+            <div class="form-text">هر کارمند می تواند چند ردیف متوالی داشته باشد. نسخه نمونه صرفا نمایشی است.</div>
+        </div>
+    </div>
+    <div class="card-body border-top d-flex gap-2 align-items-center flex-wrap"><button class="btn btn-primary px-4" id="startBulkButton">شروع پردازش و دریافت گزارش</button><span class="text-muted small">مرورگر را تا پایان دریافت گزارش باز نگه دارید.</span></div>
+</form>
+@section Scripts { <script src="~/js/bulk.js" asp-append-version="true"></script> }

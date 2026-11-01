@@ -1,0 +1,49 @@
+@page "{id:long}"
+@model TIR.Web.Pages.Employees.EditModel
+@{
+    ViewData["Title"] = "ویرایش کارمند";
+}
+<div class="toolbar"><div><h2 class="section-title mb-1">ویرایش کارمند</h2><p class="page-lead mb-0">هر مشخصه نسخه و دکمه ذخیره مستقل دارد.</p></div><a asp-page="/Employees/Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">جزئیات</a></div>
+<form method="post" class="card mb-4">
+    <div class="card-header"><h3 class="section-title mb-0">اطلاعات اصلی</h3></div>
+    <div class="card-body">
+        <partial name="_Validation" />
+        <input asp-for="Input.Id" type="hidden" />
+        <input asp-for="Input.ExpectedRowVersion" type="hidden" />
+        <div class="row g-3">
+            <div class="col-lg-4"><label asp-for="Input.EmployeeCode" class="form-label">کد کارمند</label><input asp-for="Input.EmployeeCode" class="form-control" maxlength="50" required /></div>
+            <div class="col-lg-4"><label asp-for="Input.FirstName" class="form-label">نام</label><input asp-for="Input.FirstName" class="form-control" maxlength="50" required /></div>
+            <div class="col-lg-4"><label asp-for="Input.LastName" class="form-label">نام خانوادگی</label><input asp-for="Input.LastName" class="form-control" maxlength="50" required /></div>
+        </div>
+    </div>
+    <div class="card-body border-top"><button class="btn btn-primary">ذخیره اطلاعات اصلی</button></div>
+</form>
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2"><h3 class="section-title mb-0">ویرایش مشخصه ها</h3><input class="form-control form-control-sm w-auto js-filter-fields" placeholder="جستجو در مشخصه ها" /></div>
+    <div class="card-body"><div id="valueSaveMessage" role="status" aria-live="polite"></div>
+        <div class="field-grid">
+            @foreach (var field in Model.Fields)
+            {
+                field.Prefix = "Field";
+                <form method="post" asp-page-handler="Value" asp-route-id="@Model.Id" class="dynamic-value-form" data-dynamic-save="true">
+                    <div class="dynamic-field">
+                        <partial name="_Field" model="field" />
+                        @if (field.SourceKind != 2)
+                        {
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-sm btn-outline-primary flex-grow-1" type="submit">ذخیره این مقدار</button>
+                                @if (!field.IsRequired) { <button class="btn btn-sm btn-outline-danger js-clear-field" type="button">خالی کردن</button> }
+                            </div>
+                            <input type="hidden" name="Field.ClearValue" value="false" class="js-clear-value" />
+                        }
+                    </div>
+                </form>
+            }
+        </div>
+        @if (Model.Fields.Count == 0) { <div class="table-empty">هنوز مشخصه فعالی وجود ندارد.</div> }
+    </div>
+    <div class="card-body border-top d-flex justify-content-between flex-wrap gap-2">
+        <small class="text-muted">بعد از تغییر مقدارهای موثر بر فرمول، نتایج وابسته قدیمی می شوند.</small>
+        <form method="post" asp-page-handler="Calculate" asp-route-id="@Model.Id" data-confirm="تمام فرمول های این کارمند محاسبه شوند؟"><button class="btn btn-outline-primary">⟳ محاسبه فرمول ها</button></form>
+    </div>
+</div>

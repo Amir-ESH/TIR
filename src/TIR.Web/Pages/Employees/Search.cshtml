@@ -1,0 +1,45 @@
+@page
+@model TIR.Web.Pages.Employees.SearchModel
+@{
+    ViewData["Title"] = "جستجوی پیشرفته";
+}
+<div class="toolbar"><div><h2 class="section-title mb-1">سازنده شروط جستجو</h2><p class="page-lead mb-0">شروط یک گروه با AND و گروه های جداگانه با OR ترکیب می شوند.</p></div><a asp-page="/Employees/Index" class="btn btn-outline-secondary">فهرست کارمندان</a></div>
+<form method="post" id="advancedSearchForm" class="card mb-4">
+    <div class="card-body">
+        <partial name="_Validation" />
+        <input asp-for="FiltersJson" type="hidden" />
+        <input asp-for="PageNumber" type="hidden" />
+        <div class="row g-3 mb-3">
+            <div class="col-md-7"><label asp-for="EmployeeSearch" class="form-label">جستجو در مشخصات ثابت کارمند</label><input asp-for="EmployeeSearch" class="form-control" placeholder="کد یا نام کارمند" /></div>
+            <div class="col-md-5"><label asp-for="SortAttributeId" class="form-label">مرتب سازی بر اساس مشخصه داینامیک</label><select asp-for="SortAttributeId" class="form-select"><option value="">بدون مرتب سازی داینامیک</option>@foreach (var attribute in Model.Attributes) { <option value="@attribute.Id">@attribute.Title</option> }</select></div>
+            <div class="col-md-6"><label asp-for="SortBy" class="form-label">مرتب سازی فیلد ثابت</label><select asp-for="SortBy" class="form-select"><option value="Id">شناسه</option><option value="EmployeeCode">کد کارمند</option><option value="FirstName">نام</option><option value="LastName">نام خانوادگی</option></select></div>
+            <div class="col-md-6"><label asp-for="SortDescending" class="form-label">جهت مرتب سازی</label><select asp-for="SortDescending" class="form-select"><option value="false">صعودی</option><option value="true">نزولی</option></select></div>
+        </div>
+        <div class="border-top pt-3">
+            <div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap"><h3 class="section-title mb-0">شروط داینامیک</h3><button type="button" class="btn btn-outline-primary btn-sm" id="addCondition">+ افزودن شرط</button></div>
+            <div id="conditionsContainer"></div>
+            <div class="form-text">مثال: گروه ۱ شامل مدرک = کارشناسی و سن بیشتر از ۳۰؛ گروه ۲ شامل تاریخ استخدام بعد از ۱۴۰۰/۰۱/۰۱.</div>
+        </div>
+    </div>
+    <div class="card-body border-top"><button type="submit" class="btn btn-primary px-4">اجرای جستجو</button></div>
+</form>
+@if (Model.HasSearched)
+{
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center"><h3 class="section-title mb-0">نتیجه جستجو</h3><span class="badge text-bg-light border">@Model.Result.TotalCount کارمند</span></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>شناسه</th><th>کد</th><th>نام و نام خانوادگی</th><th>وضعیت فرمول</th><th>عملیات</th></tr></thead><tbody>
+            @foreach (var item in Model.Result.Items)
+            {
+                <tr><td>@item.Id</td><td class="mono">@item.EmployeeCode</td><td>@item.FirstName @item.LastName</td><td>@if (item.HasStaleFormula) { <span class="badge text-bg-warning">نتیجه قدیمی دارد</span> } else { <span class="badge text-bg-success">عادی</span> }</td><td><a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">مشاهده</a></td></tr>
+            }
+        </tbody></table></div>
+        @if (Model.Result.Items.Count == 0) { <div class="table-empty">نتیجه ای یافت نشد.</div> }
+        <div class="card-body d-flex gap-2 justify-content-end">
+            @if (Model.PageNumber > 1) { <button type="button" class="btn btn-sm btn-outline-primary js-search-page" data-page="@(Model.PageNumber-1)">صفحه قبل</button> }
+            <span class="badge text-bg-light border p-2">صفحه @Model.PageNumber</span>
+            @if (Model.PageNumber * 50L < Model.Result.TotalCount) { <button type="button" class="btn btn-sm btn-outline-primary js-search-page" data-page="@(Model.PageNumber+1)">صفحه بعد</button> }
+        </div>
+    </div>
+}
+<script id="attributeData" data-options-url="@(Url.Page("/Employees/Search", "Options"))" type="application/json">@Html.Raw(Model.AttributeJson)</script>
+@section Scripts { <script src="~/js/advanced-search.js" asp-append-version="true"></script> }

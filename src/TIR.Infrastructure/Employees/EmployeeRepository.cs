@@ -7,8 +7,18 @@ using TIR.Infrastructure.Data;
 
 namespace TIR.Infrastructure.Employees;
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="executor"></param>
 internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEmployeeRepository
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<Employee> CreateAsync(EmployeeCreateRequest request, CancellationToken cancellationToken)
     {
         var parameters = new DynamicParameters();
@@ -19,26 +29,55 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
         var initialValues = request.InitialValues ?? Array.Empty<TypedValueInput>();
         parameters.Add("Values", CreateInitialValuesTable(initialValues).AsTableValuedParameter("dbo.EmployeeNewValueType"));
 
-        var row = await executor.SingleAsync<EmployeeDbRow>(
-            "dbo.SP_Employee_Create", parameters, cancellationToken);
+        var row = await executor.SingleAsync<EmployeeDbRow>("dbo.SP_Employee_Create", parameters, cancellationToken);
         return EmployeeDbMapper.ToDomain(row);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public async Task<Employee> UpdateAsync(EmployeeUpdateRequest request, CancellationToken cancellationToken)
     {
         var row = await executor.SingleAsync<EmployeeDbRow>("dbo.SP_Employee_Update", request, cancellationToken);
         return EmployeeDbMapper.ToDomain(row);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<ChangeStateDto> SoftDeleteAsync(StateChangeRequest request, CancellationToken cancellationToken)
         => executor.SingleAsync<ChangeStateDto>("dbo.SP_Employee_SoftDelete", request, cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<ChangeStateDto> RestoreAsync(StateChangeRequest request, CancellationToken cancellationToken)
         => executor.SingleAsync<ChangeStateDto>("dbo.SP_Employee_Restore", request, cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<PageResult<EmployeeListItem>> ListAsync(EmployeeListRequest request, CancellationToken cancellationToken)
         => executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_List", request, cancellationToken);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public Task<PageResult<EmployeeListItem>> SearchAdvancedAsync(AdvancedEmployeeSearchRequest request, CancellationToken cancellationToken)
     {
         // JSON مقدارها را به صورت داده ارسال می کند. SQL نام ستون و عملگر را کنترل می کند.
@@ -63,6 +102,11 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
         }, cancellationToken);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="values"></param>
+    /// <returns></returns>
     private static DataTable CreateInitialValuesTable(IReadOnlyList<TypedValueInput> values)
     {
         var table = new DataTable();
