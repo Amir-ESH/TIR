@@ -17,10 +17,22 @@
          role="dialog" aria-label="تقویم ماه خورشیدی" aria-modal="false" hidden>
         <div class="tir-iran-calendar__heading">
             <button type="button" id="tirIranPreviousMonth" class="tir-iran-calendar__arrow"
-                    title="ماه قبل" aria-label="ماه قبل">❯</button>
+                    title="ماه قبل" aria-label="ماه قبل">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="m9 18 6-6-6-6" />
+                </svg>
+            </button>
             <strong id="tirIranMonthTitle"></strong>
             <button type="button" id="tirIranNextMonth" class="tir-iran-calendar__arrow"
-                    title="ماه بعد" aria-label="ماه بعد">❮</button>
+                    title="ماه بعد" aria-label="ماه بعد">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="m15 18-6-6 6-6" />
+                </svg>
+            </button>
         </div>
 
         <div class="tir-iran-calendar__grid tir-iran-calendar__weekdays" aria-hidden="true">
