@@ -11,5 +11,5 @@ public sealed record EmployeeDetailsDto(
     bool IsDeleted,
     DateTime? DeletedAtUtc,
     DateTime CreatedAtUtc,
-    DateTime UpdatedAtUtc,
+    DateTime? UpdatedAtUtc,
     byte[] RowVersion);
