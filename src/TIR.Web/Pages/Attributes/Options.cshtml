@@ -81,8 +81,8 @@
                       data-confirm="@(option.IsEnabled ? "آیا این گزینه غیرفعال شود؟ گزینه استفاده شده قابل غیرفعال کردن نیست." : "آیا این گزینه فعال شود؟")">
                     <input type="hidden" name="optionId" value="@option.Id" />
                     <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(option.RowVersion)" />
-                    <input type="hidden" name="isEnabled" value="@(!option.IsEnabled)" />
-                    <button type="submit" class="btn btn-sm btn-outline-@(option.IsEnabled ? "danger" : "success")">
+                    <button type="submit" name="isEnabled" value="@(option.IsEnabled ? "false" : "true")"
+                            class="btn btn-sm btn-outline-@(option.IsEnabled ? "danger" : "success")">
                         @(option.IsEnabled ? "غیرفعال کردن" : "فعال کردن")
                     </button>
                 </form>
