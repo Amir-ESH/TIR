@@ -68,7 +68,8 @@
     margin-bottom: .9rem;
     color: #203c73;
 }
-.tir-iran-calendar__heading strong { font-size: .95rem; font-weight: 700; }
+.tir-iran-calendar__period { display: flex; align-items: center; justify-content: center; gap: .2rem; flex-wrap: wrap; }
+.tir-iran-calendar__period .jalali-period-button { font-size: .95rem; }
 .tir-iran-calendar__arrow {
     display: grid;
     place-items: center;
@@ -86,6 +87,10 @@
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 4px;
 }
+.tir-iran-calendar__grid[hidden],
+.tir-iran-calendar__selection[hidden],
+.tir-iran-calendar__period .jalali-period-button[hidden] { display: none !important; }
+.tir-iran-calendar__selection { min-height: 165px; }
 .tir-iran-calendar__weekdays { margin-bottom: .45rem; color: #718099; font-weight: 600; }
 .tir-iran-calendar__weekdays span,
 .tir-iran-calendar__days span { display: grid; place-items: center; min-height: 35px; }
@@ -117,4 +122,70 @@
 
 @media (min-width: 581px) and (max-width: 650px) {
     .topbar-actions .tir-iran-clock.badge { display: inline-flex; }
+}
+.jalali-popup {
+    background: #fff;
+    border: 1px solid #dfe4ef;
+    border-radius: 14px;
+    width: 310px;
+    max-width: calc(100vw - 28px);
+    padding: 1rem;
+    direction: rtl;
+    text-align: center;
+}
+.jalali-period-button {
+    border: 0;
+    border-radius: 8px;
+    padding: 5px 7px;
+    background: transparent;
+    color: #23477a;
+    font-weight: 700;
+    cursor: pointer;
+}
+.jalali-period-button:hover,
+.jalali-period-button:focus-visible { background: #e8f0ff; outline-offset: 2px; }
+.jalali-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    direction: rtl;
+}
+.jalali-choice-grid--years { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.jalali-choice {
+    min-height: 43px;
+    border: 1px solid #e3e9f2;
+    border-radius: 9px;
+    background: #fff;
+    color: #304562;
+    font-size: .86rem;
+    cursor: pointer;
+}
+.jalali-choice:hover,
+.jalali-choice:focus-visible { border-color: #7586e9; background: #f0f2ff; outline-offset: 2px; }
+.jalali-choice.is-selected { background: #5146db; color: #fff; border-color: #5146db; font-weight: 700; }
+.tir-iran-calendar__days .tir-jalali-day {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 35px;
+    padding: 0;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+.tir-iran-calendar__days button.tir-jalali-day { cursor: pointer; }
+.tir-iran-calendar__days button.tir-jalali-day:hover,
+.tir-iran-calendar__days button.tir-jalali-day:focus-visible {
+    background: #e8f0ff;
+    outline-offset: 2px;
+}
+.tir-iran-calendar__days .tir-jalali-day.is-friday { color: #c34b5b; }
+.tir-iran-calendar__days .tir-jalali-day.is-selected { box-shadow: inset 0 0 0 2px #5146db; }
+.tir-iran-calendar__days .tir-jalali-day.is-today {
+    color: #fff;
+    background: #2864ca;
+    font-weight: 800;
+    box-shadow: 0 3px 10px #2864ca33;
 }
