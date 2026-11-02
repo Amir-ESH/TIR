@@ -71,10 +71,12 @@
                     .done(function (options) { optionCache[selectedAttribute] = options; fillOptions(options); })
                     .fail(function () { row.find('.condition-value').empty().append('<option value="">بارگذاری گزینه ها ناموفق بود</option>'); });
             }
-            row.find('.condition-value,.condition-to').removeClass('js-jalali-date js-jalali-datetime');
+            row.find('.condition-value,.condition-to').removeClass('js-jalali-date js-jalali-datetime js-tir-time');
             if (kind === 4) row.find('.condition-value,.condition-to').addClass('js-jalali-date');
             if (kind === 6) row.find('.condition-value,.condition-to').addClass('js-jalali-datetime');
+            if (kind === 5) row.find('.condition-value,.condition-to').addClass('js-tir-time');
             var placeholder = kind === 4 ? '۱۴۰۵/۰۸/۰۹' : kind === 6 ? '۱۴۰۵/۰۸/۰۹ ۱۲:۳۰' :
+                kind === 5 ? 'HH:mm' :
                 kind === 7 ? '0 یا 1' : kind === 8 ? 'شناسه گزینه' : 'مقدار';
             row.find('.condition-value').attr('placeholder', placeholder);
         }

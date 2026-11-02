@@ -68,34 +68,42 @@
         initializePersianPicker();
     });
 
-    // ورودی های تاریخ و تاریخ و ساعت از تقویم مشترک استفاده می کنند.
+    // ورودی های تاریخ، تاریخ و ساعت و ساعت از انتخابگرهای مشترک استفاده می کنند.
     function initializePersianPicker() {
-        if (!window.TirJalaliNavigation) return;
+        if (!window.TirJalaliNavigation || !window.TirTimePicker) return;
 
         var popup = $('<div class="jalali-popup shadow"></div>').hide().appendTo('body');
+        var timePicker = window.TirTimePicker.createPicker();
         var input = null;
+
         var calendar = window.TirJalaliNavigation.createCalendar(popup, {
             onSelectDay: function (year, month, day) {
                 if (!input) return;
-
-                var value = [String(year).padStart(4, '0'),
+                var target = input;
+                var selectedDate = [String(year).padStart(4, '0'),
                     String(month).padStart(2, '0'),
                     String(day).padStart(2, '0')].join('/');
 
-                if (input.hasClass('js-jalali-datetime')) {
-                    // انتخاب روز، ساعت ثبت شده را تغییر نمی دهد.
-                    var previous = input.val().toString().trim().split(/\s+/);
-                    input.val(value + ' ' + (previous.length > 1 ? previous[1] : '12:00'));
-                } else {
-                    input.val(value);
-                }
                 popup.hide();
-                input.trigger('change');
+                if (target.hasClass('js-jalali-datetime')) {
+                    // ابتدا تاریخ و سپس ساعت انتخاب می شود؛ لغو ساعت مقدار قبلی را حفظ می کند.
+                    var parts = target.val().toString().trim().split(/\s+/);
+                    timePicker.open(target, {
+                        value: parts.length > 1 ? parts[1] : '',
+                        onSelect: function (selectedTime) {
+                            target.val(selectedDate + ' ' + selectedTime).trigger('change');
+                        }
+                    });
+                } else {
+                    target.val(selectedDate).trigger('change');
+                }
             }
         });
 
         $(document).on('focus', '.js-jalali-date,.js-jalali-datetime', function () {
             input = $(this);
+            timePicker.close();
+
             var raw = input.val().toString().replace(/[۰-۹٠-٩]/g, function (digit) {
                 var code = digit.charCodeAt(0);
                 return String.fromCharCode(48 + code - (code >= 0x06f0 ? 0x06f0 : 0x0660));
@@ -108,11 +116,25 @@
             popup.css({
                 position: 'absolute',
                 top: position.top + input.outerHeight() + 5,
-                left: position.left, zIndex: 1060
+                left: position.left,
+                zIndex: 1060
             }).show();
-            // عرض تقویم برای نمایش در صفحه کوچک تنظیم می شود.
             var maxLeft = Math.max(10, $(window).width() - popup.outerWidth() - 10);
             popup.css('left', Math.min(Math.max(10, position.left), maxLeft));
+        });
+
+        // کلیک روی هر نقطه فیلد ساعت، انتخابگر را باز می کند.
+        $(document).on('focus click', '.js-tir-time', function () {
+            var target = $(this);
+            if (timePicker.isOpenFor(target)) return;
+
+            popup.hide();
+            timePicker.open(target, {
+                value: target.val(),
+                onSelect: function (selectedTime) {
+                    target.val(selectedTime).trigger('change');
+                }
+            });
         });
 
         $(document).on('mousedown', function (event) {
