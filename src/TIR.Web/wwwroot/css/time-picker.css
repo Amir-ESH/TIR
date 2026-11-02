@@ -1,0 +1,218 @@
+/* انتخابگر یکپارچه ساعت برای فیلد ساعت و تاریخ و ساعت */
+.tir-clock-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: rgba(30, 32, 41, .42);
+    direction: ltr;
+}
+
+.tir-clock-dialog {
+    box-sizing: border-box;
+    width: 340px;
+    max-width: calc(100vw - 24px);
+    padding: 24px 24px 15px;
+    border-radius: 8px;
+    background: #fff;
+    color: #1d1d21;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .22);
+    font-family: inherit;
+}
+
+.tir-clock-caption {
+    margin-bottom: 20px;
+    color: #757575;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-align: right;
+}
+
+.tir-clock-heading {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.tir-clock-digits {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+}
+
+.tir-clock-digits__part {
+    min-width: 91px;
+    height: 78px;
+    padding: 0 5px;
+    border: 0;
+    border-radius: 5px;
+    background: #e6e6e6;
+    color: #202124;
+    font-family: inherit;
+    font-size: 54px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.tir-clock-digits__part.is-active {
+    background: #eee1ff;
+    color: #6200ee;
+}
+
+.tir-clock-digits__separator {
+    margin-top: -8px;
+    font-size: 44px;
+    line-height: 1;
+}
+
+.tir-clock-periods {
+    display: flex;
+    flex-direction: column;
+    min-width: 48px;
+    border: 1px solid #a9a9af;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.tir-clock-periods__button {
+    flex: 1;
+    padding: 5px 7px;
+    border: 0;
+    background: white;
+    color: #777;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.tir-clock-periods__button + .tir-clock-periods__button { border-top: 1px solid #a9a9af; }
+.tir-clock-periods__button.is-active { background: #eee1ff; color: #6200ee; }
+
+.tir-clock-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 288px;
+}
+
+.tir-clock-dial {
+    position: relative;
+    width: 288px;
+    aspect-ratio: 1;
+    max-width: 100%;
+    border-radius: 50%;
+    background: #e6e6e6;
+    touch-action: manipulation;
+    cursor: pointer;
+    user-select: none;
+}
+
+.tir-clock-dial__hand {
+    position: absolute;
+    z-index: 1;
+    bottom: 50%;
+    left: calc(50% - 1px);
+    width: 2px;
+    height: 39%;
+    background: #6200ee;
+    transform-origin: 50% 100%;
+    pointer-events: none;
+}
+
+.tir-clock-dial__center {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #6200ee;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.tir-clock-dial__number,
+.tir-clock-dial__precise {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 39px;
+    height: 39px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #202124;
+    font-family: inherit;
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+}
+
+.tir-clock-dial__number:hover,
+.tir-clock-dial__number:focus-visible { background: rgba(98, 0, 238, .12); outline: none; }
+.tir-clock-dial__number.is-selected,
+.tir-clock-dial__precise.is-selected { background: #6200ee; color: #fff; }
+.tir-clock-dial__precise { pointer-events: none; }
+
+.tir-clock-manual {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.tir-clock-manual__field { display: flex; flex-direction: column; gap: 10px; }
+.tir-clock-manual__field label { font-size: 14px; text-align: center; }
+.tir-clock-manual__hour,
+.tir-clock-manual__minute { width: 99px; text-align: center; font-size: 25px; }
+.tir-clock-manual__separator { margin-bottom: 5px; font-size: 30px; }
+.tir-clock-manual__error { width: 100%; color: #b00020; text-align: center; font-size: 13px; }
+
+.tir-clock-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.tir-clock-keyboard,
+.tir-clock-footer__button {
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #6200ee;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.tir-clock-keyboard { color: #52545b; font-size: 25px; line-height: 1; }
+.tir-clock-footer__actions { display: flex; align-items: center; gap: 8px; }
+.tir-clock-keyboard:hover,
+.tir-clock-footer__button:hover { background: #f2eaff; }
+.tir-clock-dialog button:focus-visible { outline: 2px solid #6200ee; outline-offset: 2px; }
+.js-tir-time[readonly] { background-color: #fff; cursor: pointer; }
+
+@media (max-width: 370px) {
+    .tir-clock-dialog { padding: 18px 15px 12px; }
+    .tir-clock-digits__part { min-width: 77px; height: 66px; font-size: 43px; }
+    .tir-clock-digits__separator { font-size: 36px; }
+    .tir-clock-body { min-height: 260px; }
+    .tir-clock-dial { width: 260px; }
+}

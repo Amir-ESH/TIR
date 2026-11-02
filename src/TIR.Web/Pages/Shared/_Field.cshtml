@@ -40,7 +40,7 @@
     }
     else if (Model.DataKind == 5)
     {
-        <input type="time" step="60" class="form-control" name="@FieldName("RawValue")" value="@Model.RawValue" />
+        <input type="text" readonly class="form-control js-tir-time" name="@FieldName("RawValue")" value="@Model.RawValue" placeholder="برای انتخاب ساعت کلیک کنید" autocomplete="off" aria-label="انتخاب ساعت" />
     }
     else if (Model.DataKind == 6)
     {
