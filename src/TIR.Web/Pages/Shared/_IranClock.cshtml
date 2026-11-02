@@ -1,10 +1,7 @@
 @* نمایش ساعت زنده ایران و تقویم خورشیدی ماه جاری *@
 <div class="tir-iran-clock badge text-bg-light border px-3 py-2" id="tirIranClock">
-    <button type="button"
-            class="tir-iran-clock__date"
-            id="tirIranDateTrigger"
-            aria-label="نمایش تقویم خورشیدی"
-            aria-expanded="false"
+    <button type="button" class="tir-iran-clock__date" id="tirIranDateTrigger"
+            aria-label="نمایش تقویم خورشیدی" aria-expanded="false"
             aria-controls="tirIranCalendar">
         <span id="tirIranToday">در حال دریافت تاریخ...</span>
         <span class="tir-iran-clock__arrow" aria-hidden="true">▾</span>
@@ -15,34 +12,7 @@
 
     <div class="tir-iran-calendar shadow" id="tirIranCalendar"
          role="dialog" aria-label="تقویم ماه خورشیدی" aria-modal="false" hidden>
-        <div class="tir-iran-calendar__heading">
-            <button type="button" id="tirIranPreviousMonth" class="tir-iran-calendar__arrow"
-                    title="ماه قبل" aria-label="ماه قبل">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
-                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round" aria-hidden="true" focusable="false">
-                    <path d="m9 18 6-6-6-6" />
-                </svg>
-            </button>
-            <strong id="tirIranMonthTitle"></strong>
-            <button type="button" id="tirIranNextMonth" class="tir-iran-calendar__arrow"
-                    title="ماه بعد" aria-label="ماه بعد">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"
-                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round" aria-hidden="true" focusable="false">
-                    <path d="m15 18-6-6 6-6" />
-                </svg>
-            </button>
-        </div>
-
-        <div class="tir-iran-calendar__grid tir-iran-calendar__weekdays" aria-hidden="true">
-            <span>ش</span><span>ی</span><span>د</span><span>س</span>
-            <span>چ</span><span>پ</span><span>ج</span>
-        </div>
-
-        <div class="tir-iran-calendar__grid tir-iran-calendar__days" id="tirIranCalendarDays"
-             role="grid" aria-label="روزهای ماه"></div>
-
+        <div id="tirIranCalendarContent"></div>
         <div class="tir-iran-calendar__footer">
             <button type="button" id="tirIranGoToToday" class="btn btn-sm btn-outline-primary">امروز</button>
             <button type="button" id="tirIranCloseCalendar" class="btn btn-sm btn-light">بستن</button>
