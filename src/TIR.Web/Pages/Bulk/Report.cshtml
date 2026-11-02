@@ -5,25 +5,79 @@
 }
 @if (Model.Report is not null)
 {
-    <div class="toolbar"><div><h2 class="section-title mb-1">نتیجه درخواست گروهی</h2><p class="page-lead mb-0">شناسه درخواست: <span class="mono">@Model.Report.Header.BatchId</span></p></div><a asp-page="/Bulk/Index" class="btn btn-outline-secondary">درخواست جدید</a></div>
+    <div class="toolbar">
+        <div>
+            <h2 class="section-title mb-1">نتیجه درخواست گروهی</h2>
+            <p class="page-lead mb-0">شناسه درخواست: <span class="mono">@Model.Report.Header.BatchId</span></p>
+        </div>
+        <a asp-page="/Bulk/Index" class="btn btn-outline-secondary">درخواست جدید</a>
+    </div>
     <div class="row g-3 mb-4">
-        <div class="col-md-4"><div class="card metric-card"><div class="metric-label">درخواست شده</div><div class="metric-number">@Model.Report.Header.RequestedCount.ToString("N0")</div></div></div>
-        <div class="col-md-4"><div class="card metric-card"><div class="metric-label text-success">موفق</div><div class="metric-number text-success">@Model.Report.Header.SucceededCount.ToString("N0")</div></div></div>
-        <div class="col-md-4"><div class="card metric-card"><div class="metric-label text-danger">ناموفق</div><div class="metric-number text-danger">@Model.Report.Header.FailedCount.ToString("N0")</div></div></div>
+        <div class="col-md-4">
+            <div class="card metric-card">
+                <div class="metric-label">درخواست شده</div>
+                <div class="metric-number">@Model.Report.Header.RequestedCount.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card metric-card">
+                <div class="metric-label text-success">موفق</div>
+                <div class="metric-number text-success">@Model.Report.Header.SucceededCount.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card metric-card">
+                <div class="metric-label text-danger">ناموفق</div>
+                <div class="metric-number text-danger">@Model.Report.Header.FailedCount.ToString("N0")</div>
+            </div>
+        </div>
     </div>
     <div class="card mb-4">
-        <div class="card-header d-flex align-items-center justify-content-between"><h3 class="section-title mb-0">خطاهای قابل تشخیص</h3><span class="badge text-bg-light border">@Model.Report.Errors.Count خطا</span></div>
-        <div class="table-wrap"><table class="table"><thead><tr><th>ردیف کارمند</th><th>شناسه</th><th>مشخصه</th><th>کد خطا</th><th>دلیل</th></tr></thead><tbody>
-            @foreach (var error in Model.Report.Errors.Take(200))
-            {
-                <tr><td>@error.InputOrdinal</td><td>@error.EmployeeId</td><td>@error.AttributeId</td><td class="mono">@error.ErrorCode</td><td>@error.ErrorMessage</td></tr>
-            }
-        </tbody></table></div>
-        @if (Model.Report.Errors.Count == 0) { <div class="table-empty">خطایی ثبت نشده است.</div> }
-        @if (Model.Report.Errors.Count > 200) { <div class="alert alert-warning mx-3 mt-3">فقط ۲۰۰ خطای اول نمایش داده شده است. تعداد کل: @Model.Report.Errors.Count</div> }
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h3 class="section-title mb-0">خطاهای قابل تشخیص</h3>
+            <span class="badge text-bg-light border">@Model.Report.Errors.Count خطا</span>
+        </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ردیف کارمند</th>
+                        <th>شناسه</th>
+                        <th>مشخصه</th>
+                        <th>کد خطا</th>
+                        <th>دلیل</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var error in Model.Report.Errors.Take(200))
+                {
+                    <tr>
+                        <td>@error.InputOrdinal</td>
+                        <td>@error.EmployeeId</td>
+                        <td>@error.AttributeId</td>
+                        <td class="mono">@error.ErrorCode</td>
+                        <td>@error.ErrorMessage</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.Report.Errors.Count == 0) 
+        {
+            <div class="table-empty">خطایی ثبت نشده است.</div> 
+        }
+        @if (Model.Report.Errors.Count > 200) 
+        { 
+            <div class="alert alert-warning mx-3 mt-3">فقط ۲۰۰ خطای اول نمایش داده شده است. تعداد کل: @Model.Report.Errors.Count</div> 
+        }
     </div>
-    <div class="card"><div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap">
-        <div><h3 class="section-title mb-1">پایان بررسی گزارش</h3><p class="text-muted mb-0 small">پس از حذف فیزیکی درخواست، این گزارش دیگر در سیستم قابل بازیابی نیست.</p></div>
-        <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Report.Header.BatchId" data-confirm="گزارش و اطلاعات موقت این درخواست به صورت فیزیکی پاک شوند؟"><button class="btn btn-outline-danger">حذف اطلاعات موقت</button></form>
+    <div class="card">
+        <div class="card-body d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+                <h3 class="section-title mb-1">پایان بررسی گزارش</h3>
+                <p class="text-muted mb-0 small">پس از حذف فیزیکی درخواست، این گزارش دیگر در سیستم قابل بازیابی نیست.</p>
+            </div>
+        <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Report.Header.BatchId" data-confirm="گزارش و اطلاعات موقت این درخواست به صورت فیزیکی پاک شوند؟">
+            <button class="btn btn-outline-danger">حذف اطلاعات موقت</button>
+        </form>
     </div></div>
 }

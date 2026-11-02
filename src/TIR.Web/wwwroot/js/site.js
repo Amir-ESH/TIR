@@ -47,6 +47,8 @@
                         form.find('[name="Field.RawValue"]').val('');
                         form.find('.js-bool-set,.js-bool-check').prop('checked', false);
                     }
+                    // پس از ذخیره مستقل، مقدار مبنای تشخیص تغییرات فرم اصلاح می شود.
+                    form.trigger('tir:field-saved');
                     showMessage('مقدار ذخیره شد. وضعیت فرمول های وابسته را در صفحه جزئیات بررسی کنید.', 'success');
                 },
                 error: function (response) {

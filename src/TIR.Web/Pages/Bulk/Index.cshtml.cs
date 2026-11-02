@@ -17,8 +17,8 @@ public sealed class IndexModel(IBulkService bulk, IAttributeService attributes,
     {
         if (CsvFile is null || CsvFile.Length == 0)
             ModelState.AddModelError(string.Empty, "فایل CSV انتخاب نشده است.");
-        if (CsvFile is { Length: > 250L * 1024 * 1024 })
-            ModelState.AddModelError(string.Empty, "حجم فایل بیشتر از ۲۵۰ مگابایت است.");
+        if (CsvFile is { Length: > 100L * 1024 * 1024 })
+            ModelState.AddModelError(string.Empty, "حجم فایل بیشتر از 100 مگابایت است.");
         if (!ModelState.IsValid) return Page();
 
         try
