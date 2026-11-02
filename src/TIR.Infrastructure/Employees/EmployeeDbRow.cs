@@ -12,6 +12,6 @@ internal sealed class EmployeeDbRow
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; }
-    public DateTime UpdatedAtUtc { get; set; }
+    public DateTime? UpdatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
 }

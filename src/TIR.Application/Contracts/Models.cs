@@ -33,7 +33,7 @@ public sealed class AttributeDefinitionDto
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; }
-    public DateTime UpdatedAtUtc { get; set; }
+    public DateTime? UpdatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
 }
 
@@ -119,7 +119,7 @@ public sealed class ValueSaveResultDto
     public long EmployeeId { get; set; }
     public long AttributeId { get; set; }
     public byte[] RowVersion { get; set; } = [];
-    public DateTime UpdatedAtUtc { get; set; }
+    public DateTime? UpdatedAtUtc { get; set; }
 }
 
 public sealed class AttributeFormulaDto
@@ -131,7 +131,8 @@ public sealed class AttributeFormulaDto
     public int Revision { get; set; }
     public byte ValidityPolicy { get; set; }
     public bool IsEnabled { get; set; }
-    public DateTime UpdatedAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime? UpdatedAtUtc { get; set; }
     public byte[] RowVersion { get; set; } = [];
 }
 
