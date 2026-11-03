@@ -3,35 +3,262 @@
 @{
     ViewData["Title"] = "عملیات گروهی";
 }
-<div class="toolbar"><div><h2 class="section-title mb-1">بارگذاری تغییرات گروهی</h2><p class="page-lead mb-0">برای پردازش چند هزار تا چند صد هزار کارمند از فایل CSV استفاده کنید.</p></div><a asp-page="/Employees/Index" class="btn btn-outline-secondary">فهرست کارمندان</a></div>
-<div class="steps"><span class="step is-current">۱. انتخاب فایل</span><span class="step">۲. انتقال به Staging</span><span class="step">۳. دریافت گزارش</span></div>
-<form method="post" enctype="multipart/form-data" class="card" id="bulkUploadForm">
+<div class="toolbar">
+    <div><h2 class="section-title mb-1">عملیات گروهی کارمندان</h2><p class="page-lead mb-0">ورود و ویرایش گروهی با اکسل، یا محاسبه فرمول برای کارمندان انتخابی</p></div>
+    <a asp-page="/Employees/Index" class="btn btn-outline-secondary">فهرست کارمندان</a>
+</div>
+@if (!Model.HangfireEnabled)
+{
+    <div class="alert alert-warning">برای اجرای عملیات، گزینه <span dir="ltr">Hangfire:Enabled</span> را در تنظیمات پروژه فعال کنید.</div>
+}
+<div class="steps mb-3" id="bulkWizardSteps" aria-label="مراحل عملیات گروهی">
+    <span class="step is-current" data-step="1">۱. انتخاب عملیات</span>
+    <span class="step" data-step="2">۲. آماده سازی داده</span>
+    <span class="step" data-step="3">۳. اجرا و گزارش</span>
+</div>
+<div id="bulkWizardMessage" class="alert d-none" role="alert"></div>
+
+<section id="bulkStep1" class="card mb-4">
     <div class="card-body">
-        <partial name="_Validation" />
-        <div class="file-zone" id="bulkFileZone">
-            <div class="file-icon mb-2">⇪</div>
-            <h3 class="section-title mb-2">فایل CSV خود را انتخاب کنید</h3>
-            <p class="text-muted">حداکثر حجم ۲۵۰ مگابایت، کدگذاری UTF-8، ردیف ها بر اساس EmployeeId مرتب شده باشند.</p>
-            <input asp-for="CsvFile" class="form-control mx-auto" style="max-width:440px" type="file" accept=".csv,text/csv,text/plain" required />
-            <div class="small mt-3 text-muted" id="bulkFileInfo">فایلی انتخاب نشده است.</div>
+        <h3 class="section-title mb-3">نوع عملیات را انتخاب کنید</h3>
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <label class="border rounded p-3 d-block h-100" for="bulkCreate">
+                    <input id="bulkCreate" type="radio" class="form-check-input me-2" name="bulkOperation" value="create" checked />
+                    <strong>ورود اطلاعات کارمندان</strong>
+                    <span class="d-block text-muted small mt-2">ایجاد کارمندان جدید همراه با مشخصه های داینامیک از اکسل</span>
+                </label>
+            </div>
+            <div class="col-lg-4">
+                <label class="border rounded p-3 d-block h-100" for="bulkUpdate">
+                    <input id="bulkUpdate" type="radio" class="form-check-input me-2" name="bulkOperation" value="update" />
+                    <strong>ویرایش اطلاعات کارمندان</strong>
+                    <span class="d-block text-muted small mt-2">جایگزینی مقادیر و پاک کردن خانه های خالی با کنترل RowVersion</span>
+                </label>
+            </div>
+            <div class="col-lg-4">
+                <label class="border rounded p-3 d-block h-100" for="bulkFormula">
+                    <input id="bulkFormula" type="radio" class="form-check-input me-2" name="bulkOperation" value="formula" />
+                    <strong>محاسبه فرمول</strong>
+                    <span class="d-block text-muted small mt-2">اجرای یک فرمول برای همه یا گروهی از کارمندان</span>
+                </label>
+            </div>
         </div>
-        <div class="row g-3 mt-2">
-            <div class="col-md-6"><label asp-for="TransferBatchSize" class="form-label">اندازه بخش انتقال</label><input asp-for="TransferBatchSize" class="form-control" type="number" min="100" max="10000" /></div>
-            <div class="col-md-6"><label asp-for="EmployeesPerTransaction" class="form-label">کارمند در هر تراکنش SQL</label><input asp-for="EmployeesPerTransaction" class="form-control" type="number" min="100" max="10000" /></div>
-        </div>
-        <div class="alert alert-info mt-4 mb-0">
-            <strong>فرمت فایل:</strong> پنج ستون <span class="mono">EmployeeId,AttributeId,OperationKind,Value,ExpectedRowVersion</span>.
-            عملیات ۱ ثبت مقدار و عملیات ۲ خالی کردن است. برای درج جدید نسخه را خالی بگذارید؛ برای ویرایش مقدار موجود، RowVersion هشت بایتی به صورت Base64 الزامی است.
-        </div>
-        <div class="result-box mt-3">
-            <p class="fw-semibold mb-2">نمونه ورودی</p>
-            <pre class="text-start mb-0 small" dir="ltr">EmployeeId,AttributeId,OperationKind,Value,ExpectedRowVersion
-102,5,1,4500000.000,AAAAAAAABkE=
-102,8,2,,AAAAAAAABlM=
-103,5,1,5200000.000,AAAAAAAABlQ=</pre>
-            <div class="form-text">هر کارمند می تواند چند ردیف متوالی داشته باشد. نسخه نمونه صرفا نمایشی است.</div>
+        <div class="mt-4 text-end">
+            <button type="button" class="btn btn-primary" id="bulkGoStep2">مرحله بعد</button>
         </div>
     </div>
-    <div class="card-body border-top d-flex gap-2 align-items-center flex-wrap"><button class="btn btn-primary px-4" id="startBulkButton">شروع پردازش و دریافت گزارش</button><span class="text-muted small">مرورگر را تا پایان دریافت گزارش باز نگه دارید.</span></div>
-</form>
-@section Scripts { <script src="~/js/bulk.js" asp-append-version="true"></script> }
+</section>
+
+<section id="bulkStep2" class="card mb-4 d-none">
+    <div class="card-body">
+        <h3 class="section-title mb-3">آماده سازی داده ها</h3>
+        <div id="bulkExcelPanel">
+            <div class="alert alert-info">
+                فایل نمونه هر بار از مشخصه های ورودی فعال ساخته می شود و ستون مشخصه های فرمولی را ندارد.
+                <span id="bulkUpdateExcelHint" class="d-none">در فایل ویرایش، ستون اول <span dir="ltr">EmployeeId</span> و ستون دوم <span dir="ltr">EmployeeRowVersion</span> است. <strong>خانه خالی در ویرایش مقدار قبلی را پاک می کند.</strong></span>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <a id="bulkDownloadTemplate" href="@(Url.Page("/Bulk/Index", "Template", new { operation = "create" }))" class="btn btn-outline-primary">دانلود نمونه اکسل</a>
+                <a asp-page="/Employees/Index" id="bulkOpenEmployeeList" class="btn btn-outline-success">خروجی اکسل از فهرست کارمندان</a>
+                <a asp-page="/Employees/Search" id="bulkOpenEmployeeSearch" class="btn btn-outline-success">خروجی نتایج جستجوی پیشرفته</a>
+            </div>
+            <form id="bulkExcelForm" enctype="multipart/form-data">
+                <label for="bulkExcelFile" class="form-label">فایل xlsx</label>
+                <input id="bulkExcelFile" name="excelFile" type="file" class="form-control" accept=".xlsx" required />
+                <div class="form-text">حداکثر 30 مگابایت. عنوان ستون ها و RowVersion ها را تغییر ندهید.</div>
+            </form>
+        </div>
+        <div id="bulkFormulaPanel" class="d-none">
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <label for="bulkFormulaId" class="form-label">فرمول</label>
+                    <select id="bulkFormulaId" class="form-select">
+                        <option value="">یک فرمول را انتخاب کنید</option>
+                        @foreach (var formula in Model.FormulaList) 
+                        {
+                            <option value="@formula.Id">@formula.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-lg-4">
+                    <label for="bulkFormulaScope" class="form-label">محدوده اجرا</label>
+                    <select id="bulkFormulaScope" class="form-select">
+                        <option value="all">همه کارمندان فعال</option>
+                        <option value="selected">کارمندان انتخابی</option>
+                    </select>
+                </div>
+            </div>
+            <div id="bulkChooseEmployeeBox" class="mt-3 d-none">
+                <button type="button" id="bulkOpenEmployeeModal" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bulkEmployeeModal">جستجو و انتخاب کارمندان</button>
+                <span id="bulkSelectedEmployeeSummary" class="ms-2 text-muted">کارمندی انتخاب نشده است.</span>
+            </div>
+        </div>
+        <div class="border-top mt-4 pt-3 d-flex justify-content-between gap-2">
+            <button id="bulkBackStep1" type="button" class="btn btn-outline-secondary">مرحله قبل</button>
+            <button id="bulkPrepare" type="button" class="btn btn-primary">بررسی و آماده سازی عملیات</button>
+        </div>
+    </div>
+</section>
+
+<section id="bulkStep3" class="card mb-4 d-none">
+    <div class="card-body">
+        <h3 class="section-title mb-3">اجرا و گزارش عملیات</h3>
+        <p id="bulkPreparedSummary"></p>
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <button id="bulkBackStep2" type="button" class="btn btn-outline-secondary">بازگشت به آماده سازی</button>
+            <button id="bulkExecute" type="button" class="btn btn-primary">انجام عملیات</button>
+        </div>
+        <div class="d-flex justify-content-between small mb-2">
+            <strong id="bulkStatusLabel">آماده اجرا</strong>
+            <strong id="bulkProgressPercent" dir="ltr">0%</strong>
+        </div>
+        <div class="progress" role="progressbar" aria-label="درصد کل عملیات" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:20px">
+            <div id="bulkProgressBar" class="progress-bar progress-bar-striped" style="width:0%">
+
+            </div>
+        </div>
+        <div class="row g-3 my-2">
+            <div class="col-md-4">
+                <div class="border rounded p-3">کل ردیف ها: 
+                    <strong id="bulkTotal">0</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3">پردازش شده: 
+                    <strong id="bulkProcessed">0</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3">خطاها: 
+                    <strong id="bulkErrorCount">0</strong>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 mb-2">
+            <h4 class="section-title mb-0">خطاهای ردیف ها</h4>
+            <button id="bulkRefresh" type="button" class="btn btn-outline-secondary btn-sm">به روز رسانی گزارش</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle" id="bulkErrorTable">
+                <thead>
+                    <tr>
+                        <th>ردیف اکسل</th>
+                        <th>شناسه کارمند</th>
+                        <th>ردیف عملیات</th>
+                        <th>شرح خطا</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" class="text-muted">هنوز خطایی ثبت نشده است.</td>
+                        </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex align-items-center justify-content-between gap-2">
+            <button id="bulkPrevError" type="button" class="btn btn-outline-secondary btn-sm" disabled>صفحه قبل</button>
+            <span id="bulkErrorPageLabel">صفحه 1</span>
+            <button id="bulkNextError" type="button" class="btn btn-outline-secondary btn-sm" disabled>صفحه بعد</button>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="bulkEmployeeModal" tabindex="-1" aria-labelledby="bulkEmployeeModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="bulkEmployeeModalTitle">جستجوی پیشرفته و انتخاب کارمندان</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+        </div>
+        <div class="modal-body">
+            <div id="bulkModalMessage" class="alert alert-danger d-none" role="alert" aria-live="polite"></div>
+            <form id="bulkAdvancedSearchForm">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-7">
+                        <label for="bulkEmployeeSearch" class="form-label">جستجو در مشخصات ثابت کارمند</label>
+                        <input id="bulkEmployeeSearch" class="form-control" placeholder="کد یا نام کارمند" />
+                    </div>
+                    <div class="col-md-5">
+                        <label for="bulkSortAttributeId" class="form-label">مرتب سازی بر اساس مشخصه داینامیک</label>
+                        <select id="bulkSortAttributeId" class="form-select">
+                            <option value="">بدون مرتب سازی داینامیک</option>
+                            @foreach (var definition in Model.Attributes)
+                            {
+                                <option value="@(definition.Id)">@(definition.Title)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="bulkSortBy" class="form-label">مرتب سازی فیلد ثابت</label>
+                        <select id="bulkSortBy" class="form-select">
+                            <option value="Id">شناسه</option>
+                            <option value="EmployeeCode">کد کارمند</option>
+                            <option value="FirstName">نام</option>
+                            <option value="LastName">نام خانوادگی</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="bulkSortDescending" class="form-label">جهت مرتب سازی</label>
+                        <select id="bulkSortDescending" class="form-select">
+                            <option value="false">صعودی</option>
+                            <option value="true">نزولی</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="border-top pt-3">
+                    <div class="d-flex justify-content-between gap-2 mb-3">
+                        <strong>شروط مشخصه های داینامیک</strong>
+                        <button id="bulkAddCondition" class="btn btn-outline-primary btn-sm" type="button">+ افزودن شرط</button>
+                    </div>
+                    <div id="bulkConditionsContainer"></div>
+                    <input id="bulkFiltersJson" type="hidden" value="[]" />
+                    <div class="form-text">شروط یک گروه با AND و گروه های مختلف با OR ترکیب می شوند.</div>
+                </div>
+                <div class="mt-3">
+                    <button id="bulkSearchButton" class="btn btn-primary" type="submit">اجرای جستجو</button>
+                </div>
+            </form>
+            <hr />
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                <label class="form-check-label">
+                    <input type="checkbox" id="bulkSelectPage" class="form-check-input me-1" /> انتخاب همه کارمندان این صفحه</label>
+                    <button type="button" id="bulkSelectAllFiltered" class="btn btn-outline-primary btn-sm" disabled>انتخاب همه نتایج جستجو</button>
+                    <span id="bulkModalSelectionHint" class="text-muted small"></span>
+                </div>
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead>
+                        <tr>
+                            <th>انتخاب</th>
+                            <th>شناسه</th>
+                            <th>کد</th>
+                            <th>نام و نام خانوادگی</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bulkEmployeeSearchResults">
+                        <tr>
+                            <td colspan="4" class="text-muted">برای مشاهده کارمندان جستجو کنید.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <button type="button" id="bulkEmployeePrev" class="btn btn-outline-secondary btn-sm" disabled>صفحه قبل</button>
+                <span id="bulkEmployeePagination">صفحه 1</span>
+                <button type="button" id="bulkEmployeeNext" class="btn btn-outline-secondary btn-sm" disabled>صفحه بعد</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button>
+            <button id="bulkConfirmEmployeeSelection" type="button" class="btn btn-primary">تایید انتخاب</button>
+        </div>
+    </div>
+    </div>
+</div>
+<script id="bulkAttributeData" type="application/json" data-options-url="@(Url.Page("/Employees/Search", "Options"))">@Html.Raw(Model.AttributeJson)</script>
+<div id="bulkUrls" hidden data-template="@(Url.Page("/Bulk/Index", "Template"))" data-prepare="@(Url.Page("/Bulk/Index", "Prepare"))" data-prepare-formula="@(Url.Page("/Bulk/Index", "PrepareFormula"))" data-search="@(Url.Page("/Bulk/Index", "SearchEmployees"))" data-execute="@(Url.Page("/Bulk/Index", "Execute"))" data-status="@(Url.Page("/Bulk/Index", "Status"))"></div>
+@Html.AntiForgeryToken()
+@section Scripts {
+    <script src="~/js/advanced-search.js" asp-append-version="true"></script>
+    <script src="~/js/bulk-wizard.js" asp-append-version="true"></script>
+}

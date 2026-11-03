@@ -9,7 +9,7 @@ namespace TIR.Web.Pages.Employees;
 
 public sealed class EditModel(IEmployeeQueryService query, IEmployeeService employees,
     IAttributeService attributes, IAttributeValueService values, IFormulaService formulas,
-    ILogger<EditModel> logger) : PageModel
+    IBulkService bulk, ILogger<EditModel> logger) : PageModel
 {
     [BindProperty] public FixedInput Input { get; set; } = new();
     public long Id { get; private set; }
@@ -76,6 +76,102 @@ public sealed class EditModel(IEmployeeQueryService query, IEmployeeService empl
             return new JsonResult(new { success = false, message = UiErrors.Message(error) })
             { StatusCode = UiErrors.StatusCode(error) };
         }
+    }
+
+
+    public async Task<IActionResult> OnPostAllValuesAsync(long id, CancellationToken cancellationToken)
+    {
+        List<UiField>? fields;
+        try { fields = await Request.ReadFromJsonAsync<List<UiField>>(cancellationToken); }
+        catch (System.Text.Json.JsonException)
+        {
+            return new JsonResult(new { success = false, message = "فرمت مقادیر ارسالی معتبر نیست." })
+            { StatusCode = 400 };
+        }
+
+        if (fields is null || fields.Count == 0)
+            return new JsonResult(new { success = false, message = "هیچ تغییری برای ذخیره ارسال نشده است." })
+            { StatusCode = 422 };
+
+        if (fields.Count > 2000 || fields.Select(x => x.AttributeId).Distinct().Count() != fields.Count)
+            return new JsonResult(new { success = false, message = "فهرست مشخصه های ارسالی معتبر نیست." })
+            { StatusCode = 422 };
+
+        try
+        {
+            // نوع هر مشخصه را از دیتابیس می خوانیم و به اطلاعات مخفی فرم اعتماد نمی کنیم.
+            var definitions = (await UiFieldFactory.LoadAllActiveAsync(attributes, cancellationToken))
+                .Where(x => !x.IsDeleted && x.SourceKind == 1)
+                .ToDictionary(x => x.Id);
+            var lines = new List<BulkValueInput>(fields.Count);
+
+            foreach (var field in fields)
+            {
+                if (!definitions.TryGetValue(field.AttributeId, out var definition))
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = "یکی از مشخصه های ارسالی حذف شده یا قابل ویرایش نیست."
+                    }) { StatusCode = 422 };
+
+                field.Name = definition.Title;
+                field.DataKind = definition.DataKind;
+                field.SourceKind = definition.SourceKind;
+                field.IsRequired = definition.IsRequired;
+
+                var value = UiFieldFactory.ToSaveRequest(id, field);
+                lines.Add(new BulkValueInput(
+                    value.AttributeId, value.OperationKind, value.ExpectedRowVersion,
+                    value.StringValue, value.IntegerValue, value.DecimalValue,
+                    value.DateValue, value.TimeValue, value.DateTimeUtc,
+                    value.BooleanValue, value.OptionId));
+            }
+
+            // یک کارمند، یک واحد تراکنشی است و خطا مانع ثبت تمام تغییرات همین نوبت می شود.
+            var report = await bulk.UploadAndProcessAsync(
+                SingleEmployee(new BulkEmployeeInput(id, lines)), new BulkRequestOptions(),
+                cancellationToken);
+
+            // نتیجه پیش از پاکسازی خوانده شده است و گزارش می تواند توسط جاب نیز پاکسازی شود.
+            try { await bulk.DeleteAsync(report.Header.BatchId, cancellationToken); }
+            catch (Exception cleanupError)
+            {
+                logger.LogWarning(cleanupError, "پاکسازی گزارش ذخیره کلی مشخصه های کارمند {Id} انجام نشد", id);
+            }
+
+            if (report.Header.SucceededCount != 1 || report.Header.FailedCount != 0)
+            {
+                var errors = report.Errors.Select(error =>
+                {
+                    var title = error.AttributeId.HasValue &&
+                                definitions.TryGetValue(error.AttributeId.Value, out var definition)
+                        ? definition.Title : "مشخصه";
+                    return $"{title}: {error.ErrorMessage} ({error.ErrorCode})";
+                }).ToArray();
+                var conflict = report.Errors.Any(x => x.ErrorCode == "ROWVERSION_CONFLICT");
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "هیچ کدام از تغییرات ذخیره نشد. خطاهای زیر را بررسی کنید.",
+                    errors
+                }) { StatusCode = conflict ? 409 : 422 };
+            }
+
+            TempData["Success"] = $"{lines.Count} مشخصه با موفقیت ذخیره شد.";
+            return new JsonResult(new { success = true, savedCount = lines.Count });
+        }
+        catch (Exception error)
+        {
+            logger.LogError(error, "خطا در ذخیره کلی مشخصه های کارمند {Id}", id);
+            return new JsonResult(new { success = false, message = UiErrors.Message(error) })
+            { StatusCode = UiErrors.StatusCode(error) };
+        }
+    }
+
+    private static async IAsyncEnumerable<BulkEmployeeInput> SingleEmployee(BulkEmployeeInput employee)
+    {
+        yield return employee;
+        await Task.CompletedTask;
     }
 
     public async Task<IActionResult> OnPostCalculateAsync(long id, CancellationToken cancellationToken)

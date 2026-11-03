@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "ویرایش کارمند";
 }
-<div class="toolbar"><div><h2 class="section-title mb-1">ویرایش کارمند</h2><p class="page-lead mb-0">هر مشخصه نسخه و دکمه ذخیره مستقل دارد.</p></div><a asp-page="/Employees/Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">جزئیات</a></div>
+<div class="toolbar"><div><h2 class="section-title mb-1">ویرایش کارمند</h2><p class="page-lead mb-0">می توانید هر مشخصه را جداگانه یا همه تغییرات را با هم ذخیره کنید.</p></div><a asp-page="/Employees/Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">جزئیات</a></div>
 <form method="post" class="card mb-4">
     <div class="card-header"><h3 class="section-title mb-0">اطلاعات اصلی</h3></div>
     <div class="card-body">
@@ -18,8 +18,11 @@
     </div>
     <div class="card-body border-top"><button class="btn btn-primary">ذخیره اطلاعات اصلی</button></div>
 </form>
-<div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2"><h3 class="section-title mb-0">ویرایش مشخصه ها</h3><input class="form-control form-control-sm w-auto js-filter-fields" placeholder="جستجو در مشخصه ها" /></div>
+<div class="card" id="employeeDynamicValues" data-save-all-url="@(Url.Page("/Employees/Edit", "AllValues", new { id = Model.Id }))">
+    <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <h3 class="section-title mb-0">ویرایش مشخصه ها</h3>
+        <button type="button" class="btn btn-primary js-save-all-values">ذخیره همه مشخصه ها</button>
+    </div>
     <div class="card-body"><div id="valueSaveMessage" role="status" aria-live="polite"></div>
         <div class="field-grid">
             @foreach (var field in Model.Fields)
@@ -44,6 +47,13 @@
     </div>
     <div class="card-body border-top d-flex justify-content-between flex-wrap gap-2">
         <small class="text-muted">بعد از تغییر مقدارهای موثر بر فرمول، نتایج وابسته قدیمی می شوند.</small>
-        <form method="post" asp-page-handler="Calculate" asp-route-id="@Model.Id" data-confirm="تمام فرمول های این کارمند محاسبه شوند؟"><button class="btn btn-outline-primary">⟳ محاسبه فرمول ها</button></form>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-primary js-save-all-values">ذخیره همه مشخصه ها</button>
+            <form method="post" asp-page-handler="Calculate" asp-route-id="@Model.Id" data-confirm="تمام فرمول های این کارمند محاسبه شوند؟"><button class="btn btn-outline-primary">⟳ محاسبه فرمول ها</button></form>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/employee-edit.js" asp-append-version="true"></script>
+}

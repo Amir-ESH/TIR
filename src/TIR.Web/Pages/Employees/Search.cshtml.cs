@@ -8,7 +8,7 @@ using TIR.Web.Presentation;
 
 namespace TIR.Web.Pages.Employees;
 
-public sealed class SearchModel(IEmployeeService employees, IAttributeService attributes,
+public sealed class SearchModel(IEmployeeService employees, IAttributeService attributes, EmployeeExcelExportService excel,
     ILogger<SearchModel> logger) : PageModel
 {
     [BindProperty] public string FiltersJson { get; set; } = "[]";
@@ -22,6 +22,7 @@ public sealed class SearchModel(IEmployeeService employees, IAttributeService at
     public PageResult<EmployeeListItem> Result { get; private set; } = new(0, []);
     public List<AttributeDefinitionDto> Attributes { get; private set; } = [];
     public string AttributeJson { get; private set; } = "[]";
+    private AdvancedEmployeeSearchRequest? ExportRequest { get; set; }
 
     public async Task OnGetAsync(CancellationToken cancellationToken) => await LoadAttributesAsync(cancellationToken);
 
@@ -41,25 +42,12 @@ public sealed class SearchModel(IEmployeeService employees, IAttributeService at
         await LoadAttributesAsync(cancellationToken);
         try
         {
-            var filters = JsonSerializer.Deserialize<List<SearchCondition>>(FiltersJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
-            if (filters.Count > 64) throw new FormatException("حداکثر ۶۴ شرط مجاز است.");
-            var known = Attributes.ToDictionary(x => x.Id);
-            var normalized = new List<SearchCondition>(filters.Count);
-            foreach (var condition in filters)
-            {
-                if (!known.TryGetValue(condition.AttributeId, out var attribute))
-                    throw new FormatException("مشخصه انتخابی نامعتبر است.");
-                normalized.Add(condition with
-                {
-                    Value = NormalizeDate(condition.Value, attribute.DataKind),
-                    To = NormalizeDate(condition.To, attribute.DataKind)
-                });
-            }
+            var normalized = AdvancedSearchInput.Parse(FiltersJson, Attributes);
 
-            Result = await employees.SearchAdvancedAsync(new AdvancedEmployeeSearchRequest(
+            ExportRequest = new AdvancedEmployeeSearchRequest(
                 normalized, EmployeeSearch, SortBy, SortAttributeId, SortDescending,
-                Math.Max(1, PageNumber)), cancellationToken);
+                Math.Max(1, PageNumber));
+            Result = await employees.SearchAdvancedAsync(ExportRequest, cancellationToken);
         }
         catch (Exception error)
         {
@@ -67,6 +55,23 @@ public sealed class SearchModel(IEmployeeService employees, IAttributeService at
             ModelState.AddModelError(string.Empty, UiErrors.Message(error));
         }
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostExcelAsync(CancellationToken cancellationToken)
+    {
+        await OnPostAsync(cancellationToken);
+        if (!ModelState.IsValid || ExportRequest is null) return Page();
+        try
+        {
+            var file = await excel.ExportSearchAsync(ExportRequest, cancellationToken);
+            return File(file, BulkExcelWorkbook.ContentType, "Employees_Search_Export.xlsx");
+        }
+        catch (Exception error)
+        {
+            logger.LogError(error, "خطا در خروجی اکسل جستجوی پیشرفته");
+            ModelState.AddModelError(string.Empty, UiErrors.Message(error));
+            return Page();
+        }
     }
 
     private async Task LoadAttributesAsync(CancellationToken cancellationToken)
@@ -77,19 +82,4 @@ public sealed class SearchModel(IEmployeeService employees, IAttributeService at
             kind = x.DataKind })).Replace("<", "\\u003C").Replace(">", "\\u003E").Replace("&", "\\u0026");
     }
 
-    private static string? NormalizeDate(string? input, byte dataKind)
-    {
-        if (string.IsNullOrWhiteSpace(input)) return input;
-        if (dataKind == 4 && input.Contains('/'))
-            return IranDateConverter.ParsePersianDate(input).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        if (dataKind == 6 && input.Contains('/'))
-        {
-            var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length != 2 || !TimeSpan.TryParse(parts[1], CultureInfo.InvariantCulture, out var time))
-                throw new FormatException("فرمت تاریخ و ساعت معتبر نیست.");
-            var local = IranDateConverter.ParsePersianDate(parts[0]).Add(time);
-            return IranDateConverter.TehranLocalToUtc(local).ToString("yyyy-MM-ddTHH:mm:ss.fff", CultureInfo.InvariantCulture);
-        }
-        return input;
-    }
 }

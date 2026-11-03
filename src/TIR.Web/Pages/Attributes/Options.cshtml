@@ -13,7 +13,9 @@
 </div>
 
 <div class="card mb-4">
-    <div class="card-header"><h3 class="section-title mb-0">افزودن گزینه جدید</h3></div>
+    <div class="card-header">
+        <h3 class="section-title mb-0">افزودن گزینه جدید</h3>
+    </div>
     <form method="post" asp-page-handler="Create" asp-route-id="@Model.Attribute.Id">
         <div class="card-body">
             <partial name="_Validation" />
@@ -46,7 +48,9 @@
     </div>
     @if (Model.Options.Count == 0)
     {
-        <div class="card-body"><p class="text-muted mb-0">برای این مشخصه هنوز گزینه ای ثبت نشده است.</p></div>
+        <div class="card-body">
+            <p class="text-muted mb-0">برای این مشخصه هنوز گزینه ای ثبت نشده است.</p>
+        </div>
     }
     else
     {
@@ -74,7 +78,9 @@
                         <label class="form-label" for="option-order-@option.Id">ترتیب نمایش</label>
                         <input id="option-order-@option.Id" name="displayOrder" value="@option.DisplayOrder" type="number" class="form-control" required />
                     </div>
-                    <div class="col-lg-2 d-grid"><button class="btn btn-outline-primary" type="submit">ذخیره تغییرات</button></div>
+                    <div class="col-lg-2 d-grid">
+                        <button class="btn btn-outline-primary" type="submit">ذخیره تغییرات</button>
+                    </div>
                 </form>
 
                 <form method="post" asp-page-handler="SetEnabled" asp-route-id="@Model.Attribute.Id"

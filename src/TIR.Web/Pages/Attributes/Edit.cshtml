@@ -3,20 +3,46 @@
 @{
     ViewData["Title"] = "ویرایش مشخصه";
 }
-<div class="toolbar"><h2 class="section-title mb-0">ویرایش متادیتای مشخصه</h2><a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت</a></div>
+<div class="toolbar">
+    <h2 class="section-title mb-0">ویرایش متادیتای مشخصه</h2>
+    <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت</a>
+</div>
 <form method="post" class="card">
     <div class="card-body">
         <partial name="_Validation" />
         <input asp-for="Input.Id" type="hidden" />
         <input asp-for="Input.ExpectedRowVersion" type="hidden" />
         <div class="row g-3">
-            <div class="col-md-6"><label class="form-label">کد مشخصه</label><input class="form-control" value="@Model.AttributeCode" disabled /></div>
-            <div class="col-md-6"><label class="form-label">نوع داده</label><input class="form-control" value="@Model.DataKindTitle" disabled /></div>
-            <div class="col-md-6"><label asp-for="Input.Title" class="form-label">عنوان</label><input asp-for="Input.Title" class="form-control" required maxlength="200" /></div>
-            <div class="col-md-6"><label asp-for="Input.DisplayOrder" class="form-label">ترتیب نمایش</label><input asp-for="Input.DisplayOrder" type="number" class="form-control" /></div>
-            <div class="col-12"><label asp-for="Input.Description" class="form-label">توضیح</label><textarea asp-for="Input.Description" class="form-control" rows="3" maxlength="1000"></textarea></div>
-            <div class="col-12"><div class="form-check form-switch"><input asp-for="Input.IsRequired" class="form-check-input" /><label asp-for="Input.IsRequired" class="form-check-label">مقدار اجباری</label></div></div>
+            <div class="col-md-6">
+                <label class="form-label">کد مشخصه</label>
+                <input class="form-control" value="@Model.AttributeCode" disabled />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">نوع داده</label>
+                <input class="form-control" value="@Model.DataKindTitle" disabled />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Input.Title" class="form-label">عنوان</label>
+                <input asp-for="Input.Title" class="form-control" required maxlength="200" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Input.DisplayOrder" class="form-label">ترتیب نمایش</label>
+                <input asp-for="Input.DisplayOrder" type="number" class="form-control" />
+            </div>
+            <div class="col-12">
+                <label asp-for="Input.Description" class="form-label">توضیح</label>
+                <textarea asp-for="Input.Description" class="form-control" rows="3" maxlength="1000"></textarea>
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input asp-for="Input.IsRequired" class="form-check-input" />
+                    <label asp-for="Input.IsRequired" class="form-check-label">مقدار اجباری</label>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="card-body border-top d-flex gap-2"><button class="btn btn-primary">ذخیره تغییرات</button><a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a></div>
+    <div class="card-body border-top d-flex gap-2">
+        <button class="btn btn-primary">ذخیره تغییرات</button>
+        <a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a>
+    </div>
 </form>

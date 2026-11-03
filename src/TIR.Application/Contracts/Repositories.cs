@@ -2,6 +2,13 @@ using TIR.Domain.Employees;
 
 namespace TIR.Application.Contracts;
 
+// خواندن گروهی مقادیر برای خروجی اکسل بدون فراخوانی تکی هر کارمند.
+public interface IEmployeeExcelValueRepository
+{
+    Task<IReadOnlyList<EmployeeFormAttributeDto>> ReadAsync(IReadOnlyList<long> employeeIds,
+        CancellationToken cancellationToken);
+}
+
 /// <summary>
 /// 
 /// </summary>

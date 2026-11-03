@@ -6,7 +6,9 @@ using TIR.Application.Contracts;
 
 namespace TIR.Web.Presentation;
 
-// ورودی CSV به ترتیب شناسه کارمند است؛ هر کارمند یک واحد مستقل Bulk می شود.
+/// <summary>
+/// ورودی CSV به ترتیب شناسه کارمند است؛ هر کارمند یک واحد مستقل Bulk می شود.
+/// </summary>
 public static class BulkCsvReader
 {
     public static async IAsyncEnumerable<BulkEmployeeInput> ReadAsync(Stream stream,
@@ -28,7 +30,7 @@ public static class BulkCsvReader
             if (lineNumber == 1 && columns.Count > 0 &&
                 columns[0].Trim().Equals("EmployeeId", StringComparison.OrdinalIgnoreCase)) continue;
             if (columns.Count != 5)
-                throw new FormatException($"خط {lineNumber}: هر ردیف باید دقیقا ۵ ستون داشته باشد.");
+                throw new FormatException($"خط {lineNumber}: هر ردیف باید دقیقا 5 ستون داشته باشد.");
 
             var employeeId = long.TryParse(columns[0], NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var parsedEmployee) ? parsedEmployee : (long?)null;
@@ -53,7 +55,10 @@ public static class BulkCsvReader
                     var decoded = Convert.FromBase64String(columns[4]);
                     if (decoded.Length == 8) version = decoded;
                 }
-                catch (FormatException) { /* SQL عدم ارسال نسخه را به عنوان تعارض بررسی می کند. */ }
+                catch (FormatException) 
+                { 
+                    /* SQL عدم ارسال نسخه را به عنوان تعارض بررسی می کند. */ 
+                }
             }
 
             var raw = columns[3].Trim();

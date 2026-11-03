@@ -1,17 +1,17 @@
 (function ($) {
     'use strict';
-    $(function () {
-        var attributes = JSON.parse($('#attributeData').text() || '[]');
+    function setup(settings) {
+        var attributes = JSON.parse($(settings.attributeData).text() || '[]');
         var operators = [
             ['eq', 'مساوی'], ['ne', 'نامساوی'], ['gt', 'بزرگ تر'], ['gte', 'بزرگ تر یا مساوی'],
             ['lt', 'کوچک تر'], ['lte', 'کوچک تر یا مساوی'], ['between', 'بین'], ['contains', 'شامل متن']
         ];
-        var container = $('#conditionsContainer');
+        var container = $(settings.container);
         var optionCache = {};
-        var optionsUrl = $('#attributeData').data('options-url');
+        var optionsUrl = $(settings.attributeData).data('options-url');
 
         function createRow(condition) {
-            if (container.children().length >= 64) { alert('حداکثر ۶۴ شرط مجاز است.'); return; }
+            if (container.children().length >= 64) { alert('حداکثر 64 شرط مجاز است.'); return; }
             var row = $('<div class="query-row"></div>');
             $('<input type="number" min="1" max="16" class="form-control condition-group" title="شماره گروه OR" />')
                 .val(condition.group || 1).appendTo(row);
@@ -75,17 +75,17 @@
             if (kind === 4) row.find('.condition-value,.condition-to').addClass('js-jalali-date');
             if (kind === 6) row.find('.condition-value,.condition-to').addClass('js-jalali-datetime');
             if (kind === 5) row.find('.condition-value,.condition-to').addClass('js-tir-time');
-            var placeholder = kind === 4 ? '۱۴۰۵/۰۸/۰۹' : kind === 6 ? '۱۴۰۵/۰۸/۰۹ ۱۲:۳۰' :
+            var placeholder = kind === 4 ? '1405/08/01' : kind === 6 ? '1405/08/01 07:00' :
                 kind === 5 ? 'HH:mm' :
                 kind === 7 ? '0 یا 1' : kind === 8 ? 'شناسه گزینه' : 'مقدار';
             row.find('.condition-value').attr('placeholder', placeholder);
         }
 
-        $('#addCondition').on('click', function () { createRow({ group: 1 }); });
+        $(settings.addCondition).on('click', function () { createRow({ group: 1 }); });
         container.on('click', '.js-remove-condition', function () { $(this).closest('.query-row').remove(); });
         container.on('change', '.condition-operator,.condition-attribute', function () { updateRow($(this).closest('.query-row')); });
 
-        $('#advancedSearchForm').on('submit', function () {
+        function serializeConditions() {
             var conditions = [];
             container.children('.query-row').each(function () {
                 var row = $(this), attr = Number(row.find('.condition-attribute').val());
@@ -95,17 +95,27 @@
                     value: String(row.find('.condition-value').val() || '').trim(),
                     to: String(row.find('.condition-to').val() || '').trim() || null });
             });
-            $('#FiltersJson').val(JSON.stringify(conditions));
-        });
+            $(settings.filtersJson).val(JSON.stringify(conditions));
+            return conditions;
+        }
+        $(settings.form).on('submit', serializeConditions);
 
-        $('.js-search-page').on('click', function () {
-            $('#PageNumber').val($(this).data('page'));
-            $('#advancedSearchForm').trigger('submit');
+        $(settings.pagination || '.js-search-page').on('click', function () {
+            $(settings.pageNumber).val($(this).data('page'));
+            $(settings.form).trigger('submit');
         });
 
         var previous = [];
-        try { previous = JSON.parse($('#FiltersJson').val() || '[]'); } catch (_) { previous = []; }
+        try { previous = JSON.parse($(settings.filtersJson).val() || '[]'); } catch (_) { previous = []; }
         if (previous.length) previous.forEach(createRow);
         else createRow({ group: 1 });
+        return { serialize: serializeConditions };
+    }
+    window.TIRAdvancedSearch = { setup: setup };
+    $(function () {
+        if (!$('#advancedSearchForm').length) return;
+        setup({ form: '#advancedSearchForm', attributeData: '#attributeData',
+            container: '#conditionsContainer', addCondition: '#addCondition',
+            filtersJson: '#FiltersJson', pageNumber: '#PageNumber' });
     });
 })(jQuery);

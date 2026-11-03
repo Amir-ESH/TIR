@@ -5,7 +5,7 @@ using TIR.Web.Presentation;
 
 namespace TIR.Web.Pages.Employees;
 
-public sealed class IndexModel(IEmployeeService employees, ILogger<IndexModel> logger) : PageModel
+public sealed class IndexModel(IEmployeeService employees, EmployeeExcelExportService excel, ILogger<IndexModel> logger) : PageModel
 {
     [BindProperty(SupportsGet = true)] public string? Search { get; set; }
     [BindProperty(SupportsGet = true)] public bool IncludeDeleted { get; set; }
@@ -23,6 +23,22 @@ public sealed class IndexModel(IEmployeeService employees, ILogger<IndexModel> l
                 Search, IncludeDeleted, SortBy, SortDescending, PageNumber), cancellationToken);
         }
         catch (Exception error) { logger.LogError(error, "خطا در فهرست کارمندان"); TempData["Error"] = UiErrors.Message(error); }
+    }
+
+    public async Task<IActionResult> OnGetExcelAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var file = await excel.ExportListAsync(new EmployeeListRequest(
+                Search, false, SortBy, SortDescending), cancellationToken);
+            return File(file, BulkExcelWorkbook.ContentType, "Employees_Export.xlsx");
+        }
+        catch (Exception error)
+        {
+            logger.LogError(error, "خطا در خروجی اکسل کارمندان");
+            TempData["Error"] = UiErrors.Message(error);
+            return RedirectToPage("/Employees/Index");
+        }
     }
 
     public Task<IActionResult> OnPostSoftDeleteAsync(long id, string rowVersion, CancellationToken cancellationToken) =>

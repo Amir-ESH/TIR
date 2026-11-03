@@ -6,17 +6,48 @@
 @if (Model.Employee is not null)
 {
     <div class="toolbar">
-        <div><h2 class="section-title mb-1">@Model.Employee.FirstName @Model.Employee.LastName</h2><p class="page-lead mb-0">کد کارمند: <span class="mono">@Model.Employee.EmployeeCode</span></p></div>
-        <div class="d-flex gap-2"><a asp-page="/Employees/Index" class="btn btn-outline-secondary">بازگشت</a>@if (!Model.Employee.IsDeleted) { <a asp-page="/Employees/Edit" asp-route-id="@Model.Employee.Id" class="btn btn-primary">ویرایش اطلاعات</a> }</div>
-    </div>
-    <div class="card mb-4"><div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-3"><div class="info-tile"><dt>شناسه</dt><dd>@Model.Employee.Id</dd></div></div>
-            <div class="col-md-3"><div class="info-tile"><dt>کد کارمند</dt><dd>@Model.Employee.EmployeeCode</dd></div></div>
-            <div class="col-md-3"><div class="info-tile"><dt>تاریخ ایجاد</dt><dd>@Model.PersianDate(Model.Employee.CreatedAtUtc)</dd></div></div>
-            <div class="col-md-3"><div class="info-tile"><dt>وضعیت</dt><dd>@(Model.Employee.IsDeleted ? "حذف شده" : "فعال")</dd></div></div>
+        <div>
+            <h2 class="section-title mb-1">@Model.Employee.FirstName @Model.Employee.LastName</h2>
+            <p class="page-lead mb-0">کد کارمند: <span class="mono">@Model.Employee.EmployeeCode</span></p>
         </div>
-    </div></div>
+        <div class="d-flex gap-2">
+            <a asp-page="/Employees/Index" class="btn btn-outline-secondary">بازگشت</a>
+            @if (!Model.Employee.IsDeleted) 
+            { 
+                <a asp-page="/Employees/Edit" asp-route-id="@Model.Employee.Id" class="btn btn-primary">ویرایش اطلاعات</a>
+            }
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="info-tile">
+                        <dt>شناسه</dt>
+                        <dd>@Model.Employee.Id</dd>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-tile">
+                        <dt>کد کارمند</dt>
+                        <dd>@Model.Employee.EmployeeCode</dd>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-tile">
+                        <dt>تاریخ ایجاد</dt>
+                        <dd>@Model.PersianDate(Model.Employee.CreatedAtUtc)</dd>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-tile">
+                        <dt>وضعیت</dt>
+                        <dd>@(Model.Employee.IsDeleted ? "حذف شده" : "فعال")</dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     @if (Model.Employee.IsDeleted)
     {
         <div class="alert alert-warning">این کارمند حذف منطقی شده است. برای مشاهده و ویرایش مقدارها ابتدا او را بازیابی کنید.</div>
@@ -30,16 +61,26 @@
                     <button class="btn btn-outline-primary">⟳ محاسبه فرمول ها</button>
                 </form>
             </div>
-            <div class="card-body"><div class="field-grid">
-                @foreach (var field in Model.Fields)
-                {
-                    <div class="info-tile">
-                        <dt>@field.Name @if (field.SourceKind == 2) { <span class="badge text-bg-@field.StatusColor">@field.StatusText</span> }</dt>
-                        <dd>@Model.DisplayValue(field)</dd>
-                        @if (field.SourceKind == 2 && !string.IsNullOrWhiteSpace(field.CalculationErrorMessage)) { <small class="text-danger">@field.CalculationErrorMessage</small> }
-                    </div>
-                }
-            </div></div>
+            <div class="card-body">
+                <div class="field-grid">
+                    @foreach (var field in Model.Fields)
+                    {
+                        <div class="info-tile">
+                            <dt>
+                                @field.Name @if (field.SourceKind == 2) 
+                                { 
+                                    <span class="badge text-bg-@field.StatusColor">@field.StatusText</span>
+                                }
+                            </dt>
+                            <dd>@Model.DisplayValue(field)</dd>
+                            @if (field.SourceKind == 2 && !string.IsNullOrWhiteSpace(field.CalculationErrorMessage)) 
+                            {
+                                <small class="text-danger">@field.CalculationErrorMessage</small>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     }
 }
