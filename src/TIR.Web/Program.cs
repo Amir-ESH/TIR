@@ -6,6 +6,7 @@ using TIR.Application;
 using TIR.Application.Common;
 using TIR.Infrastructure;
 using TIR.Web.Jobs;
+using TIR.Web.Presentation;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -24,6 +25,7 @@ try
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Test") ?? string.Empty);
     builder.Services.AddRazorPages();
+    builder.Services.AddScoped<EmployeeExcelExportService>();
     builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 256L * 1024 * 1024);
     builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 256L * 1024 * 1024);
 
@@ -47,6 +49,7 @@ try
         builder.Services.AddHangfireServer();
         builder.Services.AddScoped<FormulaMaintenanceJob>();
         builder.Services.AddScoped<BulkCleanupJob>();
+        builder.Services.AddScoped<BulkWizardJob>();
     }
 
     var app = builder.Build();

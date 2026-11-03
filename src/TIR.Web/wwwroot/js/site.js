@@ -2,12 +2,39 @@
     'use strict';
 
     $(function () {
-        var path = window.location.pathname.toLowerCase();
-        $('.side-nav a').each(function () {
-            var href = ($(this).attr('href') || '').toLowerCase();
-            if (href === path || (href !== '/' && href !== '/hangfire' && path.startsWith(href + '/')))
-                $(this).addClass('active');
+        var path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
+
+        var activeLink = null;
+        var bestMatchLength = -1;
+
+        $('.side-nav a').removeClass('active').each(function () {
+
+            var href = ($(this).attr('href') || '')
+                .toLowerCase()
+                .replace(/\/+$/, '') || '/';
+
+            // اگر آدرس دقیق پیدا شد همان منو انتخاب شود.
+            if (href === path) {
+                activeLink = this;
+                return false;
+            }
+
+            // اگر آدرس دقیق نبود نزدیک ترین مسیر والد انتخاب شود.
+            if (
+                href !== '/' &&
+                href !== '/hangfire' &&
+                path.startsWith(href + '/') &&
+                href.length > bestMatchLength
+            ) {
+                activeLink = this;
+                bestMatchLength = href.length;
+            }
         });
+
+        // فقط یک منو فعال باشد.
+        if (activeLink) {
+            $(activeLink).addClass('active');
+        }
 
         $('#menuToggle').on('click', function () { $('#appSidebar').toggleClass('open'); });
         $(document).on('click', function (event) {

@@ -5,12 +5,12 @@
 ![SQL Server](https://img.shields.io/badge/Database-Microsoft_SQL_Server-CC2927)
 ![Status](https://img.shields.io/badge/Status-MVP-orange)
 
-**TIR** is a Persian-language, right-to-left personnel management web application built with **ASP.NET Core 8 Razor Pages**. It combines core employee records with administrator-defined attributes, typed values, advanced search, formula-based calculations, and CSV-based bulk updates.
+**TIR** is a Persian-language, right-to-left personnel management web application built with **ASP.NET Core 8 Razor Pages**. It combines core employee records with administrator-defined attributes, typed values, advanced search, formula-based calculations, and Excel-based bulk operations.
 
 The application uses a layered .NET solution and delegates data operations and business rules to **Microsoft SQL Server stored procedures**. Its interface is designed for Iranian users, including Jalali (Persian) date input/display and Tehran-local time handling.
 
 > [!IMPORTANT]
-> **Database prerequisites are not included in this repository.** The application calls existing SQL Server stored procedures, table types, and staging tables, but the repository does not contain their SQL definitions or migrations. You must provision a compatible database before the application can function. A successful .NET build alone does not mean the application is ready to run.
+> **Database setup is required.** `database/DataBase.sql` is the reference schema export. Apply earlier database updates through version `016`, then run [`database/migrations/017_formula_missing_results.sql`](database/migrations/017_formula_missing_results.sql) against `Test` so missing formula inputs do not stop bulk calculations.
 
 ## Contents
 
@@ -20,7 +20,8 @@ The application uses a layered .NET solution and delegates data operations and b
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
 - [Using TIR](#using-tir)
-- [Bulk CSV format](#bulk-csv-format)
+- [Excel bulk wizard](#excel-bulk-wizard)
+- [Legacy CSV format](#bulk-csv-format)
 - [Background processing](#background-processing)
 - [Database integration](#database-integration)
 - [Development notes](#development-notes)
@@ -35,7 +36,7 @@ The application uses a layered .NET solution and delegates data operations and b
 | **Typed values** | Store text, integers, decimals, dates, times, date-times, booleans, and selected option IDs. |
 | **Advanced search** | Search fixed employee fields and dynamic attributes; combine conditions with **AND** inside a group and **OR** across groups; paginate and sort results. |
 | **Calculated attributes** | Register SQL-backed formulas and dependencies, calculate values on demand, and track valid, stale, and failed results. |
-| **Bulk processing** | Upload a UTF-8 CSV, stage changes with `SqlBulkCopy`, process employees in database batches, and inspect per-employee errors. |
+| **Bulk processing** | Three-step wizard for Excel employee creation/update or selected formula calculations; stage changes with `SqlBulkCopy`, process sequential 10,000-row Hangfire jobs, and inspect cumulative progress and per-row errors. |
 | **Concurrency control** | Use SQL Server `rowversion` values when updating employee records, attributes, options, and existing values. |
 | **Background jobs** | Optionally run formula maintenance and bulk-staging cleanup through Hangfire. |
 | **Localized UI** | Persian RTL layout, Jalali date conversion, and an Iran clock. |
@@ -47,7 +48,7 @@ The application uses a layered .NET solution and delegates data operations and b
 - **Data access:** Dapper, `Microsoft.Data.SqlClient`, stored procedures, table-valued parameters, and `SqlBulkCopy`
 - **Validation:** FluentValidation
 - **Object mapping:** Mapperly
-- **Background jobs:** Hangfire with SQL Server storage (optional)
+- **Background jobs:** Hangfire with SQL Server storage (required for the new bulk wizard)
 - **Logging:** Serilog (console and HTTP request logging)
 - **Frontend:** Razor, Bootstrap RTL, jQuery, JavaScript, and CSS
 - **Localization:** Persian calendar, Tehran time zone, Persian-language interface
@@ -158,7 +159,7 @@ The main pages in the web interface are:
 | `/Employees/Search` | Build grouped attribute filters and run advanced searches. |
 | `/Attributes` | Browse, create, edit, soft-delete, and restore attribute definitions. |
 | `/Attributes/Options/{id}` | Manage options for a single-select attribute. |
-| `/Bulk` | Upload and process a CSV batch. |
+| `/Bulk` | Excel create/update wizard or formula calculation with employee selection and a live progress report. |
 | `/Bulk/Report/{id}` | View batch counts and errors, or delete staged batch data. |
 
 ### Dynamic attribute types
@@ -180,7 +181,17 @@ The `DataKind` values used throughout the application are:
 
 For advanced searches, supported operators include equality, inequality, comparisons, ranges, and text containment where appropriate to the data type. Conditions within a numbered group are combined using `AND`, and the groups are combined using `OR`.
 
+## Excel bulk wizard
+
+The `/Bulk` page is now a three-step wizard: choose **create**, **update**, or **calculate formula**; upload a freshly generated `.xlsx` template or select formula targets using advanced search; review and submit to sequential Hangfire jobs. A cumulative progress bar and row-level errors are displayed on the third step. Data remains staged until execution is confirmed.
+
+For updates, download an employee workbook from `/Employees/Index` or `/Employees/Search`. It includes the employee `RowVersion`, an individual version column per editable attribute, and an `OriginalValues` worksheet. Only attribute values changed from that worksheet are sent to SQL. Blank changed cells clear optional values; required attributes cannot be cleared. The SQL procedures retain business validation and concurrency control.
+
+The new migrations and deployment/testing instructions are in [`database/README_011.md`](database/README_011.md). Hangfire must be enabled to execute wizard requests. The `.xlsx` import and export limit is 50,000 employees per file in this release; SQL execution runs in chunks of up to 10,000 employees per job.
+
 ## Bulk CSV format
+
+The following describes the earlier CSV contract, retained in the backend for compatibility. The `/Bulk` page now presents the Excel wizard instead.
 
 The **Bulk** page accepts a **UTF-8 CSV** with this exact column order:
 

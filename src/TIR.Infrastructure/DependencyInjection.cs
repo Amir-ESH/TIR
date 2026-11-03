@@ -24,10 +24,12 @@ public static class DependencyInjection
         services.AddSingleton<StoredProcedureExecutor>();
         services.AddScoped<IEmployeeReadRepository, EmployeeReadRepository>();
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+        services.AddScoped<IEmployeeExcelValueRepository, EmployeeExcelValueRepository>();
         services.AddScoped<IAttributeRepository, AttributeRepository>();
         services.AddScoped<IAttributeValueRepository, AttributeValueRepository>();
         services.AddScoped<IFormulaRepository, FormulaRepository>();
         services.AddScoped<IBulkRepository, BulkRepository>();
+        services.AddScoped<IBulkWizardRepository, BulkWizardRepository>();
         return services;
     }
 }

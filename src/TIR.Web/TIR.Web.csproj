@@ -3,6 +3,7 @@
     <RootNamespace>TIR.Web</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ClosedXML" />
     <ProjectReference Include="../TIR.Application/TIR.Application.csproj" />
     <ProjectReference Include="../TIR.Infrastructure/TIR.Infrastructure.csproj" />
     <PackageReference Include="Hangfire.AspNetCore" />

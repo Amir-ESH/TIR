@@ -122,7 +122,7 @@
         function render() {
             container.empty();
             var header = $('<div class="tir-iran-calendar__heading"></div>').appendTo(container);
-            var unit = view === 'years' ? '۱۲ سال' : view === 'months' ? 'سال' : 'ماه';
+            var unit = view === 'years' ? '12 سال' : view === 'months' ? 'سال' : 'ماه';
             $('<button type="button" class="tir-iran-calendar__arrow"></button>')
                 .html(previousIcon).attr('aria-label', unit + ' قبل')
                 .attr('title', unit + ' قبل').on('click', function () { move(-1); })

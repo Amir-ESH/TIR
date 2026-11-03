@@ -18,10 +18,10 @@
         <div class="border-top pt-3">
             <div class="d-flex align-items-center justify-content-between mb-3 gap-2 flex-wrap"><h3 class="section-title mb-0">شروط داینامیک</h3><button type="button" class="btn btn-outline-primary btn-sm" id="addCondition">+ افزودن شرط</button></div>
             <div id="conditionsContainer"></div>
-            <div class="form-text">مثال: گروه ۱ شامل مدرک = کارشناسی و سن بیشتر از ۳۰؛ گروه ۲ شامل تاریخ استخدام بعد از ۱۴۰۰/۰۱/۰۱.</div>
+            <div class="form-text">مثال: گروه 1 شامل مدرک = کارشناسی و سن بیشتر از 30 و گروه 2 شامل تاریخ استخدام بعد از 1405/08/01.</div>
         </div>
     </div>
-    <div class="card-body border-top"><button type="submit" class="btn btn-primary px-4">اجرای جستجو</button></div>
+    <div class="card-body border-top d-flex gap-2 flex-wrap"><button type="submit" class="btn btn-primary px-4">اجرای جستجو</button><button type="submit" asp-page-handler="Excel" class="btn btn-outline-success">دانلود اکسل نتایج</button></div>
 </form>
 @if (Model.HasSearched)
 {

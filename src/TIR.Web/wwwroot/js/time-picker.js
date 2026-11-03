@@ -137,7 +137,7 @@
             $('<label for="tirClockMinute">دقیقه</label>').appendTo(minuteBox);
             $('<input id="tirClockMinute" class="tir-clock-manual__minute form-control" type="number" min="0" max="59" inputmode="numeric" />')
                 .val(pad(minute)).appendTo(minuteBox);
-            $('<div class="tir-clock-manual__error" role="alert">ساعت باید بین ۱ تا ۱۲ و دقیقه بین ۰ تا ۵۹ باشد.</div>')
+            $('<div class="tir-clock-manual__error" role="alert">ساعت باید بین 1 تا 12 و دقیقه بین 0 تا 59 باشد.</div>')
                 .hide().appendTo(container);
         }
         function render() {

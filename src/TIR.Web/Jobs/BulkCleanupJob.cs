@@ -3,7 +3,7 @@ using TIR.Application.Contracts;
 
 namespace TIR.Web.Jobs;
 
-public sealed class BulkCleanupJob(IBulkService bulk, ILogger<BulkCleanupJob> logger)
+public sealed class BulkCleanupJob(IBulkService bulk, IBulkWizardRepository wizard, ILogger<BulkCleanupJob> logger)
 {
     [DisableConcurrentExecution(timeoutInSeconds: 600)]
     [AutomaticRetry(Attempts = 1)]
@@ -17,6 +17,12 @@ public sealed class BulkCleanupJob(IBulkService bulk, ILogger<BulkCleanupJob> lo
             var count = await bulk.CleanupAsync(olderThanUtc, 1000, cancellationToken);
             total += count;
             if (count < 1000) break;
+        }
+        for (var part = 0; part < 1000; part++)
+        {
+            var count = await wizard.CleanupAsync(olderThanUtc, cancellationToken);
+            total += count;
+            if (count < 100) break;
         }
         logger.LogInformation("تعداد درخواست های گروهی پاکسازی شده: {DeletedCount}", total);
     }

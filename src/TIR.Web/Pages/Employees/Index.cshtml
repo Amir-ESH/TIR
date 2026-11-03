@@ -5,7 +5,10 @@
 }
 <div class="toolbar">
     <div><h2 class="section-title mb-1">کارمندان سازمان</h2><p class="page-lead mb-0">فهرست، جستجو، ویرایش و بازیابی اطلاعات پرسنلی.</p></div>
-    <a asp-page="/Employees/Create" class="btn btn-primary">+ افزودن کارمند</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a asp-page="/Employees/Index" asp-page-handler="Excel" asp-route-Search="@Model.Search" asp-route-SortBy="@Model.SortBy" asp-route-SortDescending="@Model.SortDescending" class="btn btn-outline-success">دانلود فایل خروجی کارمندان</a>
+        <a asp-page="/Employees/Create" class="btn btn-primary">+ افزودن کارمند</a>
+    </div>
 </div>
 <div class="card">
     <div class="card-body pb-0">

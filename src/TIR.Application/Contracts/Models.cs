@@ -80,6 +80,7 @@ public sealed class EmployeeAttributeValueDto
 /// </summary>
 public sealed class EmployeeFormAttributeDto
 {
+    public long EmployeeId { get; set; }
     public long AttributeId { get; set; }
     public string AttributeCode { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
