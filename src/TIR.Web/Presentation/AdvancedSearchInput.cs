@@ -21,10 +21,13 @@ public static class AdvancedSearchInput
         {
             if (!known.TryGetValue(condition.AttributeId, out var attribute))
                 throw new FormatException("مشخصه انتخابی معتبر نیست.");
+            var isValuePresenceFilter = condition.Operator is "isnull" or "isnotnull";
+            if (isValuePresenceFilter && attribute.IsRequired)
+                throw new FormatException("بررسی خالی بودن فقط برای مشخصه غیر اجباری مجاز است.");
             return condition with
             {
-                Value = NormalizeDate(condition.Value, attribute.DataKind),
-                To = NormalizeDate(condition.To, attribute.DataKind)
+                Value = isValuePresenceFilter ? null : NormalizeDate(condition.Value, attribute.DataKind),
+                To = isValuePresenceFilter ? null : NormalizeDate(condition.To, attribute.DataKind)
             };
         }).ToArray();
     }

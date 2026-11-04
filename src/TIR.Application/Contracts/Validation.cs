@@ -68,8 +68,10 @@ public sealed class AdvancedEmployeeSearchRequestValidator : AbstractValidator<A
             filter.RuleFor(x => x.Group).InclusiveBetween(1, 16);
             filter.RuleFor(x => x.AttributeId).NotEqual(0);
             filter.RuleFor(x => x.Operator)
-                .Must(x => new[] { "eq", "ne", "gt", "gte", "lt", "lte", "between", "contains" }.Contains(x));
-            filter.RuleFor(x => x.Value).NotNull().MaximumLength(1000);
+                .Must(x => new[] { "eq", "ne", "gt", "gte", "lt", "lte", "between", "contains", "isnull", "isnotnull" }.Contains(x));
+            filter.RuleFor(x => x.Value).NotNull()
+                .When(x => x.Operator is not ("isnull" or "isnotnull"));
+            filter.RuleFor(x => x.Value).MaximumLength(1000);
             filter.RuleFor(x => x.To).MaximumLength(1000);
         });
     }
