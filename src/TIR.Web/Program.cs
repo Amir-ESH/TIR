@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using TIR.Application;
 using TIR.Application.Common;
@@ -24,8 +25,20 @@ try
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Test") ?? string.Empty);
-    builder.Services.AddRazorPages();
+    builder.Services.AddRazorPages(options =>
+    {
+        // فقط صفحه ورود گروهی مجاز به دریافت فایل های اکسل بزرگ است.
+        options.Conventions.AddPageApplicationModelConvention("/Bulk/Index", model =>
+        {
+            model.Filters.Add(new RequestSizeLimitAttribute(long.MaxValue));
+            model.Filters.Add(new RequestFormLimitsAttribute
+            {
+                MultipartBodyLengthLimit = long.MaxValue
+            });
+        });
+    });
     builder.Services.AddScoped<EmployeeExcelExportService>();
+    // محدودیت عمومی سایر صفحه ها حفظ می شود؛ صفحه گروهی استثنا دارد.
     builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 256L * 1024 * 1024);
     builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 256L * 1024 * 1024);
 

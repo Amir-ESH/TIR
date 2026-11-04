@@ -10,7 +10,7 @@
 The application uses a layered .NET solution and delegates data operations and business rules to **Microsoft SQL Server stored procedures**. Its interface is designed for Iranian users, including Jalali (Persian) date input/display and Tehran-local time handling.
 
 > [!IMPORTANT]
-> **Database setup is required.** `database/DataBase.sql` is the reference schema export. Apply earlier database updates through version `016`, then run [`database/migrations/017_formula_missing_results.sql`](database/migrations/017_formula_missing_results.sql) against `Test` so missing formula inputs do not stop bulk calculations.
+> **Database setup is required.** `database/DataBase.sql` is a reference schema export, not an incremental upgrade script. After the existing schema updates through version `018` are applied, execute [`database/migrations/019_formula_bulk_scalability.sql`](database/migrations/019_formula_bulk_scalability.sql) against `Test` **before** deploying this update. It upgrades the formula set calculator and the bulk formula worker and records schema version `019`.
 
 ## Contents
 
@@ -72,7 +72,7 @@ TIR.sln
 
 **Request flow:** Razor Page → application service / validator → repository interface → infrastructure repository → SQL Server stored procedure.
 
-`TIR.Web` registers the application and infrastructure services through dependency injection. The infrastructure layer opens SQL connections per operation. Read-only stored-procedure calls may retry SQL Server deadlocks; writes are not automatically retried.
+`TIR.Web` registers the application and infrastructure services through dependency injection. The infrastructure layer opens SQL connections per operation. Read-only stored-procedure calls may retry SQL Server deadlocks. The bulk employee writer additionally retries only error `1205`, using a database procedure designed to safely reprocess rolled-back sub-batches; other writes are not automatically retried.
 
 The database is responsible for important validation and transactional behavior, so the application depends on its expected SQL contracts.
 
@@ -187,7 +187,7 @@ The `/Bulk` page is now a three-step wizard: choose **create**, **update**, or *
 
 For updates, download an employee workbook from `/Employees/Index` or `/Employees/Search`. It includes the employee `RowVersion`, an individual version column per editable attribute, and an `OriginalValues` worksheet. Only attribute values changed from that worksheet are sent to SQL. Blank changed cells clear optional values; required attributes cannot be cleared. The SQL procedures retain business validation and concurrency control.
 
-The new migrations and deployment/testing instructions are in [`database/README_011.md`](database/README_011.md). Hangfire must be enabled to execute wizard requests. The `.xlsx` import and export limit is 50,000 employees per file in this release; SQL execution runs in chunks of up to 10,000 employees per job.
+Hangfire must be enabled to execute wizard requests. **Employee import no longer has an application-level 50,000-row limit.** Each Hangfire job still covers 10,000 employees, but SQL Server processes employee writes in batches of 1,000 rows and formula calculations in batches of 500 employees. Formula progress counts are now updated incrementally instead of recounting every employee after each batch. Formula jobs retry transient SQL deadlocks and timeouts on the current small batch. The separate Excel *export* limit remains 50,000 employees. A single Excel worksheet is inherently limited to 1,048,576 rows, and imports are also constrained by available server memory, storage, request timeouts and any reverse proxy limits. For reliable large imports, run the application in 64-bit mode with sufficient resources. Apply database migration `019` first; otherwise the previous 10,000-employee SQL formula transaction remains unchanged.
 
 ## Bulk CSV format
 

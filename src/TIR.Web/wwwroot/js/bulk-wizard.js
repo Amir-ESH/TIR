@@ -241,7 +241,7 @@
                 number(Math.max(1, Math.ceil(searchTotal / 50))) + '، کل ' + number(searchTotal));
             $('#bulkEmployeePrev').prop('disabled', searchPage === 1);
             $('#bulkEmployeeNext').prop('disabled', searchPage * 50 >= searchTotal);
-            $('#bulkSelectAllFiltered').prop('disabled', !searchTotal || searchTotal > 50000);
+            $('#bulkSelectAllFiltered').prop('disabled', !searchTotal);
             $('#bulkSelectPage').prop('checked', Boolean(currentItems.length) &&
                 currentItems.every(function (item) { return selectedIds.has(item.id) || selectionMode === 'filtered'; }));
             $('#bulkModalSelectionHint').text(selectionMode === 'filtered' ? 'همه نتایج جستجو انتخاب شده اند.' :
@@ -316,7 +316,6 @@
             renderSearch({ totalCount: searchTotal, items: currentItems });
         });
         $('#bulkSelectAllFiltered').on('click', function () {
-            if (searchTotal > 50000) return modalMessage('حداکثر 50 هزار کارمند را انتخاب کنید.', 'danger');
             selectionMode = 'filtered';
             selectedIds.clear();
             renderSearch({ totalCount: searchTotal, items: currentItems });
