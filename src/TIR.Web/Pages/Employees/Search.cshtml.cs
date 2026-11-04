@@ -79,7 +79,7 @@ public sealed class SearchModel(IEmployeeService employees, IAttributeService at
         Attributes = await UiFieldFactory.LoadAllActiveAsync(attributes, cancellationToken);
         // داده فقط از متادیتای SQL ساخته می شود و در HTML با فرار دادن کاراکترها تزریق می شود.
         AttributeJson = JsonSerializer.Serialize(Attributes.Select(x => new { id = x.Id, title = x.Title,
-            kind = x.DataKind })).Replace("<", "\\u003C").Replace(">", "\\u003E").Replace("&", "\\u0026");
+            kind = x.DataKind, required = x.IsRequired })).Replace("<", "\\u003C").Replace(">", "\\u003E").Replace("&", "\\u0026");
     }
 
 }

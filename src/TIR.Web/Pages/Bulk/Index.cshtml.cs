@@ -179,7 +179,7 @@ public sealed class IndexModel(
         Attributes = definitions;
         AttributeJson = JsonSerializer.Serialize(definitions.Select(x => new
         {
-            id = x.Id, title = x.Title, kind = x.DataKind
+            id = x.Id, title = x.Title, kind = x.DataKind, required = x.IsRequired
         }));
         var order = await formulas.GetCalculationOrderAsync(cancellationToken);
         var byId = definitions.ToDictionary(x => x.Id);

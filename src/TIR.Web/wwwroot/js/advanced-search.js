@@ -4,7 +4,8 @@
         var attributes = JSON.parse($(settings.attributeData).text() || '[]');
         var operators = [
             ['eq', 'مساوی'], ['ne', 'نامساوی'], ['gt', 'بزرگ تر'], ['gte', 'بزرگ تر یا مساوی'],
-            ['lt', 'کوچک تر'], ['lte', 'کوچک تر یا مساوی'], ['between', 'بین'], ['contains', 'شامل متن']
+            ['lt', 'کوچک تر'], ['lte', 'کوچک تر یا مساوی'], ['between', 'بین'], ['contains', 'شامل متن'],
+            ['isnull', 'مقدار ندارد'], ['isnotnull', 'مقدار دارد']
         ];
         var container = $(settings.container);
         var optionCache = {};
@@ -18,7 +19,9 @@
             var attribute = $('<select class="form-select condition-attribute"></select>').appendTo(row);
             $('<option value="">انتخاب مشخصه</option>').appendTo(attribute);
             attributes.forEach(function (item) {
-                $('<option></option>').val(item.id).text(item.title).attr('data-kind', item.kind).appendTo(attribute);
+                $('<option></option>').val(item.id).text(item.title)
+                    .attr('data-kind', item.kind).attr('data-required', item.required ? 'true' : 'false')
+                    .appendTo(attribute);
             });
             var operator = $('<select class="form-select condition-operator"></select>').appendTo(row);
             operators.forEach(function (item) { $('<option></option>').val(item[0]).text(item[1]).appendTo(operator); });
@@ -34,15 +37,18 @@
         function updateRow(row) {
             var kind = Number(row.find('.condition-attribute option:selected').data('kind'));
             var selectedAttribute = Number(row.find('.condition-attribute').val());
+            var isRequired = row.find('.condition-attribute option:selected').attr('data-required') === 'true';
             var operator = row.find('.condition-operator');
             operator.find('option').each(function () {
                 var code = $(this).val();
                 var allow = code === 'eq' || code === 'ne' ||
                     (code === 'contains' && kind === 1) ||
-                    (['gt', 'gte', 'lt', 'lte', 'between'].includes(code) && [2, 3, 4, 5, 6].includes(kind));
+                    (['gt', 'gte', 'lt', 'lte', 'between'].includes(code) && [2, 3, 4, 5, 6].includes(kind)) ||
+                    (['isnull', 'isnotnull'].includes(code) && selectedAttribute > 0 && !isRequired);
                 $(this).prop('disabled', !allow);
             });
             if (operator.find('option:selected').prop('disabled')) operator.val('eq');
+            var isValuePresenceFilter = ['isnull', 'isnotnull'].includes(operator.val());
             row.toggleClass('is-between', operator.val() === 'between');
             var valueField = row.find('.condition-value');
             if (kind === 8 && !valueField.is('select')) {
@@ -54,7 +60,7 @@
                 valueField.replaceWith($('<input class="form-control condition-value" placeholder="مقدار" />'));
                 valueField = row.find('.condition-value');
             }
-            if (kind === 8 && selectedAttribute) {
+            if (kind === 8 && selectedAttribute && !isValuePresenceFilter) {
                 var wanted = valueField.data('prior') || valueField.val();
                 var fillOptions = function (options) {
                     if (Number(row.find('.condition-attribute').val()) !== selectedAttribute) return;
@@ -79,6 +85,10 @@
                 kind === 5 ? 'HH:mm' :
                 kind === 7 ? '0 یا 1' : kind === 8 ? 'شناسه گزینه' : 'مقدار';
             row.find('.condition-value').attr('placeholder', placeholder);
+            // عملگر مقدار دارد یا ندارد به ورودی مقدار احتیاج ندارد.
+            row.find('.condition-value,.condition-to')
+                .prop('disabled', isValuePresenceFilter)
+                .toggleClass('d-none', isValuePresenceFilter);
         }
 
         $(settings.addCondition).on('click', function () { createRow({ group: 1 }); });
@@ -90,10 +100,11 @@
             container.children('.query-row').each(function () {
                 var row = $(this), attr = Number(row.find('.condition-attribute').val());
                 if (!attr) return;
+                var isValuePresenceFilter = ['isnull', 'isnotnull'].includes(row.find('.condition-operator').val());
                 conditions.push({ group: Number(row.find('.condition-group').val()),
                     attributeId: attr, operator: row.find('.condition-operator').val(),
-                    value: String(row.find('.condition-value').val() || '').trim(),
-                    to: String(row.find('.condition-to').val() || '').trim() || null });
+                    value: isValuePresenceFilter ? null : String(row.find('.condition-value').val() || '').trim(),
+                    to: isValuePresenceFilter ? null : String(row.find('.condition-to').val() || '').trim() || null });
             });
             $(settings.filtersJson).val(JSON.stringify(conditions));
             return conditions;
