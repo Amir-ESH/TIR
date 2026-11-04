@@ -40,9 +40,9 @@ public sealed class IndexModel(
         IFormFile? excelFile, CancellationToken cancellationToken)
     {
         if (operationKind is not (1 or 2)) return BadRequest(new { error = "نوع عملیات معتبر نیست." });
-        if (excelFile is null || excelFile.Length == 0 || excelFile.Length > 30L * 1024 * 1024 ||
+        if (excelFile is null || excelFile.Length == 0 ||
             !Path.GetExtension(excelFile.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "فایل اکسل xlsx تا حجم ۳۰ مگابایت مجاز است." });
+            return BadRequest(new { error = "فایل اکسل با فرمت xlsx انتخاب کنید." });
 
         try
         {
@@ -93,8 +93,6 @@ public sealed class IndexModel(
                     {
                         var result = await employees.SearchAdvancedAsync(new AdvancedEmployeeSearchRequest(
                             filters, employeeSearch, "Id", null, false, page, 200), cancellationToken);
-                        if (result.TotalCount > 50000)
-                            throw new FormatException("تعداد نتایج انتخابی بیشتر از ۵۰ هزار است. فیلتر را محدود کنید.");
                         collected.AddRange(result.Items.Select(x => x.Id));
                         if (result.Items.Count < 200) break;
                     }
@@ -102,8 +100,8 @@ public sealed class IndexModel(
                 }
                 else return BadRequest(new { error = "روش انتخاب کارمندان معتبر نیست." });
 
-                if (employeeIds.Count == 0 || employeeIds.Count > 50000)
-                    return BadRequest(new { error = "تعداد کارمندان انتخابی باید بین ۱ تا ۵۰ هزار باشد." });
+                if (employeeIds.Count == 0)
+                    return BadRequest(new { error = "حداقل یک کارمند را انتخاب کنید." });
                 var rows = employeeIds.Select((employeeId, index) => new BulkWizardEntry(
                     index + 1, null, employeeId, null, null, null, null, [])).ToArray();
                 id = await wizard.StageAsync(3, formulaId, rows, cancellationToken);

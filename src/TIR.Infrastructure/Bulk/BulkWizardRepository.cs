@@ -1,19 +1,27 @@
 using System.Data;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
+using TIR.Application.Common;
 using TIR.Application.Contracts;
 using TIR.Infrastructure.Data;
 
 namespace TIR.Infrastructure.Bulk;
 
-internal sealed class BulkWizardRepository(StoredProcedureExecutor executor) : IBulkWizardRepository
+internal sealed class BulkWizardRepository(
+    StoredProcedureExecutor executor, ILogger<BulkWizardRepository> logger) : IBulkWizardRepository
 {
+    // هر بخش ده هزار تایی هنگفایر در تراکنش های کوتاه تر دیتابیس اجرا می شود.
+    private const int SqlTransactionRows = 1000;
+    private const int FormulaSqlRows = 500;
+    private const int DeadlockRetryCount = 5;
+    private const int FormulaTransientRetryCount = 3;
+
     public Task<Guid> StageAsync(byte operationKind, long? formulaId,
         IReadOnlyList<BulkWizardEntry> rows, CancellationToken cancellationToken) =>
         executor.WithConnectionAsync(async connection =>
         {
             if (rows.Count == 0) throw new ArgumentException("درخواست خالی است.");
-            if (rows.Count > 50000) throw new ArgumentException("هر درخواست حداکثر ۵۰ هزار کارمند دارد.");
             var workId = Guid.NewGuid();
             await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(cancellationToken);
             try
@@ -61,10 +69,43 @@ internal sealed class BulkWizardRepository(StoredProcedureExecutor executor) : I
             }
         }, false, cancellationToken);
 
-    public Task ProcessChunkAsync(Guid workId, int chunkNumber, int chunkSize,
-        CancellationToken cancellationToken) =>
-        executor.ExecuteAsync("dbo.SP_BulkWork_ProcessChunk",
-            new { WorkId = workId, ChunkNumber = chunkNumber, ChunkSize = chunkSize }, cancellationToken);
+    public async Task ProcessChunkAsync(Guid workId, int chunkNumber, int chunkSize,
+        CancellationToken cancellationToken)
+    {
+        if (chunkNumber < 0 || chunkSize < 1 || chunkSize % SqlTransactionRows != 0)
+            throw new ArgumentOutOfRangeException(nameof(chunkSize),
+                "اندازه بخش باید مضربی از هزار باشد.");
+
+        var firstSqlChunk = checked(chunkNumber * (chunkSize / SqlTransactionRows));
+        for (var offset = 0; offset < chunkSize / SqlTransactionRows; offset++)
+        {
+            var sqlChunk = checked(firstSqlChunk + offset);
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    await executor.ExecuteAsync("dbo.SP_BulkWork_ProcessChunk", new
+                    {
+                        WorkId = workId,
+                        ChunkNumber = sqlChunk,
+                        ChunkSize = SqlTransactionRows
+                    }, cancellationToken, timeoutSeconds: 180);
+                    break;
+                }
+                catch (DatabaseFailureException error)
+                    when ((error.ErrorNumber is 1205 or 52816) && attempt < DeadlockRetryCount)
+                {
+                    // فقط تراکنشی تکرار می شود که SQL در بن بست آن را برگردانده است.
+                    // بخش های تکمیل شده به کمک وضعیت هر ردیف دوباره اجرا نمی شوند.
+                    var delay = TimeSpan.FromMilliseconds(200 * (1 << attempt) + Random.Shared.Next(50, 250));
+                    logger.LogWarning(error,
+                        "بن بست موقت در درخواست {WorkId}، بخش دیتابیس {SqlChunk}، تلاش {Attempt}",
+                        workId, sqlChunk, attempt + 1);
+                    await Task.Delay(delay, cancellationToken);
+                }
+            }
+        }
+    }
 
     public async Task<(Guid WorkId, int TotalCount)> StageFormulaAllAsync(long formulaId,
         CancellationToken cancellationToken)
@@ -75,13 +116,44 @@ internal sealed class BulkWizardRepository(StoredProcedureExecutor executor) : I
         return (workId, total);
     }
 
-    public Task ProcessFormulaChunkAsync(Guid workId, int chunkNumber, int chunkSize,
-        short utcOffsetMinutes, CancellationToken cancellationToken) =>
-        executor.ExecuteAsync("dbo.SP_BulkWork_ProcessFormulaChunk", new
+    public async Task ProcessFormulaChunkAsync(Guid workId, int chunkNumber, int chunkSize,
+        short utcOffsetMinutes, CancellationToken cancellationToken)
+    {
+        if (chunkNumber < 0 || chunkSize < 1 || chunkSize % FormulaSqlRows != 0)
+            throw new ArgumentOutOfRangeException(nameof(chunkSize),
+                "اندازه بخش فرمول باید مضربی از پانصد باشد.");
+
+        // Job ده هزار نفری حفظ می شود اما هر محاسبه با تراکنش کوتاه تری انجام می شود.
+        var firstSqlChunk = checked(chunkNumber * (chunkSize / FormulaSqlRows));
+        for (var offset = 0; offset < chunkSize / FormulaSqlRows; offset++)
         {
-            WorkId = workId, ChunkNumber = chunkNumber,
-            ChunkSize = chunkSize, UtcOffsetMinutes = utcOffsetMinutes
-        }, cancellationToken);
+            var sqlChunk = checked(firstSqlChunk + offset);
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    await executor.ExecuteAsync("dbo.SP_BulkWork_ProcessFormulaChunk", new
+                    {
+                        WorkId = workId,
+                        ChunkNumber = sqlChunk,
+                        ChunkSize = FormulaSqlRows,
+                        UtcOffsetMinutes = utcOffsetMinutes
+                    }, cancellationToken, timeoutSeconds: 240);
+                    break;
+                }
+                catch (DatabaseFailureException error)
+                    when ((error.ErrorNumber is 1205 or -2) && attempt < FormulaTransientRetryCount)
+                {
+                    // تکرار از همان زیرگروه است؛ وضعیت هر کارمند از اجرای دوباره جلوگیری می کند.
+                    var delay = TimeSpan.FromMilliseconds(500 * (1 << attempt) + Random.Shared.Next(100, 450));
+                    logger.LogWarning(error,
+                        "خطای موقت محاسبه فرمول {WorkId}، زیرگروه {SqlChunk}، تلاش {Attempt}",
+                        workId, sqlChunk, attempt + 1);
+                    await Task.Delay(delay, cancellationToken);
+                }
+            }
+        }
+    }
 
     public async Task<(byte OperationKind, int TotalCount)> QueueAsync(Guid workId,
         CancellationToken cancellationToken)

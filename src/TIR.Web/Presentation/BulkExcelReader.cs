@@ -80,9 +80,6 @@ public static class BulkExcelReader
         // ردیف های اضافه که فقط مقدار ستون فرمولی دارند، ردیف داده محسوب نمی شوند.
         var last = effectiveColumnPositions.Select(column =>
             sheet.Column(column).LastCellUsed()?.Address.RowNumber ?? 1).DefaultIfEmpty(1).Max();
-        if (last - 1 > 50000)
-            throw new FormatException("هر فایل حداکثر 50 هزار کارمند می تواند داشته باشد. فایل را به بخش های کوچک تقسیم کنید.");
-
         var output = new List<BulkExcelEmployeeRow>(Math.Max(0, last - 1));
         for (var number = 2; number <= last; number++)
         {
