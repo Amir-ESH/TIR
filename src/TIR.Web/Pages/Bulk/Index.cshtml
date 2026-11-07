@@ -139,22 +139,8 @@
             <h4 class="section-title mb-0">خطاهای ردیف ها</h4>
             <button id="bulkRefresh" type="button" class="btn btn-outline-secondary btn-sm">به روز رسانی گزارش</button>
         </div>
-        <div class="table-responsive">
-            <table class="table table-striped align-middle" id="bulkErrorTable">
-                <thead>
-                    <tr>
-                        <th>ردیف اکسل</th>
-                        <th>شناسه کارمند</th>
-                        <th>ردیف عملیات</th>
-                        <th>شرح خطا</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="4" class="text-muted">هنوز خطایی ثبت نشده است.</td>
-                        </tr>
-                </tbody>
-            </table>
+        <div class="table-wrap">
+            <div id="bulkErrorGrid" class="tir-data-grid" aria-label="خطاهای عملیات گروهی"></div>
         </div>
         <div class="d-flex align-items-center justify-content-between gap-2">
             <button id="bulkPrevError" type="button" class="btn btn-outline-secondary btn-sm" disabled>صفحه قبل</button>
@@ -225,22 +211,8 @@
                     <button type="button" id="bulkSelectAllFiltered" class="btn btn-outline-primary btn-sm" disabled>انتخاب همه نتایج جستجو</button>
                     <span id="bulkModalSelectionHint" class="text-muted small"></span>
                 </div>
-            <div class="table-responsive">
-                <table class="table align-middle table-hover">
-                    <thead>
-                        <tr>
-                            <th>انتخاب</th>
-                            <th>شناسه</th>
-                            <th>کد</th>
-                            <th>نام و نام خانوادگی</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bulkEmployeeSearchResults">
-                        <tr>
-                            <td colspan="4" class="text-muted">برای مشاهده کارمندان جستجو کنید.</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="table-wrap">
+                <div id="bulkEmployeeSearchResults" class="tir-data-grid" aria-label="کارمندان جستجو شده"></div>
             </div>
             <div class="d-flex justify-content-between align-items-center">
                 <button type="button" id="bulkEmployeePrev" class="btn btn-outline-secondary btn-sm" disabled>صفحه قبل</button>

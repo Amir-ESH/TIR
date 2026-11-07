@@ -14,6 +14,8 @@
         var searchPage = 1;
         var searchTotal = 0;
         var currentItems = [];
+        var employeeGrid = null;
+        var errorGrid = null;
         var workId = null;
         var errorPage = 1;
         var timer = null;
@@ -59,6 +61,7 @@
                 $(this).toggleClass('is-current', Number($(this).data('step')) === step);
             });
             message(null);
+            if (step === 3 && errorGrid) errorGrid.updateDimensions();
         }
 
         function applyOperation() {
@@ -144,19 +147,20 @@
         }
 
         function renderErrors(items) {
-            var body = $('#bulkErrorTable tbody').empty();
-            if (!items.length) {
-                $('<tr>').append($('<td colspan="4" class="text-muted">').text('خطایی در این صفحه ثبت نشده است.')).appendTo(body);
-                return;
+            if (!errorGrid) {
+                // داده های هر صفحه از سرور می آیند و صفحه بندی سراسری حفظ می شود.
+                errorGrid = window.TIRDataGrid.create('#bulkErrorGrid', {
+                    dataSource: [],
+                    columns: [
+                        { dataField: 'excelRow', caption: 'ردیف اکسل', cellTemplate: function (node, info) { $(node).text(info.value ?? '—'); } },
+                        { dataField: 'employeeId', caption: 'شناسه کارمند', cellTemplate: function (node, info) { $(node).text(info.value ?? '—'); } },
+                        { dataField: 'inputOrdinal', caption: 'ردیف عملیات' },
+                        { dataField: 'errorMessage', caption: 'شرح خطا', minWidth: 300 }
+                    ],
+                    noDataText: 'خطایی در این صفحه ثبت نشده است.'
+                });
             }
-            items.forEach(function (entry) {
-                var tr = $('<tr>');
-                $('<td>').text(entry.excelRow ?? '—').appendTo(tr);
-                $('<td>').text(entry.employeeId ?? '—').appendTo(tr);
-                $('<td>').text(entry.inputOrdinal).appendTo(tr);
-                $('<td>').text(entry.errorMessage).appendTo(tr);
-                tr.appendTo(body);
-            });
+            errorGrid.option('dataSource', items);
         }
 
         function refreshReport() {
@@ -224,19 +228,25 @@
         function renderSearch(result) {
             searchTotal = result.totalCount;
             currentItems = result.items || [];
-            var body = $('#bulkEmployeeSearchResults').empty();
-            currentItems.forEach(function (item) {
-                var tr = $('<tr>');
-                var checkbox = $('<input type="checkbox" class="form-check-input bulk-employee-check">')
-                    .attr('data-id', item.id).prop('checked', selectedIds.has(item.id) || selectionMode === 'filtered');
-                $('<td>').append(checkbox).appendTo(tr);
-                $('<td>').text(item.id).appendTo(tr);
-                $('<td>').text(item.employeeCode).appendTo(tr);
-                $('<td>').text((item.firstName || '') + ' ' + (item.lastName || '')).appendTo(tr);
-                body.append(tr);
-            });
-            if (!currentItems.length)
-                $('<tr>').append($('<td colspan="4" class="text-muted">').text('کارمندی یافت نشد.')).appendTo(body);
+            if (!employeeGrid) {
+                employeeGrid = window.TIRDataGrid.create('#bulkEmployeeSearchResults', {
+                    dataSource: [], keyExpr: 'id',
+                    columns: [
+                        { caption: 'انتخاب', width: 95, cellTemplate: function (node, info) {
+                            $('<input type="checkbox" class="form-check-input bulk-employee-check">')
+                                .attr('data-id', info.data.id)
+                                .prop('checked', selectedIds.has(info.data.id) || selectionMode === 'filtered')
+                                .appendTo(node);
+                        } },
+                        { dataField: 'id', caption: 'شناسه', width: 100 },
+                        { dataField: 'employeeCode', caption: 'کد کارمند' },
+                        { caption: 'نام و نام خانوادگی', minWidth: 200,
+                            calculateCellValue: function (row) { return (row.firstName || '') + ' ' + (row.lastName || ''); } }
+                    ],
+                    noDataText: 'کارمندی یافت نشد.'
+                });
+            }
+            employeeGrid.option('dataSource', currentItems);
             $('#bulkEmployeePagination').text('صفحه ' + number(searchPage) + ' از ' +
                 number(Math.max(1, Math.ceil(searchTotal / 50))) + '، کل ' + number(searchTotal));
             $('#bulkEmployeePrev').prop('disabled', searchPage === 1);
@@ -259,7 +269,7 @@
             searchTotal = 0;
             currentItems = [];
             renderSearch({ totalCount: 0, items: [] });
-            $('#bulkEmployeeSearchResults').html('<tr><td colspan="4" class="text-muted">در حال دریافت نتایج...</td></tr>');
+            employeeGrid.beginCustomLoading('در حال دریافت نتایج...');
             modalMessage(null);
             getSearchPage(1);
         }
@@ -280,7 +290,10 @@
                     renderSearch({ totalCount: 0, items: [] });
                     modalMessage(errorText(xhr), 'danger');
                 })
-                .always(function () { $('#bulkSearchButton').prop('disabled', false); });
+                .always(function () {
+                    $('#bulkSearchButton').prop('disabled', false);
+                    if (employeeGrid) employeeGrid.endCustomLoading();
+                });
         }
 
         $('#bulkAdvancedSearchForm').on('submit', function (event) {
@@ -290,6 +303,9 @@
         $('#bulkOpenEmployeeModal').on('click', function () {
             modalMessage(null);
             if (!searchTotal) searchEmployees();
+        });
+        $('#bulkEmployeeModal').on('shown.bs.modal', function () {
+            if (employeeGrid) employeeGrid.updateDimensions();
         });
         $('#bulkEmployeePrev').on('click', function () { if (searchPage > 1) getSearchPage(searchPage - 1); });
         $('#bulkEmployeeNext').on('click', function () {

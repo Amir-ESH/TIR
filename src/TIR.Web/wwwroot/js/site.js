@@ -42,7 +42,8 @@
                 $('#appSidebar').removeClass('open');
         });
 
-        $('form[data-confirm]').on('submit', function (event) {
+        // فرم های داخل جدول های داینامیک نیز باید تایید حذف و بازیابی داشته باشند.
+        $(document).on('submit', 'form[data-confirm]', function (event) {
             if (!window.confirm($(this).attr('data-confirm'))) event.preventDefault();
         });
 

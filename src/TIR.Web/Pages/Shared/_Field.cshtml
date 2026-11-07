@@ -8,7 +8,10 @@
     <input type="hidden" name="@FieldName("ExpectedRowVersion")" value="@Model.ExpectedRowVersion" class="js-rowversion" />
     <label class="form-label fw-semibold">
         @Model.Name
-        @if (Model.IsRequired && !readonlyFormula) { <span class="text-danger">*</span> }
+        @if (Model.IsRequired && !readonlyFormula)
+        {
+            <span class="text-danger">*</span>
+        }
     </label>
     @if (readonlyFormula)
     {
@@ -17,7 +20,9 @@
             <span class="badge text-bg-@Model.StatusColor">@Model.StatusText</span>
         </div>
         @if (!string.IsNullOrWhiteSpace(Model.CalculationErrorMessage))
-        { <div class="text-danger small mt-1">@Model.CalculationErrorMessage</div> }
+        {
+            <div class="text-danger small mt-1">@Model.CalculationErrorMessage</div>
+        }
     }
     else if (Model.DataKind == 1)
     {

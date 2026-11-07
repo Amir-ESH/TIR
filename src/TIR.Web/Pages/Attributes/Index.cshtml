@@ -1,4 +1,5 @@
 @page
+@using System.Text.Json
 @model TIR.Web.Pages.Attributes.IndexModel
 @{
     ViewData["Title"] = "مدیریت مشخصه ها";
@@ -22,63 +23,34 @@
         </form>
     </div>
     <div class="table-wrap">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>کد</th>
-                    <th>عنوان</th>
-                    <th>نوع</th>
-                    <th>منبع</th>
-                    <th>الزامی</th>
-                    <th>ترتیب</th>
-                    <th>وضعیت</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-        <tbody>
-
+        <div id="attributesGrid" class="tir-data-grid" data-grid-kind="attributes" data-data-id="attributesGridData" data-empty-message="مشخصه ای مطابق فیلتر وجود ندارد."></div>
+    </div>
+    <script id="attributesGridData" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Result.Items.Select(item => new { item.Id, item.AttributeCode, item.Title, DataKindTitle = Model.DataKindTitle(item.DataKind), SourceKindTitle = item.SourceKind == 2 ? "فرمول" : "ورودی", item.IsRequired, item.DisplayOrder, item.IsDeleted })))</script>
+    <div hidden>
         @foreach (var item in Model.Result.Items)
         {
-            <tr>
-                <td class="mono">@item.AttributeCode</td>
-                <td class="fw-semibold">@item.Title</td>
-                <td>@Model.DataKindTitle(item.DataKind)</td>
-                <td>@(item.SourceKind == 2 ? "فرمول" : "ورودی")</td>
-                <td>@(item.IsRequired ? "بله" : "خیر")</td><td>@item.DisplayOrder</td>
-                <td>
-                    <span class="badge text-bg-@(item.IsDeleted ? "danger" : "success")">@(item.IsDeleted ? "حذف شده" : "فعال")</span>
-                </td>
-                <td>
-                    <div class="d-flex flex-wrap gap-2">
-                        @if (!item.IsDeleted)
-                        {
-                            @if (item.SourceKind == 1 && item.DataKind == 8)
-                            {
-                                <a asp-page="/Attributes/Options" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success">مدیریت گزینه ها</a>
-                            }
-                            <a asp-page="/Attributes/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
-                            <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا از حذف منطقی این مشخصه مطمئن هستید؟">
-                                <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                                <button class="btn btn-sm btn-outline-danger">حذف</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form method="post" asp-page-handler="Restore" data-confirm="مشخصه و مقدارهای وابسته بازیابی شوند؟">
-                                <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                                <button class="btn btn-sm btn-outline-success">بازیابی</button>
-                            </form>
-                        }
-                    </div>
-                </td>
-            </tr>
+            <div id="attribute-actions-@item.Id">
+                @if (!item.IsDeleted)
+                {
+                    @if (item.SourceKind == 1 && item.DataKind == 8)
+                    {
+                        <a asp-page="/Attributes/Options" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success">مدیریت گزینه ها</a>
+                    }
+                    <a asp-page="/Attributes/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
+                    <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا از حذف منطقی این مشخصه مطمئن هستید؟">
+                        <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
+                        <button class="btn btn-sm btn-outline-danger">حذف</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="Restore" data-confirm="مشخصه و مقدارهای وابسته بازیابی شوند؟">
+                        <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
+                        <button class="btn btn-sm btn-outline-success">بازیابی</button>
+                    </form>
+                }
+            </div>
         }
-        </tbody>
-    </table>
-    @if (Model.Result.Items.Count == 0) 
-    { 
-        <div class="table-empty">مشخصه ای مطابق فیلتر وجود ندارد.</div>
-    }
     </div>
     <div class="card-body d-flex align-items-center justify-content-between gap-2 flex-wrap">
         <span class="text-muted small">تعداد کل: @Model.Result.TotalCount</span>

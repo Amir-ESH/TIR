@@ -1,4 +1,5 @@
 @page
+@using System.Text.Json
 @model TIR.Web.Pages.Employees.IndexModel
 @{
     ViewData["Title"] = "فهرست کارمندان";
@@ -21,37 +22,31 @@
         </form>
     </div>
     <div class="table-wrap">
-        <table class="table">
-            <thead><tr><th>شناسه</th><th>کد کارمند</th><th>نام</th><th>نام خانوادگی</th><th>وضعیت</th><th>عملیات</th></tr></thead>
-            <tbody>
-            @foreach (var item in Model.Result.Items)
-            {
-                <tr>
-                    <td class="text-muted">@item.Id</td><td class="mono fw-semibold">@item.EmployeeCode</td><td>@item.FirstName</td><td>@item.LastName</td>
-                    <td><span class="badge text-bg-@(item.IsDeleted ? "danger" : "success")">@(item.IsDeleted ? "حذف شده" : "فعال")</span></td>
-                    <td><div class="d-flex align-items-center gap-2">
-                        <a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">جزئیات</a>
-                        @if (!item.IsDeleted)
-                        {
-                            <a asp-page="/Employees/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
-                            <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا این کارمند و مقادیر وابسته حذف منطقی شوند؟">
-                                <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                                <button class="btn btn-sm btn-outline-danger">حذف</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form method="post" asp-page-handler="Restore" data-confirm="کارمند و مقادیر قابل بازیابی او بازگردانده شوند؟">
-                                <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                                <button class="btn btn-sm btn-outline-success">بازیابی</button>
-                            </form>
-                        }
-                    </div></td>
-                </tr>
-            }
-            </tbody>
-        </table>
-        @if (Model.Result.Items.Count == 0) { <div class="table-empty">کارمندی مطابق فیلتر انتخاب شده پیدا نشد.</div> }
+        <div id="employeesGrid" class="tir-data-grid" data-grid-kind="employees" data-data-id="employeesGridData" data-empty-message="کارمندی مطابق فیلتر انتخاب شده پیدا نشد."></div>
+    </div>
+    <script id="employeesGridData" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Result.Items.Select(item => new { item.Id, item.EmployeeCode, item.FirstName, item.LastName, item.IsDeleted })))</script>
+    <div hidden>
+        @foreach (var item in Model.Result.Items)
+        {
+            <div id="employee-actions-@item.Id">
+                <a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">جزئیات</a>
+                @if (!item.IsDeleted)
+                {
+                    <a asp-page="/Employees/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
+                    <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا این کارمند و مقادیر وابسته حذف منطقی شوند؟">
+                        <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
+                        <button class="btn btn-sm btn-outline-danger">حذف</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="Restore" data-confirm="کارمند و مقادیر قابل بازیابی او بازگردانده شوند؟">
+                        <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
+                        <button class="btn btn-sm btn-outline-success">بازیابی</button>
+                    </form>
+                }
+            </div>
+        }
     </div>
     <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
         <span class="text-muted small">تعداد کل: @Model.Result.TotalCount</span>
