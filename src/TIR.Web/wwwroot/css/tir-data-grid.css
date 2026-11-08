@@ -1,5 +1,10 @@
 /* ظاهر مشترک جدول های داده در صفحات راست به چپ */
-.tir-data-grid { width: 100%; min-height: 120px; }
+.tir-data-grid { width: 100%; min-height: 380px; }
+.tir-data-grid .dx-datagrid { min-width: 0; }
+.tir-data-grid .dx-datagrid-header-panel { padding: 8px 12px; }
+.tir-data-grid .dx-datagrid-filter-row input { text-align: right; }
+.tir-data-grid .dx-datagrid-rowsview .dx-row > td { line-height: 1.8; }
+.tir-data-grid .dx-toolbar { background: #fff; }
 .tir-data-grid .dx-datagrid { font-family: inherit; color: #24344f; }
 .tir-data-grid .dx-datagrid-headers { background: #f7f8fc; color: #596982; }
 .tir-data-grid .dx-datagrid-headers .dx-header-row > td { font-weight: 650; }

@@ -16,6 +16,7 @@
         var currentItems = [];
         var employeeGrid = null;
         var errorGrid = null;
+        var syncingGridSelection = false;
         var workId = null;
         var errorPage = 1;
         var timer = null;
@@ -231,13 +232,20 @@
             if (!employeeGrid) {
                 employeeGrid = window.TIRDataGrid.create('#bulkEmployeeSearchResults', {
                     dataSource: [], keyExpr: 'id',
+                    // انتخاب ردیف ها از قابلیت اصلی DataGrid استفاده می کند.
+                    selection: { mode: 'multiple', showCheckBoxesMode: 'always', allowSelectAll: false },
+                    onSelectionChanged: function (event) {
+                        if (syncingGridSelection) return;
+                        if (selectionMode === 'filtered') {
+                            modalMessage('برای انتخاب دستی، دوباره جستجو کنید و کارمندان مورد نظر را انتخاب کنید.', 'info');
+                            renderSearch({ totalCount: searchTotal, items: currentItems });
+                            return;
+                        }
+                        event.currentSelectedRowKeys.forEach(function (id) { selectedIds.add(id); });
+                        event.currentDeselectedRowKeys.forEach(function (id) { selectedIds.delete(id); });
+                        renderSearch({ totalCount: searchTotal, items: currentItems });
+                    },
                     columns: [
-                        { caption: 'انتخاب', width: 95, cellTemplate: function (node, info) {
-                            $('<input type="checkbox" class="form-check-input bulk-employee-check">')
-                                .attr('data-id', info.data.id)
-                                .prop('checked', selectedIds.has(info.data.id) || selectionMode === 'filtered')
-                                .appendTo(node);
-                        } },
                         { dataField: 'id', caption: 'شناسه', width: 100 },
                         { dataField: 'employeeCode', caption: 'کد کارمند' },
                         { caption: 'نام و نام خانوادگی', minWidth: 200,
@@ -246,7 +254,12 @@
                     noDataText: 'کارمندی یافت نشد.'
                 });
             }
+            syncingGridSelection = true;
             employeeGrid.option('dataSource', currentItems);
+            employeeGrid.option('selectedRowKeys', currentItems.filter(function (item) {
+                return selectionMode === 'filtered' || selectedIds.has(item.id);
+            }).map(function (item) { return item.id; }));
+            syncingGridSelection = false;
             $('#bulkEmployeePagination').text('صفحه ' + number(searchPage) + ' از ' +
                 number(Math.max(1, Math.ceil(searchTotal / 50))) + '، کل ' + number(searchTotal));
             $('#bulkEmployeePrev').prop('disabled', searchPage === 1);
@@ -310,17 +323,6 @@
         $('#bulkEmployeePrev').on('click', function () { if (searchPage > 1) getSearchPage(searchPage - 1); });
         $('#bulkEmployeeNext').on('click', function () {
             if (searchPage * 50 < searchTotal) getSearchPage(searchPage + 1);
-        });
-        $('#bulkEmployeeSearchResults').on('change', '.bulk-employee-check', function () {
-            var id = Number($(this).data('id'));
-            if (selectionMode === 'filtered') {
-                // حالت انتخاب همه نتایج فقط با جستجوی تازه یا انتخاب صفحه تغییر می کند.
-                $(this).prop('checked', true);
-                return modalMessage('برای انتخاب دستی، دوباره جستجو کنید و کارمندان مورد نظر را انتخاب کنید.', 'info');
-            }
-            if ($(this).prop('checked')) selectedIds.add(id);
-            else selectedIds.delete(id);
-            renderSearch({ totalCount: searchTotal, items: currentItems });
         });
         $('#bulkSelectPage').on('change', function () {
             if (selectionMode === 'filtered') resetFilterSelection();
