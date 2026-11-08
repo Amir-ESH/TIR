@@ -173,7 +173,6 @@
     border-radius: 9px;
     background: transparent;
     color: inherit;
-    font: inherit;
 }
 .tir-iran-calendar__days button.tir-jalali-day { cursor: pointer; }
 .tir-iran-calendar__days button.tir-jalali-day:hover,

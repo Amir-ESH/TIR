@@ -12,18 +12,25 @@ public sealed class BulkCleanupJob(IBulkService bulk, IBulkWizardRepository wiza
         // درخواست های پایان یافته پس از ۲۴ ساعت به صورت فیزیکی حذف می شوند.
         var olderThanUtc = DateTime.UtcNow.AddHours(-24);
         var total = 0;
+
         for (var part = 0; part < 1000; part++)
         {
             var count = await bulk.CleanupAsync(olderThanUtc, 1000, cancellationToken);
             total += count;
-            if (count < 1000) break;
+
+            if (count < 1000)
+                break;
         }
+
         for (var part = 0; part < 1000; part++)
         {
             var count = await wizard.CleanupAsync(olderThanUtc, cancellationToken);
             total += count;
-            if (count < 100) break;
+
+            if (count < 100)
+                break;
         }
+
         logger.LogInformation("تعداد درخواست های گروهی پاکسازی شده: {DeletedCount}", total);
     }
 }

@@ -1,5 +1,7 @@
 @{
     var pageTitle = ViewData["Title"] as string ?? "سامانه مدیریت پرسنل";
+    var embeddedEmployeeDetails = ViewContext.HttpContext.Request.Path.StartsWithSegments("/Employees/Details")
+        && ViewContext.HttpContext.Request.Query["popup"] == "1";
 }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -18,8 +20,9 @@
     <link rel="stylesheet" href="~/css/iran-clock.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/time-picker.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site-font.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/employee-details.css" asp-append-version="true" />
 </head>
-<body>
+<body class="@(embeddedEmployeeDetails ? "employee-details-embedded" : "")">
     <div class="app-shell">
         <aside class="app-sidebar" id="appSidebar">
             <a asp-page="/Index" class="brand" aria-label="صفحه اصلی">
@@ -72,6 +75,23 @@
             <footer class="app-footer">پروژه مدیریت منابع انسانی | نسخه ابتدایی</footer>
         </div>
     </div>
+
+    @if (!embeddedEmployeeDetails)
+    {
+        <div class="modal fade employee-details-host" id="employeeDetailsHostModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen m-0">
+                <div class="modal-content h-100">
+                    <div class="modal-header py-2">
+                        <h2 class="modal-title fs-5">جزئیات کارمند</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+                    </div>
+                    <div class="modal-body p-0 overflow-hidden">
+                        <iframe id="employeeDetailsFrame" title="جزئیات و ویرایش کارمند" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
 	<script src="~/js/jquery-3.5.1.min.js"></script>
     <script src="~/js/dx.all.js" asp-append-version="true"></script>

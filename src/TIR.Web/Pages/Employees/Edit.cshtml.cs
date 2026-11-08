@@ -11,8 +11,11 @@ public sealed class EditModel(IEmployeeQueryService query, IEmployeeService empl
     IAttributeService attributes, IAttributeValueService values, IFormulaService formulas,
     IBulkService bulk, ILogger<EditModel> logger) : PageModel
 {
-    [BindProperty] public FixedInput Input { get; set; } = new();
+    [BindProperty]
+    public FixedInput Input { get; set; } = new();
+
     public long Id { get; private set; }
+
     public List<UiField> Fields { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(long id, CancellationToken cancellationToken)

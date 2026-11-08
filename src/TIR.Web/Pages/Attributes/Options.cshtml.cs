@@ -12,11 +12,13 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
     public NewOptionInput Input { get; set; } = new();
 
     public AttributeDefinitionDto Attribute { get; private set; } = new();
+
     public IReadOnlyList<AttributeOptionDto> Options { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(long id, CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken)) return NotFound();
+        if (!await LoadAsync(id, cancellationToken))
+            return NotFound();
 
         Input.DisplayOrder = Options.Count + 1;
 
@@ -25,8 +27,11 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
     public async Task<IActionResult> OnPostCreateAsync(long id, CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken)) return NotFound();
-        if (!ModelState.IsValid) return Page();
+        if (!await LoadAsync(id, cancellationToken))
+            return NotFound();
+
+        if (!ModelState.IsValid)
+            return Page();
 
         try
         {
@@ -41,6 +46,7 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
         {
             logger.LogError(error, "خطا در ثبت گزینه مشخصه {AttributeId}", id);
             ModelState.AddModelError(string.Empty, UiErrors.Message(error));
+
             return Page();
         }
     }
@@ -74,7 +80,8 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
         long id, long optionId, string rowVersion, bool isEnabled,
         CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken)) return NotFound();
+        if (!await LoadAsync(id, cancellationToken))
+            return NotFound();
 
         try
         {
@@ -97,9 +104,11 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
     private async Task<bool> LoadAsync(long id, CancellationToken cancellationToken)
     {
-        if (id <= 0) return false;
+        if (id <= 0)
+            return false;
 
         var definition = await attributes.GetAsync(id, cancellationToken);
+
         if (definition is null
             || definition.IsDeleted
             || definition.SourceKind != 1
@@ -110,6 +119,7 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
         Attribute = definition;
         Options = await attributes.ListOptionsAsync(id, includeDisabled: true, cancellationToken);
+
         return true;
     }
 

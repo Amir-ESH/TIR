@@ -42,3 +42,7 @@ option,
 .dx-theme-generic-typography {
     font-family: var(--tir-site-font);
 }
+
+.tir-iran-calendar__days .tir-jalali-day {
+    font: inherit;
+}

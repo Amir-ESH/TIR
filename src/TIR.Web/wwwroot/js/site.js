@@ -47,6 +47,47 @@
             if (!window.confirm($(this).attr('data-confirm'))) event.preventDefault();
         });
 
+        // جزئیات کارمند داخل یک پنجره تمام صفحه باز می شود و آدرس مستقیم نیز معتبر می ماند.
+        var detailsHost = $('#employeeDetailsHostModal');
+        if (detailsHost.length) {
+            var detailsFrame = $('#employeeDetailsFrame');
+            $(document).on('click', 'a[data-employee-details-modal]', function (event) {
+                if (event.which > 1 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                var target = new URL(this.href, window.location.href);
+                target.searchParams.set('popup', '1');
+                detailsHost.data('changed', false);
+                detailsFrame.attr('src', target.toString());
+                bootstrap.Modal.getOrCreateInstance(detailsHost[0]).show();
+            });
+
+            $(window).on('message', function (event) {
+                var original = event.originalEvent;
+                if (original.origin !== window.location.origin ||
+                    original.source !== detailsFrame[0].contentWindow ||
+                    !original.data || original.data.type !== 'tir:employee-details-saved') return;
+                detailsHost.data('changed', true);
+                var gridElement = $('#employeeSearchGrid');
+                if (gridElement.length && gridElement.data('dxDataGrid')) {
+                    var instance = gridElement.dxDataGrid('instance');
+                    var current = instance.option('dataSource');
+                    if (Array.isArray(current)) {
+                        current.forEach(function (row) {
+                            if (row.Id !== original.data.id) return;
+                            row.EmployeeCode = original.data.employeeCode;
+                            row.FullName = original.data.firstName + ' ' + original.data.lastName;
+                        });
+                        instance.refresh();
+                    }
+                }
+            });
+
+            detailsHost.on('hidden.bs.modal', function () {
+                detailsFrame.attr('src', 'about:blank');
+                if (detailsHost.data('changed') && $('#employeesGrid').length) window.location.reload();
+            });
+        }
+
         $('.js-filter-fields').on('input', function () {
             var query = $(this).val().toString().trim().toLowerCase();
             $(this).closest('.card').find('.field-grid > *').each(function () {

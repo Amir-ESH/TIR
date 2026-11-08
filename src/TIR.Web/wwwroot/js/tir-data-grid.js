@@ -66,7 +66,7 @@
 
     var columns = {
         employees: [
-            { dataField: 'Id', caption: 'شناسه', width: 90 },
+            { dataField: 'Id', caption: 'شناسه', width: 90, visible: false, showInColumnChooser: true },
             { dataField: 'EmployeeCode', caption: 'کد پرسنلی', cssClass: 'mono' },
             { dataField: 'FirstName', caption: 'نام' },
             { dataField: 'LastName', caption: 'نام خانوادگی' },
