@@ -1,7 +1,6 @@
 (function ($) {
     'use strict';
 
-    // متن های پرکاربرد جدول به فارسی نمایش داده می شوند.
     if (window.DevExpress && DevExpress.localization) {
         DevExpress.localization.loadMessages({ fa: {
             'dxDataGrid-noDataText': 'داده ای برای نمایش وجود ندارد.',
@@ -23,19 +22,18 @@
         DevExpress.localization.locale('fa');
     }
 
-    // برای جدول های صفحه بندی شده، کنترل صفحه بعد و قبل همچنان سمت سرور است.
     function create(element, options) {
         var defaults = {
-            rtlEnabled: true,
-            showBorders: true,
-            showColumnLines: true,
+            rtlEnabled: true, // فعال سازی راست چین
+            showBorders: true, // نمایش بردر گرید
+            showColumnLines: true, // نمایش خط ستون ها
             rowAlternationEnabled: true,
             hoverStateEnabled: true,
             columnAutoWidth: true,
             columnMinWidth: 85,
             wordWrapEnabled: false,
             width: '100%',
-            height: 480,
+            height: 500,
             allowColumnResizing: true,
             columnResizingMode: 'widget',
             allowColumnReordering: true,
@@ -69,7 +67,7 @@
     var columns = {
         employees: [
             { dataField: 'Id', caption: 'شناسه', width: 90 },
-            { dataField: 'EmployeeCode', caption: 'کد کارمند', cssClass: 'mono' },
+            { dataField: 'EmployeeCode', caption: 'کد پرسنلی', cssClass: 'mono' },
             { dataField: 'FirstName', caption: 'نام' },
             { dataField: 'LastName', caption: 'نام خانوادگی' },
             { dataField: 'IsDeleted', caption: 'وضعیت', dataType: 'boolean', cellTemplate: function (container, options) {
@@ -99,7 +97,7 @@
         ],
         search: [
             { dataField: 'Id', caption: 'شناسه', width: 90 },
-            { dataField: 'EmployeeCode', caption: 'کد', cssClass: 'mono' },
+            { dataField: 'EmployeeCode', caption: 'کد پرسنلی', cssClass: 'mono' },
             { dataField: 'FullName', caption: 'نام و نام خانوادگی' },
             { dataField: 'HasStaleFormula', caption: 'وضعیت فرمول', dataType: 'boolean', cellTemplate: function (container, options) {
                 badge(container, options.value ? 'نتیجه قدیمی دارد' : 'عادی', options.value ? 'text-bg-warning' : 'text-bg-success');
@@ -129,7 +127,6 @@
                 keyExpr: kind === 'report' ? undefined : 'Id',
                 dataSource: rows,
                 columns: columns[kind],
-                // گزارش نهایی صفحه بندی مخصوص خود DataGrid دارد؛ بقیه صفحات از سرور صفحه می گیرند.
                 paging: { enabled: kind === 'report', pageSize: 20 },
                 pager: { visible: kind === 'report', showPageSizeSelector: true,
                     allowedPageSizes: [10, 20, 50, 100], showNavigationButtons: true, showInfo: true },

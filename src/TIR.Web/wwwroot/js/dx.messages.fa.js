@@ -8,9 +8,9 @@
 */
 "use strict";
 
-! function(root, factory) {
+! function (root, factory) {
     if ("function" === typeof define && define.amd) {
-        define((function(require) {
+        define((function (require) {
             factory(require("devextreme/common/core/localization"))
         }))
     } else if ("object" === typeof module && module.exports) {
@@ -18,7 +18,7 @@
     } else {
         factory(DevExpress.localization)
     }
-}(0, (function(localization) {
+}(0, (function (localization) {
     localization.loadMessages({
         en: {
             Yes: "\u0628\u0644\u06cc",
@@ -800,7 +800,6 @@
             "dxSplitter-resizeHandleAriaLabel": "Split bar",
             "dxSplitter-resizeHandleAriaRoleDescription": "جدا کننده",
             "dxStepper-optionalMark": "(Optional)"
-
         }
     })
 }));
