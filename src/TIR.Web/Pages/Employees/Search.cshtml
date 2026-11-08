@@ -33,7 +33,7 @@
         <div hidden>
             @foreach (var item in Model.Result.Items)
             {
-                <div id="search-actions-@item.Id"><a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">مشاهده</a></div>
+                <div id="search-actions-@item.Id"><a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary tir-icon-btn" title="مشاهده کارمند" aria-label="مشاهده کارمند"><i class="dx-icon dx-icon-eyeopen" aria-hidden="true"></i></a></div>
             }
         </div>
         <div class="card-body d-flex gap-2 justify-content-end">

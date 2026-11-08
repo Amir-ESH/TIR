@@ -15,4 +15,18 @@
 .tir-data-grid .dx-datagrid .dx-datagrid-nodata { color: #8792a8; }
 .tir-data-grid .tir-grid-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .tir-data-grid .tir-grid-actions form { margin: 0; }
+.tir-data-grid .tir-grid-actions .tir-icon-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    line-height: 1;
+}
+.tir-data-grid .tir-grid-actions .tir-icon-btn .dx-icon {
+    font-size: 18px;
+    line-height: 1;
+}
 .tir-data-grid .dx-header-row > td, .tir-data-grid .dx-data-row > td { text-align: right; }

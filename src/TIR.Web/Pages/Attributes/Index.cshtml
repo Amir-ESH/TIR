@@ -34,19 +34,19 @@
                 {
                     @if (item.SourceKind == 1 && item.DataKind == 8)
                     {
-                        <a asp-page="/Attributes/Options" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success">مدیریت گزینه ها</a>
+                        <a asp-page="/Attributes/Options" asp-route-id="@item.Id" class="btn btn-sm btn-outline-success tir-icon-btn" title="مدیریت گزینه ها" aria-label="مدیریت گزینه ها"><i class="dx-icon dx-icon-checklist" aria-hidden="true"></i></a>
                     }
-                    <a asp-page="/Attributes/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
+                    <a asp-page="/Attributes/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary tir-icon-btn" title="ویرایش مشخصه" aria-label="ویرایش مشخصه"><i class="dx-icon dx-icon-edit" aria-hidden="true"></i></a>
                     <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا از حذف منطقی این مشخصه مطمئن هستید؟">
                         <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                        <button class="btn btn-sm btn-outline-danger">حذف</button>
+                        <button type="submit" class="btn btn-sm btn-outline-danger tir-icon-btn" title="حذف مشخصه" aria-label="حذف مشخصه"><i class="dx-icon dx-icon-trash" aria-hidden="true"></i></button>
                     </form>
                 }
                 else
                 {
                     <form method="post" asp-page-handler="Restore" data-confirm="مشخصه و مقدارهای وابسته بازیابی شوند؟">
                         <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                        <button class="btn btn-sm btn-outline-success">بازیابی</button>
+                        <button type="submit" class="btn btn-sm btn-outline-success tir-icon-btn" title="بازیابی مشخصه" aria-label="بازیابی مشخصه"><i class="dx-icon dx-icon-restore" aria-hidden="true"></i></button>
                     </form>
                 }
             </div>

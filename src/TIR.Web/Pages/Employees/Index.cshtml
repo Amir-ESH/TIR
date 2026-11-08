@@ -29,20 +29,20 @@
         @foreach (var item in Model.Result.Items)
         {
             <div id="employee-actions-@item.Id">
-                <a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">جزئیات</a>
+                <a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary tir-icon-btn" title="جزئیات کارمند" aria-label="جزئیات کارمند"><i class="dx-icon dx-icon-eyeopen" aria-hidden="true"></i></a>
                 @if (!item.IsDeleted)
                 {
-                    <a asp-page="/Employees/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
+                    <a asp-page="/Employees/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary tir-icon-btn" title="ویرایش کارمند" aria-label="ویرایش کارمند"><i class="dx-icon dx-icon-edit" aria-hidden="true"></i></a>
                     <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا این کارمند و مقادیر وابسته حذف منطقی شوند؟">
                         <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                        <button class="btn btn-sm btn-outline-danger">حذف</button>
+                        <button type="submit" class="btn btn-sm btn-outline-danger tir-icon-btn" title="حذف کارمند" aria-label="حذف کارمند"><i class="dx-icon dx-icon-trash" aria-hidden="true"></i></button>
                     </form>
                 }
                 else
                 {
                     <form method="post" asp-page-handler="Restore" data-confirm="کارمند و مقادیر قابل بازیابی او بازگردانده شوند؟">
                         <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                        <button class="btn btn-sm btn-outline-success">بازیابی</button>
+                        <button type="submit" class="btn btn-sm btn-outline-success tir-icon-btn" title="بازیابی کارمند" aria-label="بازیابی کارمند"><i class="dx-icon dx-icon-restore" aria-hidden="true"></i></button>
                     </form>
                 }
             </div>
