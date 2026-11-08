@@ -47,9 +47,7 @@ public sealed class FormulaMaintenanceJob(IFormulaService formulas, ILogger<Form
                     break;
                 }
 
-                if (count < pageSize)
-                    break;
-
+                if (count < pageSize) break;
                 if (part == 9999)
                     logger.LogWarning("تعداد بخش های پردازش فرمول {FormulaId} از حد مجاز گذشت.", formula.FormulaId);
             }

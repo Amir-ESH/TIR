@@ -47,26 +47,69 @@
             if (!window.confirm($(this).attr('data-confirm'))) event.preventDefault();
         });
 
-        // جزئیات کارمند داخل یک پنجره تمام صفحه باز می شود و آدرس مستقیم نیز معتبر می ماند.
-        var detailsHost = $('#employeeDetailsHostModal');
-        if (detailsHost.length) {
-            var detailsFrame = $('#employeeDetailsFrame');
-            $(document).on('click', 'a[data-employee-details-modal]', function (event) {
+        // همه صفحات مدیریتی از یک پاپ آپ تمام صفحه استفاده می کنند؛ آدرس مستقیم هم معتبر است.
+        var pageHost = $('#tirPageHostModal');
+        if (pageHost.length) {
+            var pageFrame = $('#tirPageFrame');
+
+            function synchronizeParentData() {
+                var gridNode = $('#employeesGrid,#attributesGrid').first();
+                if (!gridNode.length && path !== '/') return;
+                if (window.TIRLoading) window.TIRLoading.show('در حال به روزرسانی فهرست...');
+                $.get(window.location.href).done(function (markup) {
+                    var snapshot = new DOMParser().parseFromString(markup, 'text/html');
+                    if (!gridNode.length) {
+                        var metricValues = snapshot.querySelectorAll('.metric-number');
+                        $('.metric-number').each(function (index) {
+                            if (metricValues[index]) $(this).text(metricValues[index].textContent);
+                        });
+                        return;
+                    }
+                    var dataId = gridNode.attr('data-data-id');
+                    var nextData = snapshot.getElementById(dataId);
+                    if (!nextData) return;
+                    var actionPrefix = gridNode.is('#employeesGrid') ? 'employee' : 'attribute';
+                    var newActions = snapshot.querySelectorAll('[id^="' + actionPrefix + '-actions-"]');
+                    var actionHolder = gridNode.closest('.card').children('[hidden]').first();
+                    actionHolder.empty();
+                    Array.from(newActions).forEach(function (node) {
+                        actionHolder.append(document.importNode(node, true));
+                    });
+                    var oldFooter = gridNode.closest('.card').children('.card-body').last();
+                    var nextFooter = $(snapshot.getElementById(gridNode.attr('id')))
+                        .closest('.card').children('.card-body').last();
+                    if (oldFooter.length && nextFooter.length) oldFooter.html(nextFooter.html());
+                    gridNode.dxDataGrid('instance').option('dataSource', JSON.parse(nextData.textContent || '[]'));
+                }).always(function () {
+                    if (window.TIRLoading) window.TIRLoading.hide();
+                });
+            }
+            $(document).on('click', 'a[data-employee-details-modal],a[data-popup-page]', function (event) {
                 if (event.which > 1 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
                 event.preventDefault();
                 var target = new URL(this.href, window.location.href);
                 target.searchParams.set('popup', '1');
-                detailsHost.data('changed', false);
-                detailsFrame.attr('src', target.toString());
-                bootstrap.Modal.getOrCreateInstance(detailsHost[0]).show();
+                pageHost.data('changed', false);
+                $('#tirPageTitle').text($(this).attr('title') || $(this).attr('aria-label') || $(this).text().trim() || 'مدیریت اطلاعات');
+                pageFrame.attr('src', target.toString());
+                bootstrap.Modal.getOrCreateInstance(pageHost[0]).show();
             });
 
             $(window).on('message', function (event) {
                 var original = event.originalEvent;
                 if (original.origin !== window.location.origin ||
-                    original.source !== detailsFrame[0].contentWindow ||
-                    !original.data || original.data.type !== 'tir:employee-details-saved') return;
-                detailsHost.data('changed', true);
+                    original.source !== pageFrame[0].contentWindow || !original.data) return;
+                if (original.data.type === 'tir:popup-complete') {
+                    pageHost.data('changed', true);
+                    bootstrap.Modal.getOrCreateInstance(pageHost[0]).hide();
+                    return;
+                }
+                if (original.data.type === 'tir:popup-changed') {
+                    pageHost.data('changed', true);
+                    return;
+                }
+                if (original.data.type !== 'tir:employee-details-saved') return;
+                pageHost.data('changed', true);
                 var gridElement = $('#employeeSearchGrid');
                 if (gridElement.length && gridElement.data('dxDataGrid')) {
                     var instance = gridElement.dxDataGrid('instance');
@@ -75,16 +118,17 @@
                         current.forEach(function (row) {
                             if (row.Id !== original.data.id) return;
                             row.EmployeeCode = original.data.employeeCode;
-                            row.FullName = original.data.firstName + ' ' + original.data.lastName;
+                            row.FirstName = original.data.firstName;
+                            row.LastName = original.data.lastName;
                         });
                         instance.refresh();
                     }
                 }
             });
 
-            detailsHost.on('hidden.bs.modal', function () {
-                detailsFrame.attr('src', 'about:blank');
-                if (detailsHost.data('changed') && $('#employeesGrid').length) window.location.reload();
+            pageHost.on('hidden.bs.modal', function () {
+                pageFrame.attr('src', 'about:blank');
+                if (pageHost.data('changed')) synchronizeParentData();
             });
         }
 

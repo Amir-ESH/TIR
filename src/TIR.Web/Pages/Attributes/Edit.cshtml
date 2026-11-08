@@ -2,12 +2,17 @@
 @model TIR.Web.Pages.Attributes.EditModel
 @{
     ViewData["Title"] = "ویرایش مشخصه";
+    var inPopup = ViewContext.HttpContext.Request.Query["popup"] == "1";
 }
 <div class="toolbar">
     <h2 class="section-title mb-0">ویرایش متادیتای مشخصه</h2>
-    <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت</a>
+    @if (!inPopup)
+    {
+        <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت</a>
+    }
 </div>
-<form method="post" class="card">
+<form method="post" class="card" data-tir-ajax-form="true">
+    <input type="hidden" name="Popup" value="@(inPopup ? "true" : "false")" />
     <div class="card-body">
         <partial name="_Validation" />
         <input asp-for="Input.Id" type="hidden" />
@@ -43,6 +48,9 @@
     </div>
     <div class="card-body border-top d-flex gap-2">
         <button class="btn btn-primary">ذخیره تغییرات</button>
-        <a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a>
+        @if (!inPopup)
+        {
+            <a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a>
+        }
     </div>
 </form>

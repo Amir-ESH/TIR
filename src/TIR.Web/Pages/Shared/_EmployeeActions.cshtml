@@ -1,0 +1,33 @@
+@model TIR.Application.Contracts.EmployeeListItem
+<div id="employee-actions-@Model.Id">
+    <a asp-page="/Employees/Details" asp-route-id="@Model.Id" data-employee-details-modal="true"
+       class="btn btn-sm btn-outline-secondary tir-icon-btn" title="جزئیات کارمند" aria-label="جزئیات کارمند">
+        <i class="dx-icon dx-icon-eyeopen" aria-hidden="true"></i>
+    </a>
+    @if (!Model.IsDeleted)
+    {
+        <a asp-page="/Employees/Details" asp-route-id="@Model.Id" data-employee-details-modal="true"
+           class="btn btn-sm btn-outline-primary tir-icon-btn" title="ویرایش کارمند" aria-label="ویرایش کارمند">
+            <i class="dx-icon dx-icon-edit" aria-hidden="true"></i>
+        </a>
+        <form method="post" asp-page="/Employees/Index" asp-page-handler="SoftDelete"
+              data-confirm="آیا این کارمند و مقادیر وابسته حذف منطقی شوند؟">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(Model.RowVersion)" />
+            <button type="submit" class="btn btn-sm btn-outline-danger tir-icon-btn" title="حذف کارمند" aria-label="حذف کارمند">
+                <i class="dx-icon dx-icon-trash" aria-hidden="true"></i>
+            </button>
+        </form>
+    }
+    else
+    {
+        <form method="post" asp-page="/Employees/Index" asp-page-handler="Restore"
+              data-confirm="کارمند و مقادیر قابل بازیابی او بازگردانده شوند؟">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(Model.RowVersion)" />
+            <button type="submit" class="btn btn-sm btn-outline-success tir-icon-btn" title="بازیابی کارمند" aria-label="بازیابی کارمند">
+                <i class="dx-icon dx-icon-restore" aria-hidden="true"></i>
+            </button>
+        </form>
+    }
+</div>

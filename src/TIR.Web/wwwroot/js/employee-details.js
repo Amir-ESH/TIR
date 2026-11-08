@@ -46,38 +46,38 @@
             originals[id] = readField(field);
         });
 
-        window.TIRDataGrid.create(gridNode, {
-            keyExpr: 'AttributeId',
-            dataSource: rows,
-            // حداکثر حدود شش ردیف دیده می شود و بقیه داخل خود گرید اسکرول می شوند.
-            height: Math.min(650, Math.max(440, window.innerHeight - 205)),
-            columnAutoWidth: false,
-            wordWrapEnabled: true,
-            columns: [
-                { dataField: 'Code', caption: 'کد مشخصه', width: 175 },
-                { dataField: 'Name', caption: 'عنوان فارسی', minWidth: 200 },
-                { dataField: 'TypeTitle', caption: 'نوع فیلد', width: 145 },
-                { caption: 'مقدار', minWidth: 300, allowSorting: false,
-                    allowFiltering: false, allowGrouping: false, allowSearch: false,
-                    cellTemplate: function (container, options) {
-                        var id = options.data.AttributeId;
-                        var wrapper = $('<div class="employee-detail-editor">')
-                            .attr('data-attribute-id', id).appendTo(container);
-                        if (!templates[id]) return;
-                        wrapper.append(templates[id].children().clone());
-                        if (drafts[id]) applyField(wrapper, drafts[id]);
-                    } }
-            ],
-            paging: { enabled: false }, pager: { visible: false },
-            sorting: { mode: 'multiple' },
-            filterRow: { visible: true, applyFilter: 'auto' },
-            headerFilter: { visible: true },
-            searchPanel: { visible: true, width: 250, highlightSearchText: true },
-            groupPanel: { visible: true },
-            columnChooser: { enabled: true, mode: 'select' },
-            allowColumnReordering: true,
-            scrolling: { mode: 'standard', showScrollbar: 'always', useNative: true },
-            noDataText: 'مشخصه ای برای این کارمند وجود ندارد.'
+        // بازخوانی بی صدای اطلاعات جدید، به جای رفرش صفحه و از دست دادن وضعیت گرید.
+        function refreshFields() {
+            return $.get(window.location.href).then(function (markup) {
+                var documentResponse = new DOMParser().parseFromString(markup, 'text/html');
+                var nextTemplates = documentResponse.querySelector('#employeeDetailsFieldTemplates');
+                var nextGridData = documentResponse.querySelector('#employeeDetailsGridData');
+                if (!nextTemplates || !nextGridData) throw new Error('پاسخ بازخوانی ناقص است.');
+                $('#employeeDetailsFieldTemplates').html(nextTemplates.innerHTML);
+                templates = {};
+                originals = {};
+                drafts = {};
+                $('#employeeDetailsFieldTemplates .employee-detail-template').each(function () {
+                    var id = Number($(this).attr('data-attribute-id'));
+                    templates[id] = $(this);
+                    originals[id] = readField(this);
+                });
+                rows = JSON.parse(nextGridData.textContent || '[]');
+                gridNode.dxDataGrid('instance').option('dataSource', rows);
+                var nextMeta = documentResponse.querySelector('.employee-details-meta');
+                if (nextMeta) $('.employee-details-meta').html(nextMeta.innerHTML);
+                var nextTitle = documentResponse.querySelector('#employeeDetailsScreen .section-title');
+                if (nextTitle) screen.find('.employee-details-toolbar .section-title').text(nextTitle.textContent);
+            });
+        }
+
+        window.TIRDataGrid.createEmployeeFieldGrid(gridNode, rows, function (container, row) {
+            var id = row.AttributeId;
+            var wrapper = $('<div class="employee-detail-editor">')
+                .attr('data-attribute-id', id).appendTo(container);
+            if (!templates[id]) return;
+            wrapper.append(templates[id].children().clone());
+            if (drafts[id]) applyField(wrapper, drafts[id]);
         });
 
         gridNode.on('input change', '.employee-detail-editor :input', function () {
@@ -109,6 +109,10 @@
             busy = value;
             saveButtons.prop('disabled', value).text(value ? 'در حال ذخیره...' : 'ذخیره');
             $('#employeeDetailsCalculate').prop('disabled', value);
+            if (window.TIRLoading) {
+                if (value) window.TIRLoading.show('در حال پردازش اطلاعات کارمند...');
+                else window.TIRLoading.hide();
+            }
         }
 
         function notifyParent() {
@@ -151,7 +155,6 @@
                 if (!modifiedValues.length) {
                     showMessage('اطلاعات اصلی ذخیره شد.', 'success');
                     setBusy(false);
-                    if (fixed.changed) window.setTimeout(function () { window.location.reload(); }, 650);
                     return;
                 }
 
@@ -166,13 +169,17 @@
                         return;
                     }
                     notifyParent();
-                    showMessage('اطلاعات اصلی و مقادیر مشخصه ها با موفقیت ذخیره شدند.', 'success');
-                    window.setTimeout(function () { window.location.reload(); }, 700);
+                    refreshFields().done(function () {
+                        showMessage('اطلاعات اصلی و مقادیر مشخصه ها با موفقیت ذخیره شدند.', 'success');
+                    }).fail(function () {
+                        showMessage('اطلاعات ذخیره شد، اما بازخوانی مقادیر جدید انجام نشد.', 'warning');
+                    }).always(function () { setBusy(false); });
                 }).fail(function (response) {
                     var result = response.responseJSON || {};
                     showMessage('ذخیره مشخصه ها موفق نبود. اطلاعات اصلی در صورت تغییر ذخیره شده اند. ' +
                         (result.message || 'خطا در ذخیره مقادیر.'), 'danger', result.errors);
-                }).always(function () { setBusy(false); });
+                    setBusy(false);
+                });
             }).fail(function (response) {
                 var result = response.responseJSON || {};
                 showMessage(result.message || 'خطا در ذخیره اطلاعات اصلی کارمند.', 'danger');
@@ -195,12 +202,21 @@
                 url: screen.attr('data-calculate-url'), type: 'POST',
                 headers: { RequestVerificationToken: form.find('[name="__RequestVerificationToken"]').val() }
             }).done(function (answer) {
-                if (answer.success) window.location.reload();
-                else showMessage(answer.message || 'محاسبه انجام نشد.', 'danger');
+                if (answer.success) {
+                    refreshFields().done(function () {
+                        showMessage(answer.message || 'فرمول ها محاسبه و مقادیر به روز شدند.', 'success');
+                    }).fail(function () {
+                        showMessage('محاسبه انجام شد اما نمایش نتیجه جدید امکان پذیر نبود.', 'warning');
+                    }).always(function () { setBusy(false); });
+                } else {
+                    showMessage(answer.message || 'محاسبه انجام نشد.', 'danger');
+                    setBusy(false);
+                }
             }).fail(function (response) {
                 var answer = response.responseJSON || {};
                 showMessage(answer.message || 'خطا در محاسبه فرمول ها.', 'danger');
-            }).always(function () { setBusy(false); });
+                setBusy(false);
+            });
         });
     });
 })(jQuery);

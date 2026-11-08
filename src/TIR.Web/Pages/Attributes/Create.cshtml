@@ -2,15 +2,20 @@
 @model TIR.Web.Pages.Attributes.CreateModel
 @{
     ViewData["Title"] = "ایجاد مشخصه";
+    var inPopup = ViewContext.HttpContext.Request.Query["popup"] == "1";
 }
 <div class="toolbar">
     <div>
         <h2 class="section-title mb-1">مشخصه جدید</h2>
         <p class="page-lead mb-0">نوع داده پس از ثبت مقدار فقط با مهاجرت مستقل قابل تغییر است.</p>
     </div>
-    <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت</a>
+    @if (!inPopup)
+    {
+        <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت</a>
+    }
 </div>
-<form method="post" class="card" id="attributeCreateForm">
+<form method="post" class="card" id="attributeCreateForm" data-tir-ajax-form="true">
+    <input type="hidden" name="Popup" value="@(inPopup ? "true" : "false")" />
     <div class="card-body">
         <partial name="_Validation" />
         <div class="row g-3">
@@ -61,7 +66,10 @@
     </div>
     <div class="card-body border-top d-flex gap-2">
         <button class="btn btn-primary">ثبت مشخصه</button>
-        <a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a>
+        @if (!inPopup)
+        {
+            <a asp-page="/Attributes/Index" class="btn btn-light">انصراف</a>
+        }
     </div>
 </form>
 @section Scripts {

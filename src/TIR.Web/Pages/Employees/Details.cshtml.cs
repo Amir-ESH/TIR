@@ -11,11 +11,8 @@ public sealed class DetailsModel(IEmployeeQueryService query, IEmployeeService e
     IAttributeValueService values, IAttributeService attributes,
     IFormulaService formulas, ILogger<DetailsModel> logger) : PageModel
 {
-    [BindProperty]
-    public FixedInput Input { get; set; } = new();
-
+    [BindProperty] public FixedInput Input { get; set; } = new();
     public EmployeeDetailsDto? Employee { get; private set; }
-
     public List<UiField> Fields { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync(long id, CancellationToken cancellationToken)

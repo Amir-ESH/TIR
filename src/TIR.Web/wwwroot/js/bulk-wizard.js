@@ -82,7 +82,7 @@
         }
 
         function setBusy(button, busy) {
-            $(button).prop('disabled', busy).toggleClass('disabled', busy);
+            $(button).prop('disabled', busy).toggleClass('disabled tir-loading-button', busy);
         }
 
         $('#bulkGoStep2').on('click', function () { applyOperation(); switchStep(2); });
@@ -188,6 +188,7 @@
                         window.clearInterval(timer);
                         timer = null;
                         $('#bulkProgressBar').removeClass('progress-bar-animated');
+                        $('#bulkExecute').removeClass('tir-loading-button').prop('disabled', true);
                         if (h.failureMessage) message(h.failureMessage, 'danger');
                         else if (h.status === 3) message('عملیات پایان یافت؛ خطاهای هر ردیف را در گزارش بررسی کنید.', 'info');
                     }

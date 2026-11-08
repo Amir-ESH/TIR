@@ -64,6 +64,33 @@
         $('<span>').addClass('badge ' + className).text(label).appendTo(container);
     }
 
+    // ایجاد و جزئیات کارمند، گرید مشترک مشخصه ها و تنظیمات یکسان دارند.
+    function createEmployeeFieldGrid(element, rows, renderValue) {
+        return create(element, {
+            keyExpr: 'AttributeId', dataSource: rows,
+            height: Math.min(650, Math.max(440, window.innerHeight - 205)),
+            columnAutoWidth: false, wordWrapEnabled: true,
+            columns: [
+                { dataField: 'Code', caption: 'کد مشخصه', width: 175 },
+                { dataField: 'Name', caption: 'عنوان فارسی', minWidth: 200 },
+                { dataField: 'TypeTitle', caption: 'نوع فیلد', width: 145 },
+                { caption: 'مقدار', minWidth: 300, allowSorting: false,
+                    allowFiltering: false, allowGrouping: false, allowSearch: false,
+                    cellTemplate: function (container, options) { renderValue(container, options.data); } }
+            ],
+            paging: { enabled: false }, pager: { visible: false },
+            sorting: { mode: 'multiple' },
+            filterRow: { visible: true, applyFilter: 'auto' },
+            headerFilter: { visible: true },
+            searchPanel: { visible: true, width: 250, highlightSearchText: true },
+            groupPanel: { visible: true },
+            columnChooser: { enabled: true, mode: 'select' },
+            allowColumnReordering: true,
+            scrolling: { mode: 'standard', showScrollbar: 'always', useNative: true },
+            noDataText: 'مشخصه ای برای نمایش وجود ندارد.'
+        });
+    }
+
     var columns = {
         employees: [
             { dataField: 'Id', caption: 'شناسه', width: 90, visible: false, showInColumnChooser: true },
@@ -95,18 +122,6 @@
                 appendActions(container, 'attribute', options.data.Id);
             } }
         ],
-        search: [
-            { dataField: 'Id', caption: 'شناسه', width: 90 },
-            { dataField: 'EmployeeCode', caption: 'کد پرسنلی', cssClass: 'mono' },
-            { dataField: 'FullName', caption: 'نام و نام خانوادگی' },
-            { dataField: 'HasStaleFormula', caption: 'وضعیت فرمول', dataType: 'boolean', cellTemplate: function (container, options) {
-                badge(container, options.value ? 'نتیجه قدیمی دارد' : 'عادی', options.value ? 'text-bg-warning' : 'text-bg-success');
-            } },
-            { caption: 'عملیات', width: 130, allowSorting: false, allowFiltering: false,
-                allowGrouping: false, allowSearch: false, cellTemplate: function (container, options) {
-                appendActions(container, 'search', options.data.Id);
-            } }
-        ],
         report: [
             { dataField: 'InputOrdinal', caption: 'ردیف کارمند' },
             { dataField: 'EmployeeId', caption: 'شناسه' },
@@ -135,6 +150,6 @@
         });
     }
 
-    window.TIRDataGrid = { create: create };
+    window.TIRDataGrid = { create: create, createEmployeeFieldGrid: createEmployeeFieldGrid };
     $(mountStaticGrids);
 })(jQuery);

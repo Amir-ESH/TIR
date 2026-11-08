@@ -12,10 +12,7 @@ public sealed class ReportModel(IBulkService bulk, ILogger<ReportModel> logger) 
     public async Task<IActionResult> OnGetAsync(Guid id, CancellationToken cancellationToken)
     {
         Report = await bulk.GetReportAsync(id, cancellationToken);
-
-        if (Report is null)
-            return NotFound();
-
+        if (Report is null) return NotFound();
         return Page();
     }
 
@@ -32,7 +29,6 @@ public sealed class ReportModel(IBulkService bulk, ILogger<ReportModel> logger) 
             TempData["Error"] = UiErrors.Message(error);
             return RedirectToPage("/Bulk/Report", new { id });
         }
-
         return RedirectToPage("/Bulk/Index");
     }
 }

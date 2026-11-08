@@ -4,11 +4,7 @@ using TIR.Application.Contracts;
 
 namespace TIR.Web.Jobs;
 
-/// <summary>
-/// هر Job تنها یک بخش ده هزار تایی را پردازش می کند.
-/// </summary>
-/// <param name="repository"></param>
-/// <param name="logger"></param>
+// هر Job تنها یک بخش ده هزار تایی را پردازش می کند.
 [AutomaticRetry(Attempts = 0)]
 public sealed class BulkWizardJob(IBulkWizardRepository repository, ILogger<BulkWizardJob> logger)
 {

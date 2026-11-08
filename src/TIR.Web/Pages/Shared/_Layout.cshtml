@@ -1,7 +1,12 @@
 @{
     var pageTitle = ViewData["Title"] as string ?? "سامانه مدیریت پرسنل";
-    var embeddedEmployeeDetails = ViewContext.HttpContext.Request.Path.StartsWithSegments("/Employees/Details")
-        && ViewContext.HttpContext.Request.Query["popup"] == "1";
+    var pagePath = ViewContext.HttpContext.Request.Path;
+    var embeddedPopupPage = ViewContext.HttpContext.Request.Query["popup"] == "1"
+        && (pagePath.StartsWithSegments("/Employees/Details")
+            || pagePath.StartsWithSegments("/Employees/Create")
+            || pagePath.StartsWithSegments("/Attributes/Create")
+            || pagePath.StartsWithSegments("/Attributes/Edit")
+            || pagePath.StartsWithSegments("/Attributes/Options"));
 }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -22,7 +27,7 @@
     <link rel="stylesheet" href="~/css/site-font.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/employee-details.css" asp-append-version="true" />
 </head>
-<body class="@(embeddedEmployeeDetails ? "employee-details-embedded" : "")">
+<body class="@(embeddedPopupPage ? "employee-details-embedded" : "")">
     <div class="app-shell">
         <aside class="app-sidebar" id="appSidebar">
             <a asp-page="/Index" class="brand" aria-label="صفحه اصلی">
@@ -50,7 +55,7 @@
                 </div>
                 <div class="topbar-actions">
                     <partial name="_IranClock" />
-                    <a asp-page="/Employees/Create" class="btn btn-primary btn-sm px-3">+ کارمند جدید</a>
+                    <a asp-page="/Employees/Create" data-popup-page="true" class="btn btn-primary btn-sm px-3">+ کارمند جدید</a>
                 </div>
             </header>
 
@@ -76,17 +81,17 @@
         </div>
     </div>
 
-    @if (!embeddedEmployeeDetails)
+    @if (!embeddedPopupPage)
     {
-        <div class="modal fade employee-details-host" id="employeeDetailsHostModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade employee-details-host" id="tirPageHostModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-fullscreen m-0">
                 <div class="modal-content h-100">
                     <div class="modal-header py-2">
-                        <h2 class="modal-title fs-5">جزئیات کارمند</h2>
+                        <h2 class="modal-title fs-5" id="tirPageTitle">جزئیات کارمند</h2>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
                     </div>
                     <div class="modal-body p-0 overflow-hidden">
-                        <iframe id="employeeDetailsFrame" title="جزئیات و ویرایش کارمند" loading="lazy"></iframe>
+                        <iframe id="tirPageFrame" title="پنجره مدیریت اطلاعات" loading="lazy"></iframe>
                     </div>
                 </div>
             </div>
@@ -100,6 +105,7 @@
     <script src="~/js/jalali-navigation.js" asp-append-version="true"></script>
     <script src="~/js/time-picker.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/tir-async-forms.js" asp-append-version="true"></script>
     <script src="~/js/tir-data-grid.js" asp-append-version="true"></script>
     <script src="~/js/iran-clock.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

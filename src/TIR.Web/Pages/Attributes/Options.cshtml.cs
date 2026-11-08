@@ -12,13 +12,12 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
     public NewOptionInput Input { get; set; } = new();
 
     public AttributeDefinitionDto Attribute { get; private set; } = new();
-
     public IReadOnlyList<AttributeOptionDto> Options { get; private set; } = [];
+    private bool IsPopup => Request.Query["popup"] == "1";
 
     public async Task<IActionResult> OnGetAsync(long id, CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken))
-            return NotFound();
+        if (!await LoadAsync(id, cancellationToken)) return NotFound();
 
         Input.DisplayOrder = Options.Count + 1;
 
@@ -27,11 +26,8 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
     public async Task<IActionResult> OnPostCreateAsync(long id, CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken))
-            return NotFound();
-
-        if (!ModelState.IsValid)
-            return Page();
+        if (!await LoadAsync(id, cancellationToken)) return NotFound();
+        if (!ModelState.IsValid) return Page();
 
         try
         {
@@ -40,13 +36,13 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
             TempData["Success"] = "گزینه جدید ثبت شد.";
 
-            return RedirectToPage(new { id });
+            return RedirectToPage(new { id, popup = IsPopup ? "1" : null,
+                changed = IsPopup ? "1" : null });
         }
         catch (Exception error)
         {
             logger.LogError(error, "خطا در ثبت گزینه مشخصه {AttributeId}", id);
             ModelState.AddModelError(string.Empty, UiErrors.Message(error));
-
             return Page();
         }
     }
@@ -57,6 +53,7 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
     {
         if (!await LoadAsync(id, cancellationToken)) return NotFound();
 
+        var succeeded = false;
         try
         {
             var version = UiFieldFactory.DecodeRowVersion(rowVersion)
@@ -66,6 +63,7 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
                 id, optionId, version, title, displayOrder), cancellationToken);
 
             TempData["Success"] = "تغییرات گزینه ذخیره شد.";
+            succeeded = true;
         }
         catch (Exception error)
         {
@@ -73,16 +71,17 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
             TempData["Error"] = UiErrors.Message(error);
         }
 
-        return RedirectToPage(new { id });
+        return RedirectToPage(new { id, popup = IsPopup ? "1" : null,
+            changed = succeeded && IsPopup ? "1" : null });
     }
 
     public async Task<IActionResult> OnPostSetEnabledAsync(
         long id, long optionId, string rowVersion, bool isEnabled,
         CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken))
-            return NotFound();
+        if (!await LoadAsync(id, cancellationToken)) return NotFound();
 
+        var succeeded = false;
         try
         {
             var version = UiFieldFactory.DecodeRowVersion(rowVersion)
@@ -92,6 +91,7 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
                 id, optionId, version, isEnabled), cancellationToken);
 
             TempData["Success"] = isEnabled ? "گزینه فعال شد." : "گزینه غیرفعال شد.";
+            succeeded = true;
         }
         catch (Exception error)
         {
@@ -99,16 +99,15 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
             TempData["Error"] = UiErrors.Message(error);
         }
 
-        return RedirectToPage(new { id });
+        return RedirectToPage(new { id, popup = IsPopup ? "1" : null,
+            changed = succeeded && IsPopup ? "1" : null });
     }
 
     private async Task<bool> LoadAsync(long id, CancellationToken cancellationToken)
     {
-        if (id <= 0)
-            return false;
+        if (id <= 0) return false;
 
         var definition = await attributes.GetAsync(id, cancellationToken);
-
         if (definition is null
             || definition.IsDeleted
             || definition.SourceKind != 1
@@ -119,7 +118,6 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
         Attribute = definition;
         Options = await attributes.ListOptionsAsync(id, includeDisabled: true, cancellationToken);
-
         return true;
     }
 
