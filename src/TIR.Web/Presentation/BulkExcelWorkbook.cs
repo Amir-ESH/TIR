@@ -160,7 +160,7 @@ public static class BulkExcelWorkbook
             guideRow++;
         }
         guide.Cell(guideRow++, 1).Value = "مشخصه های فرمولی در فایل اکسل ورودی قرار نمی گیرند و با اجرای فرمول محاسبه می شوند.";
-        guide.Cell(guideRow++, 1).Value = "تاریخ خورشیدی به صورت 1405/08/12 و تاریخ و ساعت به صورت 1405/08/12 14:30 وارد شوند.";
+        guide.Cell(guideRow++, 1).Value = "تاریخ خورشیدی به صورت 1405/08/01 و تاریخ و ساعت به صورت 1405/08/01 14:30 وارد شوند.";
 
         if (update)
         {
