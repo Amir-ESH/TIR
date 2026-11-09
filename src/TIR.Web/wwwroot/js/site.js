@@ -13,13 +13,11 @@
                 .toLowerCase()
                 .replace(/\/+$/, '') || '/';
 
-            // اگر آدرس دقیق پیدا شد همان منو انتخاب شود.
             if (href === path) {
                 activeLink = this;
                 return false;
             }
 
-            // اگر آدرس دقیق نبود نزدیک ترین مسیر والد انتخاب شود.
             if (
                 href !== '/' &&
                 href !== '/hangfire' &&
@@ -31,7 +29,6 @@
             }
         });
 
-        // فقط یک منو فعال باشد.
         if (activeLink) {
             $(activeLink).addClass('active');
         }
@@ -42,9 +39,105 @@
                 $('#appSidebar').removeClass('open');
         });
 
-        $('form[data-confirm]').on('submit', function (event) {
+        $(document).on('submit', 'form[data-confirm]', function (event) {
             if (!window.confirm($(this).attr('data-confirm'))) event.preventDefault();
         });
+
+        var pageHost = $('#tirPageHostModal');
+        if (pageHost.length) {
+            var pageFrame = $('#tirPageFrame');
+
+            function synchronizeParentData() {
+                // پس از ویرایش در پاپ آپ، مقادیر ستون های داینامیک جستجوی پیشرفته نیز تازه شوند.
+                if ($('#employeeSearchGrid').length && $('#advancedSearchForm').length) {
+                    $('#advancedSearchForm').trigger('submit');
+                    return;
+                }
+                var gridNode = $('#employeesGrid,#attributesGrid').first();
+                if (!gridNode.length && path !== '/') return;
+                if (window.TIRLoading) window.TIRLoading.show('در حال به روزرسانی فهرست...');
+                $.get(window.location.href).done(function (markup) {
+                    var snapshot = new DOMParser().parseFromString(markup, 'text/html');
+                    if (!gridNode.length) {
+                        var metricValues = snapshot.querySelectorAll('.metric-number');
+                        $('.metric-number').each(function (index) {
+                            if (metricValues[index]) $(this).text(metricValues[index].textContent);
+                        });
+                        return;
+                    }
+                    var dataId = gridNode.attr('data-data-id');
+                    var nextData = snapshot.getElementById(dataId);
+                    if (!nextData) return;
+                    var actionPrefix = gridNode.is('#employeesGrid') ? 'employee' : 'attribute';
+                    var newActions = snapshot.querySelectorAll('[id^="' + actionPrefix + '-actions-"]');
+                    var actionHolder = gridNode.closest('.card').children('[hidden]').first();
+                    actionHolder.empty();
+                    Array.from(newActions).forEach(function (node) {
+                        actionHolder.append(document.importNode(node, true));
+                    });
+                    var oldFooter = gridNode.closest('.card').children('.card-body').last();
+                    var nextFooter = $(snapshot.getElementById(gridNode.attr('id')))
+                        .closest('.card').children('.card-body').last();
+                    if (oldFooter.length && nextFooter.length) oldFooter.html(nextFooter.html());
+                    var columnsId = gridNode.attr('data-columns-id');
+                    var nextColumns = columnsId && snapshot.getElementById(columnsId);
+                    if (nextColumns) $('#' + columnsId).text(nextColumns.textContent);
+                    gridNode.dxDataGrid('instance').option('dataSource', JSON.parse(nextData.textContent || '[]'));
+                    if (window.TIRDataGrid && typeof window.TIRDataGrid.syncEmployeeColumns === 'function')
+                        window.TIRDataGrid.syncEmployeeColumns(gridNode);
+                    if (window.TIRDataGrid && typeof window.TIRDataGrid.refreshActionsWidth === 'function')
+                        window.TIRDataGrid.refreshActionsWidth(gridNode);
+                }).always(function () {
+                    if (window.TIRLoading) window.TIRLoading.hide();
+                });
+            }
+            $(document).on('click', 'a[data-employee-details-modal],a[data-popup-page]', function (event) {
+                if (event.which > 1 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                var target = new URL(this.href, window.location.href);
+                target.searchParams.set('popup', '1');
+                pageHost.data('changed', false);
+                $('#tirPageTitle').text($(this).attr('title') || $(this).attr('aria-label') || $(this).text().trim() || 'مدیریت اطلاعات');
+                pageFrame.attr('src', target.toString());
+                bootstrap.Modal.getOrCreateInstance(pageHost[0]).show();
+            });
+
+            $(window).on('message', function (event) {
+                var original = event.originalEvent;
+                if (original.origin !== window.location.origin ||
+                    original.source !== pageFrame[0].contentWindow || !original.data) return;
+                if (original.data.type === 'tir:popup-complete') {
+                    pageHost.data('changed', true);
+                    bootstrap.Modal.getOrCreateInstance(pageHost[0]).hide();
+                    return;
+                }
+                if (original.data.type === 'tir:popup-changed') {
+                    pageHost.data('changed', true);
+                    return;
+                }
+                if (original.data.type !== 'tir:employee-details-saved') return;
+                pageHost.data('changed', true);
+                var gridElement = $('#employeeSearchGrid');
+                if (gridElement.length && gridElement.data('dxDataGrid')) {
+                    var instance = gridElement.dxDataGrid('instance');
+                    var current = instance.option('dataSource');
+                    if (Array.isArray(current)) {
+                        current.forEach(function (row) {
+                            if (row.Id !== original.data.id) return;
+                            row.EmployeeCode = original.data.employeeCode;
+                            row.FirstName = original.data.firstName;
+                            row.LastName = original.data.lastName;
+                        });
+                        instance.refresh();
+                    }
+                }
+            });
+
+            pageHost.on('hidden.bs.modal', function () {
+                pageFrame.attr('src', 'about:blank');
+                if (pageHost.data('changed')) synchronizeParentData();
+            });
+        }
 
         $('.js-filter-fields').on('input', function () {
             var query = $(this).val().toString().trim().toLowerCase();
@@ -63,24 +156,22 @@
         $(document).on('submit', 'form[data-dynamic-save]', function (event) {
             event.preventDefault();
             var form = $(this), button = form.find('button[type=submit]');
-            var message = $('#valueSaveMessage');
             button.prop('disabled', true).text('در حال ذخیره...');
             $.ajax({
                 url: form.attr('action'), type: 'POST', data: form.serialize(),
                 success: function (answer) {
-                    if (!answer.success) { showMessage(answer.message, 'danger'); return; }
+                    if (!answer.success) { window.TIRMessages.error(answer.message); return; }
                     form.find('.js-rowversion').val(answer.rowVersion);
                     if (form.find('.js-clear-value').val() === 'true') {
                         form.find('[name="Field.RawValue"]').val('');
                         form.find('.js-bool-set,.js-bool-check').prop('checked', false);
                     }
-                    // پس از ذخیره مستقل، مقدار مبنای تشخیص تغییرات فرم اصلاح می شود.
                     form.trigger('tir:field-saved');
-                    showMessage('مقدار ذخیره شد. وضعیت فرمول های وابسته را در صفحه جزئیات بررسی کنید.', 'success');
+                    window.TIRMessages.success('مقدار ذخیره شد. وضعیت فرمول های وابسته را در صفحه جزئیات بررسی کنید.');
                 },
                 error: function (response) {
                     var info = response.responseJSON || {};
-                    showMessage(info.message || 'خطای ارتباط با سرور رخ داد.', 'danger');
+                    window.TIRMessages.error(info.message || 'خطای ارتباط با سرور رخ داد.');
                 },
                 complete: function () {
                     form.find('.js-clear-value').val('false');
@@ -88,16 +179,11 @@
                 }
             });
 
-            function showMessage(text, kind) {
-                message.html($('<div>').addClass('alert alert-' + kind).text(text));
-                message[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
         });
 
         initializePersianPicker();
     });
 
-    // ورودی های تاریخ، تاریخ و ساعت و ساعت از انتخابگرهای مشترک استفاده می کنند.
     function initializePersianPicker() {
         if (!window.TirJalaliNavigation || !window.TirTimePicker) return;
 
@@ -115,7 +201,6 @@
 
                 popup.hide();
                 if (target.hasClass('js-jalali-datetime')) {
-                    // ابتدا تاریخ و سپس ساعت انتخاب می شود؛ لغو ساعت مقدار قبلی را حفظ می کند.
                     var parts = target.val().toString().trim().split(/\s+/);
                     timePicker.open(target, {
                         value: parts.length > 1 ? parts[1] : '',
@@ -152,7 +237,6 @@
             popup.css('left', Math.min(Math.max(10, position.left), maxLeft));
         });
 
-        // کلیک روی هر نقطه فیلد ساعت، انتخابگر را باز می کند.
         $(document).on('focus click', '.js-tir-time', function () {
             var target = $(this);
             if (timePicker.isOpenFor(target)) return;

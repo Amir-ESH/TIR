@@ -1,0 +1,29 @@
+@page
+@{
+    Layout = null;
+    var scope = ViewContext.HttpContext.Request.Query["scope"] == "employees"
+        ? "employees" : "attributes";
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>ثبت موفق</title>
+</head>
+<body>
+    <p>اطلاعات با موفقیت ثبت شد. پنجره در حال بسته شدن است.</p>
+    @if (scope == "employees")
+    {
+        <a href="/Employees/Index">بازگشت به کارمندان</a>
+    }
+    else
+    {
+        <a href="/Attributes/Index">بازگشت به مشخصه ها</a>
+    }
+    <script>
+        if (window.parent !== window) {
+            window.parent.postMessage({ type: 'tir:popup-complete', scope: '@scope' }, window.location.origin);
+        }
+    </script>
+</body>
+</html>

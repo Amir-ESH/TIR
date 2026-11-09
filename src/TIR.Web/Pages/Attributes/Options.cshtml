@@ -2,6 +2,8 @@
 @model TIR.Web.Pages.Attributes.OptionsModel
 @{
     ViewData["Title"] = "مدیریت گزینه های مشخصه";
+    var inPopup = ViewContext.HttpContext.Request.Query["popup"] == "1";
+    var updatedInPopup = inPopup && ViewContext.HttpContext.Request.Query["changed"] == "1";
 }
 
 <div class="toolbar">
@@ -9,14 +11,18 @@
         <h2 class="section-title mb-1">گزینه های مشخصه «@Model.Attribute.Title»</h2>
         <p class="page-lead mb-0">کد مشخصه: <span class="mono">@Model.Attribute.AttributeCode</span></p>
     </div>
-    <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت به مشخصه ها</a>
+    @if (!inPopup)
+    {
+        <a asp-page="/Attributes/Index" class="btn btn-outline-secondary">بازگشت به مشخصه ها</a>
+    }
 </div>
 
 <div class="card mb-4">
     <div class="card-header">
         <h3 class="section-title mb-0">افزودن گزینه جدید</h3>
     </div>
-    <form method="post" asp-page-handler="Create" asp-route-id="@Model.Attribute.Id">
+    <form method="post" data-tir-ajax-form="true" asp-page-handler="Create" asp-route-id="@Model.Attribute.Id"
+          asp-route-popup="@(inPopup ? "1" : null)">
         <div class="card-body">
             <partial name="_Validation" />
             <div class="row g-3">
@@ -67,7 +73,8 @@
                     </span>
                 </div>
 
-                <form method="post" asp-page-handler="Update" asp-route-id="@Model.Attribute.Id" class="row g-2 align-items-end mb-2">
+                <form method="post" data-tir-ajax-form="true" asp-page-handler="Update" asp-route-id="@Model.Attribute.Id"
+                      asp-route-popup="@(inPopup ? "1" : null)" class="row g-2 align-items-end mb-2">
                     <input type="hidden" name="optionId" value="@option.Id" />
                     <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(option.RowVersion)" />
                     <div class="col-lg-7">
@@ -83,7 +90,8 @@
                     </div>
                 </form>
 
-                <form method="post" asp-page-handler="SetEnabled" asp-route-id="@Model.Attribute.Id"
+                <form method="post" data-tir-ajax-form="true" asp-page-handler="SetEnabled" asp-route-id="@Model.Attribute.Id"
+                      asp-route-popup="@(inPopup ? "1" : null)"
                       data-confirm="@(option.IsEnabled ? "آیا این گزینه غیرفعال شود؟ گزینه استفاده شده قابل غیرفعال کردن نیست." : "آیا این گزینه فعال شود؟")">
                     <input type="hidden" name="optionId" value="@option.Id" />
                     <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(option.RowVersion)" />
@@ -96,3 +104,9 @@
         }
     }
 </div>
+@if (updatedInPopup)
+{
+    <script>
+        window.parent.postMessage({ type: 'tir:popup-changed', scope: 'attributes' }, window.location.origin);
+    </script>
+}

@@ -2,7 +2,12 @@ using TIR.Application.Contracts;
 
 namespace TIR.Web.Presentation;
 
-// خروجی اکسل فهرست و جستجوی پیشرفته از یک مسیر مشترک استفاده می کند.
+/// <summary>
+/// خروجی اکسل فهرست و جستجوی پیشرفته از یک مسیر مشترک استفاده می کند.
+/// </summary>
+/// <param name="employees"></param>
+/// <param name="attributes"></param>
+/// <param name="values"></param>
 public sealed class EmployeeExcelExportService(
     IEmployeeService employees,
     IAttributeService attributes,
@@ -12,6 +17,7 @@ public sealed class EmployeeExcelExportService(
     {
         var definitions = await UiFieldFactory.LoadAllActiveAsync(attributes, cancellationToken);
         var options = await LoadOptionsAsync(definitions, cancellationToken);
+
         return BulkExcelWorkbook.Template(update, definitions, options);
     }
 
@@ -28,10 +34,14 @@ public sealed class EmployeeExcelExportService(
         CancellationToken cancellationToken)
     {
         var first = await fetch(1, 200);
+
         if (first.TotalCount > BulkExcelWorkbook.MaximumRows)
+        {
             throw new InvalidOperationException($"تعداد نتایج بیشتر از {BulkExcelWorkbook.MaximumRows:N0} است؛ فیلتر را محدود کنید.");
+        }
 
         var records = new List<EmployeeListItem>(first.Items);
+
         for (var page = 2; records.Count < first.TotalCount; page++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -39,9 +49,11 @@ public sealed class EmployeeExcelExportService(
             if (current.Items.Count == 0) break;
             records.AddRange(current.Items);
         }
+
         var definitions = await UiFieldFactory.LoadAllActiveAsync(attributes, cancellationToken);
         var options = await LoadOptionsAsync(definitions, cancellationToken);
         var snapshot = new Dictionary<long, IReadOnlyList<EmployeeFormAttributeDto>>(records.Count);
+
         for (var start = 0; start < records.Count; start += 200)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -49,9 +61,13 @@ public sealed class EmployeeExcelExportService(
             var valuesForEmployees = await values.ReadAsync(ids, cancellationToken);
             var grouped = valuesForEmployees.GroupBy(x => x.EmployeeId)
                 .ToDictionary(x => x.Key, x => (IReadOnlyList<EmployeeFormAttributeDto>)x.ToList());
+
             foreach (var employeeId in ids)
+            {
                 snapshot[employeeId] = grouped.TryGetValue(employeeId, out var selected) ? selected : [];
+            }
         }
+
         return BulkExcelWorkbook.Export(true, definitions, records, snapshot, options);
     }
 
@@ -59,8 +75,12 @@ public sealed class EmployeeExcelExportService(
         IReadOnlyList<AttributeDefinitionDto> definitions, CancellationToken cancellationToken)
     {
         var all = new List<AttributeOptionDto>();
+
         foreach (var definition in definitions.Where(x => x.DataKind == 8))
+        {
             all.AddRange(await attributes.ListOptionsAsync(definition.Id, false, cancellationToken));
+        }
+
         return all;
     }
 }

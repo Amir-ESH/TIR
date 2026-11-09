@@ -20,7 +20,6 @@
     background: #fff;
     color: #1d1d21;
     box-shadow: 0 8px 30px rgba(0, 0, 0, .22);
-    font-family: inherit;
 }
 
 .tir-clock-caption {
@@ -55,7 +54,6 @@
     border-radius: 5px;
     background: #e6e6e6;
     color: #202124;
-    font-family: inherit;
     font-size: 54px;
     font-weight: 400;
     font-variant-numeric: tabular-nums;
@@ -156,7 +154,6 @@
     border-radius: 50%;
     background: transparent;
     color: #202124;
-    font-family: inherit;
     font-size: 17px;
     font-variant-numeric: tabular-nums;
     transform: translate(-50%, -50%);

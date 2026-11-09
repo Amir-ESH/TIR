@@ -1,4 +1,5 @@
 @page
+@using System.Text.Json
 @model TIR.Web.Pages.Employees.IndexModel
 @{
     ViewData["Title"] = "فهرست کارمندان";
@@ -7,58 +8,35 @@
     <div><h2 class="section-title mb-1">کارمندان سازمان</h2><p class="page-lead mb-0">فهرست، جستجو، ویرایش و بازیابی اطلاعات پرسنلی.</p></div>
     <div class="d-flex gap-2 flex-wrap">
         <a asp-page="/Employees/Index" asp-page-handler="Excel" asp-route-Search="@Model.Search" asp-route-SortBy="@Model.SortBy" asp-route-SortDescending="@Model.SortDescending" class="btn btn-outline-success">دانلود فایل خروجی کارمندان</a>
-        <a asp-page="/Employees/Create" class="btn btn-primary">+ افزودن کارمند</a>
+        <a asp-page="/Employees/Create" data-popup-page="true" class="btn btn-primary">+ افزودن کارمند</a>
     </div>
 </div>
 <div class="card">
     <div class="card-body pb-0">
-        <form method="get" class="filter-bar mb-3">
+        <form method="get" class="filter-bar mb-3" id="employeeListFilters">
             <input asp-for="Search" class="form-control flex-grow-1" placeholder="کد، نام یا نام خانوادگی" />
             <select asp-for="SortBy" class="form-select"><option value="Id">شناسه</option><option value="EmployeeCode">کد کارمند</option><option value="FirstName">نام</option><option value="LastName">نام خانوادگی</option></select>
             <select asp-for="SortDescending" class="form-select"><option value="false">صعودی</option><option value="true">نزولی</option></select>
-            <div class="form-check"><input asp-for="IncludeDeleted" class="form-check-input" /><label asp-for="IncludeDeleted" class="form-check-label">نمایش حذف شده ها</label></div>
             <button class="btn btn-outline-primary">اعمال فیلتر</button>
         </form>
     </div>
     <div class="table-wrap">
-        <table class="table">
-            <thead><tr><th>شناسه</th><th>کد کارمند</th><th>نام</th><th>نام خانوادگی</th><th>وضعیت</th><th>عملیات</th></tr></thead>
-            <tbody>
-            @foreach (var item in Model.Result.Items)
-            {
-                <tr>
-                    <td class="text-muted">@item.Id</td><td class="mono fw-semibold">@item.EmployeeCode</td><td>@item.FirstName</td><td>@item.LastName</td>
-                    <td><span class="badge text-bg-@(item.IsDeleted ? "danger" : "success")">@(item.IsDeleted ? "حذف شده" : "فعال")</span></td>
-                    <td><div class="d-flex align-items-center gap-2">
-                        <a asp-page="/Employees/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">جزئیات</a>
-                        @if (!item.IsDeleted)
-                        {
-                            <a asp-page="/Employees/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">ویرایش</a>
-                            <form method="post" asp-page-handler="SoftDelete" data-confirm="آیا این کارمند و مقادیر وابسته حذف منطقی شوند؟">
-                                <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                                <button class="btn btn-sm btn-outline-danger">حذف</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form method="post" asp-page-handler="Restore" data-confirm="کارمند و مقادیر قابل بازیابی او بازگردانده شوند؟">
-                                <input type="hidden" name="id" value="@item.Id" /><input type="hidden" name="rowVersion" value="@Convert.ToBase64String(item.RowVersion)" />
-                                <button class="btn btn-sm btn-outline-success">بازیابی</button>
-                            </form>
-                        }
-                    </div></td>
-                </tr>
-            }
-            </tbody>
-        </table>
-        @if (Model.Result.Items.Count == 0) { <div class="table-empty">کارمندی مطابق فیلتر انتخاب شده پیدا نشد.</div> }
+        <div id="employeesGrid" class="tir-data-grid" data-grid-kind="employees" data-include-deleted="@(Model.IncludeDeleted ? "true" : "false")" data-data-id="employeesGridData" data-columns-id="employeesGridColumns" data-empty-message="کارمندی مطابق فیلتر انتخاب شده پیدا نشد."></div>
+    </div>
+    <script id="employeesGridData" type="application/json">@Html.Raw(Model.Grid.RowsJson)</script>
+    <script id="employeesGridColumns" type="application/json">@Html.Raw(Model.Grid.ColumnsJson)</script>
+    <div hidden>
+        @foreach (var item in Model.Result.Items)
+        {
+            <partial name="_EmployeeActions" model="item" />
+        }
     </div>
     <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
         <span class="text-muted small">تعداد کل: @Model.Result.TotalCount</span>
         <nav><ul class="pagination pagination-sm">
-            @if (Model.PageNumber > 1) { <li class="page-item"><a class="page-link" asp-page="/Employees/Index" asp-route-Search="@Model.Search" asp-route-IncludeDeleted="@Model.IncludeDeleted" asp-route-SortBy="@Model.SortBy" asp-route-SortDescending="@Model.SortDescending" asp-route-PageNumber="@(Model.PageNumber - 1)">قبلی</a></li> }
+            @if (Model.PageNumber > 1) { <li class="page-item"><a class="page-link" asp-page="/Employees/Index" asp-route-Search="@Model.Search" asp-route-IncludeDeleted="@(Model.IncludeDeleted ? "true" : null)" asp-route-SortBy="@Model.SortBy" asp-route-SortDescending="@Model.SortDescending" asp-route-PageNumber="@(Model.PageNumber - 1)">قبلی</a></li> }
             <li class="page-item active"><span class="page-link">@Model.PageNumber</span></li>
-            @if (Model.PageNumber * 50L < Model.Result.TotalCount) { <li class="page-item"><a class="page-link" asp-page="/Employees/Index" asp-route-Search="@Model.Search" asp-route-IncludeDeleted="@Model.IncludeDeleted" asp-route-SortBy="@Model.SortBy" asp-route-SortDescending="@Model.SortDescending" asp-route-PageNumber="@(Model.PageNumber + 1)">بعدی</a></li> }
+            @if (Model.PageNumber * 50L < Model.Result.TotalCount) { <li class="page-item"><a class="page-link" asp-page="/Employees/Index" asp-route-Search="@Model.Search" asp-route-IncludeDeleted="@(Model.IncludeDeleted ? "true" : null)" asp-route-SortBy="@Model.SortBy" asp-route-SortDescending="@Model.SortDescending" asp-route-PageNumber="@(Model.PageNumber + 1)">بعدی</a></li> }
         </ul></nav>
     </div>
 </div>

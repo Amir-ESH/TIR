@@ -12,7 +12,10 @@
         var optionsUrl = $(settings.attributeData).data('options-url');
 
         function createRow(condition) {
-            if (container.children().length >= 64) { alert('حداکثر 64 شرط مجاز است.'); return; }
+            if (container.children().length >= 64) {
+                window.TIRMessages.warning('حداکثر 64 شرط مجاز است.');
+                return;
+            }
             var row = $('<div class="query-row"></div>');
             $('<input type="number" min="1" max="16" class="form-control condition-group" title="شماره گروه OR" />')
                 .val(condition.group || 1).appendTo(row);
@@ -85,7 +88,7 @@
                 kind === 5 ? 'HH:mm' :
                 kind === 7 ? '0 یا 1' : kind === 8 ? 'شناسه گزینه' : 'مقدار';
             row.find('.condition-value').attr('placeholder', placeholder);
-            // عملگر مقدار دارد یا ندارد به ورودی مقدار احتیاج ندارد.
+
             row.find('.condition-value,.condition-to')
                 .prop('disabled', isValuePresenceFilter)
                 .toggleClass('d-none', isValuePresenceFilter);
@@ -111,7 +114,7 @@
         }
         $(settings.form).on('submit', serializeConditions);
 
-        $(settings.pagination || '.js-search-page').on('click', function () {
+        $(document).on('click', settings.pagination || '.js-search-page', function () {
             $(settings.pageNumber).val($(this).data('page'));
             $(settings.form).trigger('submit');
         });
@@ -120,7 +123,9 @@
         try { previous = JSON.parse($(settings.filtersJson).val() || '[]'); } catch (_) { previous = []; }
         if (previous.length) previous.forEach(createRow);
         else createRow({ group: 1 });
-        return { serialize: serializeConditions };
+        var controller = { serialize: serializeConditions };
+        window.TIRAdvancedSearch.active = controller;
+        return controller;
     }
     window.TIRAdvancedSearch = { setup: setup };
     $(function () {

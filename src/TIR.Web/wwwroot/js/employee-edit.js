@@ -7,9 +7,7 @@
 
         var forms = container.find('.dynamic-value-form');
         var buttons = container.find('.js-save-all-values');
-        var message = $('#valueSaveMessage');
 
-        // تنها مقدار قابل ویرایش مبنای تشخیص تغییر است و نسخه ردیف جزو مقدار نیست.
         function fingerprint(form) {
             return $(form).find('[name="Field.RawValue"],[name="Field.BooleanIsSet"],[name="Field.BooleanChecked"]')
                 .serialize();
@@ -19,21 +17,12 @@
             $(this).data('initial-value', fingerprint(this));
         });
 
-        // ذخیره مستقل یک مشخصه نباید باعث ارسال دوباره آن در ذخیره کلی شود.
         forms.on('tir:field-saved', function () {
             $(this).data('initial-value', fingerprint(this));
         });
 
         function showMessage(text, kind, errors) {
-            var alert = $('<div class="alert"></div>').addClass('alert-' + kind).text(text);
-            if (errors && errors.length) {
-                var list = $('<ul class="mt-2 mb-0"></ul>').appendTo(alert);
-                errors.forEach(function (error) {
-                    $('<li></li>').text(error).appendTo(list);
-                });
-            }
-            message.empty().append(alert);
-            message[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            window.TIRMessages.show(text, kind, { errors: errors });
         }
 
         buttons.on('click', function () {
@@ -54,7 +43,6 @@
                 return;
             }
 
-            // بدنه JSON محدودیت تعداد فیلدهای فرم معمولی را ندارد.
             var values = [];
             changed.each(function () {
                 var value = {};
@@ -84,7 +72,7 @@
                         showMessage(answer.message || 'ذخیره مشخصه ها انجام نشد.', 'danger', answer.errors);
                         return;
                     }
-                    // دریافت مجدد فرم، نسخه تازه هر مشخصه و وضعیت فرمول ها را نمایش می دهد.
+
                     window.location.reload();
                 },
                 error: function (response) {

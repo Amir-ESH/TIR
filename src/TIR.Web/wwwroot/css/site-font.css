@@ -1,0 +1,48 @@
+@font-face {
+    font-family: 'TIRSiteFont';
+    src: url('./fonts/woff2/site-font-regular.woff2') format('woff2'),
+         url('./fonts/woff/site-font-regular.woff') format('woff');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TIRSiteFont';
+    src: url('./fonts/woff2/site-font-bold.woff2') format('woff2'),
+         url('./fonts/woff/site-font-bold.woff') format('woff');
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+}
+
+:root {
+    --tir-site-font: 'TIRSiteFont', Tahoma, 'Segoe UI', sans-serif;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea,
+option,
+.btn,
+.form-control,
+.form-select,
+.modal,
+.popover,
+.tooltip,
+.mono,
+.dx-widget,
+.dx-widget input,
+.dx-widget textarea,
+.dx-widget select,
+.dx-overlay-wrapper,
+.dx-theme-generic-typography {
+    font-family: var(--tir-site-font);
+}
+
+.tir-iran-calendar__days .tir-jalali-day {
+    font: inherit;
+}

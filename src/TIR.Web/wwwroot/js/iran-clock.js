@@ -11,7 +11,6 @@
         var lastLocalDay = null;
 
         try {
-            // نمایش تاریخ و ساعت تهران با تقویم مشترک برنامه هماهنگ است.
             if (!window.TirJalaliNavigation)
                 throw new Error('تقویم خورشیدی بارگذاری نشده است.');
 

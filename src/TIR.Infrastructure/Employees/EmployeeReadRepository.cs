@@ -4,7 +4,9 @@ using TIR.Infrastructure.Data;
 
 namespace TIR.Infrastructure.Employees;
 
-/// <summary>خواندن کارمند فقط از Stored Procedure.</summary>
+/// <summary>
+/// خواندن کارمند فقط از اس پی.
+/// </summary>
 internal sealed class EmployeeReadRepository(StoredProcedureExecutor executor)
     : IEmployeeReadRepository
 {
@@ -12,6 +14,9 @@ internal sealed class EmployeeReadRepository(StoredProcedureExecutor executor)
     {
         var row = await executor.SingleOrDefaultAsync<EmployeeDbRow>(
             "dbo.SP_Employee_Get", new { Id = id, IncludeDeleted = includeDeleted }, cancellationToken);
-        return row is null ? null : EmployeeDbMapper.ToDomain(row);
+
+        return row is null
+            ? null
+            : EmployeeDbMapper.ToDomain(row);
     }
 }

@@ -25,7 +25,7 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
         parameters.Add("EmployeeCode", request.EmployeeCode);
         parameters.Add("FirstName", request.FirstName);
         parameters.Add("LastName", request.LastName);
-        // مسیر واحد: TVP خالی به معنی نداشتن مشخصه اولیه است.
+
         var initialValues = request.InitialValues ?? Array.Empty<TypedValueInput>();
         parameters.Add("Values", CreateInitialValuesTable(initialValues).AsTableValuedParameter("dbo.EmployeeNewValueType"));
 
@@ -80,7 +80,6 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
     /// <returns></returns>
     public Task<PageResult<EmployeeListItem>> SearchAdvancedAsync(AdvancedEmployeeSearchRequest request, CancellationToken cancellationToken)
     {
-        // JSON مقدارها را به صورت داده ارسال می کند. SQL نام ستون و عملگر را کنترل می کند.
         var filtersJson = JsonSerializer.Serialize(request.Filters.Select(x => new
         {
             group = x.Group,
@@ -90,7 +89,7 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
             to = x.To
         }));
 
-        return executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_SearchAdvanced", new
+        var parameters = new DynamicParameters(new
         {
             FiltersJson = filtersJson,
             request.EmployeeSearch,
@@ -99,7 +98,12 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
             request.SortDescending,
             request.PageNumber,
             request.PageSize
-        }, cancellationToken);
+        });
+
+        if (request.IncludeDeleted)
+            parameters.Add("IncludeDeleted", true, DbType.Boolean);
+
+        return executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_SearchAdvanced", parameters, cancellationToken);
     }
 
     /// <summary>

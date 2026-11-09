@@ -10,7 +10,6 @@
             var prefix = 'نام فایل: ' + file.name + ' | حجم: ' + (file.size / 1048576).toFixed(2) + ' مگابایت';
             $('#bulkFileInfo').text(prefix + ' | در حال شمارش کارمندان...');
 
-            // فایل به صورت جریانی خوانده می شود تا حتی برای حجم زیاد در حافظه بارگذاری نشود.
             (async function () {
                 if (!file.stream) { $('#bulkFileInfo').text(prefix); return; }
                 var reader = file.stream().getReader(), decoder = new TextDecoder('utf-8');

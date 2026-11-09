@@ -14,6 +14,9 @@
         var searchPage = 1;
         var searchTotal = 0;
         var currentItems = [];
+        var employeeGrid = null;
+        var errorGrid = null;
+        var syncingGridSelection = false;
         var workId = null;
         var errorPage = 1;
         var timer = null;
@@ -30,20 +33,14 @@
         function operation() { return $('input[name="bulkOperation"]:checked').val(); }
 
         function message(value, type) {
-            var box = $('#bulkWizardMessage');
-            if (!value) { box.addClass('d-none').text(''); return; }
-            box.removeClass('d-none alert-danger alert-success alert-info')
-                .addClass('alert-' + (type || 'info')).text(value);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (!value) window.TIRMessages.clear();
+            else window.TIRMessages.show(value, type || 'info');
         }
 
         function modalMessage(value, type) {
-            var box = $('#bulkModalMessage');
-            if (!value) { box.addClass('d-none').text(''); return; }
-            box.removeClass('d-none alert-danger alert-success alert-info')
-                .addClass('alert-' + (type || 'danger')).text(value);
-            var modalBody = $('#bulkEmployeeModal .modal-body');
-            modalBody.scrollTop(0);
+            var options = { container: '#bulkEmployeeModal .modal-content' };
+            if (!value) window.TIRMessages.clear(options);
+            else window.TIRMessages.show(value, type || 'danger', options);
         }
 
         function errorText(xhr) {
@@ -59,6 +56,7 @@
                 $(this).toggleClass('is-current', Number($(this).data('step')) === step);
             });
             message(null);
+            if (step === 3 && errorGrid) errorGrid.updateDimensions();
         }
 
         function applyOperation() {
@@ -78,7 +76,7 @@
         }
 
         function setBusy(button, busy) {
-            $(button).prop('disabled', busy).toggleClass('disabled', busy);
+            $(button).prop('disabled', busy).toggleClass('disabled tir-loading-button', busy);
         }
 
         $('#bulkGoStep2').on('click', function () { applyOperation(); switchStep(2); });
@@ -144,19 +142,19 @@
         }
 
         function renderErrors(items) {
-            var body = $('#bulkErrorTable tbody').empty();
-            if (!items.length) {
-                $('<tr>').append($('<td colspan="4" class="text-muted">').text('خطایی در این صفحه ثبت نشده است.')).appendTo(body);
-                return;
+            if (!errorGrid) {
+                errorGrid = window.TIRDataGrid.create('#bulkErrorGrid', {
+                    dataSource: [],
+                    columns: [
+                        { dataField: 'excelRow', caption: 'ردیف اکسل', cellTemplate: function (node, info) { $(node).text(info.value ?? '—'); } },
+                        { dataField: 'employeeId', caption: 'شناسه کارمند', cellTemplate: function (node, info) { $(node).text(info.value ?? '—'); } },
+                        { dataField: 'inputOrdinal', caption: 'ردیف عملیات' },
+                        { dataField: 'errorMessage', caption: 'شرح خطا', minWidth: 300 }
+                    ],
+                    noDataText: 'خطایی در این صفحه ثبت نشده است.'
+                });
             }
-            items.forEach(function (entry) {
-                var tr = $('<tr>');
-                $('<td>').text(entry.excelRow ?? '—').appendTo(tr);
-                $('<td>').text(entry.employeeId ?? '—').appendTo(tr);
-                $('<td>').text(entry.inputOrdinal).appendTo(tr);
-                $('<td>').text(entry.errorMessage).appendTo(tr);
-                tr.appendTo(body);
-            });
+            errorGrid.option('dataSource', items);
         }
 
         function refreshReport() {
@@ -167,7 +165,7 @@
                     $('#bulkTotal').text(number(h.totalCount));
                     $('#bulkProcessed').text(number(h.processedCount));
                     $('#bulkErrorCount').text(number(h.failedCount));
-                    // درصد فقط از شمارنده کل درخواست محاسبه می شود، نه از اندازه هر بخش 10 هزار تایی.
+
                     var percent = h.totalCount ? Math.floor(h.processedCount * 100 / h.totalCount) : 100;
                     updateBar(percent);
                     renderErrors(report.errors || []);
@@ -183,6 +181,7 @@
                         window.clearInterval(timer);
                         timer = null;
                         $('#bulkProgressBar').removeClass('progress-bar-animated');
+                        $('#bulkExecute').removeClass('tir-loading-button').prop('disabled', true);
                         if (h.failureMessage) message(h.failureMessage, 'danger');
                         else if (h.status === 3) message('عملیات پایان یافت؛ خطاهای هر ردیف را در گزارش بررسی کنید.', 'info');
                     }
@@ -224,19 +223,36 @@
         function renderSearch(result) {
             searchTotal = result.totalCount;
             currentItems = result.items || [];
-            var body = $('#bulkEmployeeSearchResults').empty();
-            currentItems.forEach(function (item) {
-                var tr = $('<tr>');
-                var checkbox = $('<input type="checkbox" class="form-check-input bulk-employee-check">')
-                    .attr('data-id', item.id).prop('checked', selectedIds.has(item.id) || selectionMode === 'filtered');
-                $('<td>').append(checkbox).appendTo(tr);
-                $('<td>').text(item.id).appendTo(tr);
-                $('<td>').text(item.employeeCode).appendTo(tr);
-                $('<td>').text((item.firstName || '') + ' ' + (item.lastName || '')).appendTo(tr);
-                body.append(tr);
-            });
-            if (!currentItems.length)
-                $('<tr>').append($('<td colspan="4" class="text-muted">').text('کارمندی یافت نشد.')).appendTo(body);
+            if (!employeeGrid) {
+                employeeGrid = window.TIRDataGrid.create('#bulkEmployeeSearchResults', {
+                    dataSource: [], keyExpr: 'id',
+                    selection: { mode: 'multiple', showCheckBoxesMode: 'always', allowSelectAll: false },
+                    onSelectionChanged: function (event) {
+                        if (syncingGridSelection) return;
+                        if (selectionMode === 'filtered') {
+                            modalMessage('برای انتخاب دستی، دوباره جستجو کنید و کارمندان مورد نظر را انتخاب کنید.', 'info');
+                            renderSearch({ totalCount: searchTotal, items: currentItems });
+                            return;
+                        }
+                        event.currentSelectedRowKeys.forEach(function (id) { selectedIds.add(id); });
+                        event.currentDeselectedRowKeys.forEach(function (id) { selectedIds.delete(id); });
+                        renderSearch({ totalCount: searchTotal, items: currentItems });
+                    },
+                    columns: [
+                        { dataField: 'id', caption: 'شناسه', width: 100 },
+                        { dataField: 'employeeCode', caption: 'کد کارمند' },
+                        { caption: 'نام و نام خانوادگی', minWidth: 200,
+                            calculateCellValue: function (row) { return (row.firstName || '') + ' ' + (row.lastName || ''); } }
+                    ],
+                    noDataText: 'کارمندی یافت نشد.'
+                });
+            }
+            syncingGridSelection = true;
+            employeeGrid.option('dataSource', currentItems);
+            employeeGrid.option('selectedRowKeys', currentItems.filter(function (item) {
+                return selectionMode === 'filtered' || selectedIds.has(item.id);
+            }).map(function (item) { return item.id; }));
+            syncingGridSelection = false;
             $('#bulkEmployeePagination').text('صفحه ' + number(searchPage) + ' از ' +
                 number(Math.max(1, Math.ceil(searchTotal / 50))) + '، کل ' + number(searchTotal));
             $('#bulkEmployeePrev').prop('disabled', searchPage === 1);
@@ -259,7 +275,7 @@
             searchTotal = 0;
             currentItems = [];
             renderSearch({ totalCount: 0, items: [] });
-            $('#bulkEmployeeSearchResults').html('<tr><td colspan="4" class="text-muted">در حال دریافت نتایج...</td></tr>');
+            employeeGrid.beginCustomLoading('در حال دریافت نتایج...');
             modalMessage(null);
             getSearchPage(1);
         }
@@ -280,7 +296,10 @@
                     renderSearch({ totalCount: 0, items: [] });
                     modalMessage(errorText(xhr), 'danger');
                 })
-                .always(function () { $('#bulkSearchButton').prop('disabled', false); });
+                .always(function () {
+                    $('#bulkSearchButton').prop('disabled', false);
+                    if (employeeGrid) employeeGrid.endCustomLoading();
+                });
         }
 
         $('#bulkAdvancedSearchForm').on('submit', function (event) {
@@ -291,20 +310,12 @@
             modalMessage(null);
             if (!searchTotal) searchEmployees();
         });
+        $('#bulkEmployeeModal').on('shown.bs.modal', function () {
+            if (employeeGrid) employeeGrid.updateDimensions();
+        });
         $('#bulkEmployeePrev').on('click', function () { if (searchPage > 1) getSearchPage(searchPage - 1); });
         $('#bulkEmployeeNext').on('click', function () {
             if (searchPage * 50 < searchTotal) getSearchPage(searchPage + 1);
-        });
-        $('#bulkEmployeeSearchResults').on('change', '.bulk-employee-check', function () {
-            var id = Number($(this).data('id'));
-            if (selectionMode === 'filtered') {
-                // حالت انتخاب همه نتایج فقط با جستجوی تازه یا انتخاب صفحه تغییر می کند.
-                $(this).prop('checked', true);
-                return modalMessage('برای انتخاب دستی، دوباره جستجو کنید و کارمندان مورد نظر را انتخاب کنید.', 'info');
-            }
-            if ($(this).prop('checked')) selectedIds.add(id);
-            else selectedIds.delete(id);
-            renderSearch({ totalCount: searchTotal, items: currentItems });
         });
         $('#bulkSelectPage').on('change', function () {
             if (selectionMode === 'filtered') resetFilterSelection();

@@ -37,16 +37,19 @@ try
             });
         });
     });
+
     builder.Services.AddScoped<EmployeeExcelExportService>();
-    // محدودیت عمومی سایر صفحه ها حفظ می شود؛ صفحه گروهی استثنا دارد.
     builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 256L * 1024 * 1024);
     builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 256L * 1024 * 1024);
 
     if (builder.Configuration.GetValue<bool>("Hangfire:Enabled"))
     {
         var hangfireConnection = builder.Configuration.GetConnectionString("Hangfire");
+
         if (string.IsNullOrWhiteSpace(hangfireConnection))
+        {
             throw new InvalidOperationException("رشته اتصال Hangfire تنظیم نشده است.");
+        }
 
         var createSchema = builder.Configuration.GetValue<bool>("Hangfire:AutoCreateSchema");
         builder.Services.AddHangfire(configuration => configuration
@@ -67,18 +70,21 @@ try
 
     var app = builder.Build();
     app.UseSerilogRequestLogging();
+
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
         app.UseHsts();
     }
+
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
 
-    // داشبورد بدون احراز هویت فقط در محیط توسعه و برای درخواست محلی فعال است.
     if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Hangfire:Enabled"))
+    {
         app.UseHangfireDashboard("/hangfire");
+    }
 
     // در صورت فعال بودن Hangfire، زمان بندی Jobها به صورت پیش فرض فعال است.
     // برای غیرفعال کردن آن مقدار Hangfire:Jobs:Enabled را false قرار دهید.

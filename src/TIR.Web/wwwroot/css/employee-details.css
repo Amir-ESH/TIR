@@ -1,0 +1,49 @@
+/* نمایش تمام صفحه جزئیات کارمند و ویرایش گروهی مشخصه ها */
+.employee-details-embedded .app-sidebar,
+.employee-details-embedded .topbar,
+.employee-details-embedded .app-footer { display: none; }
+.employee-details-embedded .app-shell,
+.employee-details-embedded .app-main { min-height: 100vh; }
+.employee-details-embedded .content-container { max-width: none; width: 100%; padding: 0; }
+.employee-details-embedded .content-container > .toolbar { margin: 18px 20px; }
+.employee-details-embedded .content-container > .card { margin: 0 20px 18px; }
+
+.employee-details-host .modal-body { flex: 1 1 auto; min-height: 0; }
+.employee-details-host iframe { display: block; width: 100%; height: 100%; border: 0; }
+.employee-details-screen { min-height: 100vh; padding-bottom: 18px; background: #f3f5fb; }
+.employee-details-toolbar {
+    position: sticky; top: 0; z-index: 10;
+    background: #fff; border-bottom: 1px solid #e5eaf5;
+    padding: 15px 24px;
+}
+.employee-details-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 18px;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: 100%;
+    padding-bottom: 3px;
+}
+.employee-details-meta strong { color: #34455e; font-weight: 600; }
+.employee-details-layout {
+    display: grid; grid-template-columns: 340px minmax(0, 1fr);
+    gap: 16px; padding: 16px; align-items: start;
+}
+.employee-details-dynamic { min-width: 0; grid-column: 2; grid-row: 1; }
+.employee-details-static { min-width: 0; grid-column: 1; grid-row: 1; position: sticky; top: 84px; }
+.employee-details-dynamic .tir-data-grid { min-height: 120px; }
+.employee-details-dynamic .dx-datagrid-rowsview .dx-data-row > td { vertical-align: middle; padding: 9px 12px; }
+.employee-detail-editor .dynamic-field { border: 0; border-radius: 0; background: transparent; padding: 0; }
+.employee-detail-editor .dynamic-field > .form-label,
+.employee-detail-editor .dynamic-field > .form-text:last-child { display: none; }
+.employee-detail-editor .form-control,
+.employee-detail-editor .form-select { min-width: 160px; }
+.employee-details-dynamic .dx-datagrid .dx-row-alt > td { background: #fafbff; }
+@media (max-width: 991.98px) {
+    .employee-details-layout { grid-template-columns: minmax(0, 1fr); }
+    .employee-details-static { position: static; grid-column: 1; grid-row: 1; }
+    .employee-details-dynamic { grid-column: 1; grid-row: 2; }
+    .employee-details-toolbar { position: static; }
+}

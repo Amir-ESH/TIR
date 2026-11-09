@@ -1,0 +1,222 @@
+﻿
+
+/*.dx-widget {
+    font-family: "secondary-font", "segoe ui", "tahoma" !important;
+    font-size: 12px !important;
+    font-display: swap;
+}*/
+
+  /*  .dx-widget input, .dx-widget textarea {
+        font-family: "secondary-font", "segoe ui", "tahoma" !important;
+        font-size: 12px;
+    }
+
+    .dx-widget input, .dx-widget textarea {
+        font-family: "secondary-font", "segoe ui", "tahoma" !important;
+        font-size: 12px !important;
+    }*/
+
+/*.dx-toolbar .dx-button .dx-icon {
+    width: 20px !important;
+    height: 20px !important;
+    margin: -6px;
+}
+
+.column-hint {
+    border: none;
+}
+
+.column-icon {
+    border: none;
+    pointer-events: none;
+}
+
+.dx-toast-message {
+     font-family: "secondary-font", "segoe ui", "tahoma" !important;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: pre-line !important;
+}
+*/
+/*.dx-toast-content {
+    min-width: 300px !important;
+    max-width: 500px !important;
+}
+
+.dx-checkbox .dx-checkbox-icon {
+    border: 1px solid #459ce3 !important;
+}
+
+.dx-toolbar-after .dx-toolbar-item:first-child {
+    padding-left: 5px !important;
+}
+
+.dx-toolbar-after .dx-toolbar-item:last-child {
+    padding-left: 5px !important;
+}
+
+.textarea {
+    background-color: rgba(70, 130, 180, 0.15);
+    font-size: clamp(0.7rem, 0.3878rem + 0.4878vw, 0.9rem);
+    border: 2px solid #ccc;
+    border-radius: 10px;
+}
+
+.dx-texteditor-input, .input-date, .dx-tag-container {
+    background-color: rgba(70, 130, 180, 0.15);
+    font-size: clamp(0.7rem, 0.3878rem + 0.4878vw, 0.9rem);
+}
+
+    .dx-tag-container .dx-texteditor-input {
+        background-color: transparent;
+    }*/
+
+/* .dx-texteditor.dx-editor-outlined, .datepicker {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+} */
+
+/*.datepicker {
+    display: inline-grid;
+    grid-template-columns: auto 36px;
+    align-items: center;
+    justify-items: center;
+    width: inherit;
+}
+
+.datepicker-input {
+    width: 100%;
+}
+
+.datepicker-icon {
+    width: 20px !important;
+    height: 20px !important;
+    margin: -6px;
+}*/
+
+/*    .datepicker-icon:hover {
+        background-color: gray;
+        border-radius: 5px;
+    }
+
+.dx-popup-title.dx-toolbar .dx-toolbar-label {
+    font-size: 16px !important;
+}
+*/
+
+/*-----------------*/
+
+.modal .modal-content .modal-header {
+    height: 40px;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: -1;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+}
+
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    border: solid;
+    border-radius: .267rem;
+    outline: 0;
+    top: 80px;
+}
+
+.dx-datagrid .dx-row > td {
+    padding: 0px;
+    padding-right: 4px;
+    padding-left: 4px;
+}
+
+.dx-datagrid-rowsview .dx-row > td, .dx-datagrid-rowsview .dx-row > tr > td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dx-datagrid-content .dx-datagrid-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0;
+    max-width: 10px;
+}
+
+.dx-datagrid-nowrap {
+    white-space: nowrap;
+}
+
+
+element.style {
+    text-align: center;
+}
+
+.dx-datagrid-content .dx-datagrid-table .dx-row > td, .dx-datagrid-content .dx-datagrid-table .dx-row > tr > td {
+    vertical-align: middle;
+}
+
+
+.btn-sm-grid {
+    padding: .08rem .2rem;
+    font-size: 13px;
+}
+
+
+
+
+.col, .col-1, .col-10, .col-11, .col-12, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-auto, .col-lg, .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-auto, .col-md, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-auto, .col-sm, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-auto, .col-xl, .col-xl-1, .col-xl-10, .col-xl-11, .col-xl-12, .col-xl-2, .col-xl-3, .col-xl-4, .col-xl-5, .col-xl-6, .col-xl-7, .col-xl-8, .col-xl-9, .col-xl-auto {
+    padding-left: 0px !important;
+
+}
+
+.ui-dialog .ui-dialog-content {
+    position: relative;
+    padding: .3em .5em;
+    background: none;
+    overflow: auto;
+    height: 500px;
+}
+
+.dx-checkbox-icon {
+    width: 15px;
+    height: 15px;
+    border-radius: 0px;
+}
+
+.form-control:disabled {
+    border: 1px solid #dfe3e7 !important;
+}
+
+.dx-checkbox-indeterminate .dx-checkbox-icon::before {
+    width: 11px;
+    top: 50%;
+    margin-top: -6px;
+    left: 56%;
+    margin-left: -6px;
+    height: 11px;
+}
+
+.dx-datagrid-borders > .dx-datagrid-filter-panel, .dx-datagrid-borders > .dx-datagrid-headers, .dx-datagrid-borders > .dx-datagrid-pager {
+    border-top: 3px solid #ddd !important;
+}
+
+.dx-datagrid-borders > .dx-datagrid-headers, .dx-datagrid-borders > .dx-datagrid-rowsview, .dx-datagrid-borders > .dx-datagrid-total-footer {
+    border-left: 5px solid #ddd !important;
+    border-right: 5px solid #ddd !important;
+}
+
+.dx-datagrid-headers {
+    border-bottom: 3px solid #ddd !important;
+    font-size: 13px;
+    font-weight: bolder;
+    color: #333;
+}

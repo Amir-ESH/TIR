@@ -2,10 +2,21 @@ using TIR.Domain.Employees;
 
 namespace TIR.Application.Contracts;
 
-// خواندن گروهی مقادیر برای خروجی اکسل بدون فراخوانی تکی هر کارمند.
+/// <summary>
+/// خواندن گروهی مقادیر برای خروجی اکسل بدون فراخوانی تکی هر کارمند.
+/// </summary>
 public interface IEmployeeExcelValueRepository
 {
     Task<IReadOnlyList<EmployeeFormAttributeDto>> ReadAsync(IReadOnlyList<long> employeeIds,
+        CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// دریافت گروهی مقادیر مشخصه های فعال برای ردیف های صفحه جاری گرید.
+/// </summary>
+public interface IEmployeeGridValueRepository
+{
+    Task<IReadOnlyList<EmployeeGridValueDto>> ReadAsync(IReadOnlyList<long> employeeIds,
         CancellationToken cancellationToken);
 }
 

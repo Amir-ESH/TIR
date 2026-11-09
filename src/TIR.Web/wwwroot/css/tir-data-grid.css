@@ -1,0 +1,34 @@
+/* ظاهر مشترک جدول های داده در صفحات راست به چپ */
+.tir-data-grid { width: 100%; min-height: 380px; }
+.tir-data-grid .dx-datagrid { min-width: 0; }
+.tir-data-grid .dx-datagrid-header-panel { padding: 8px 12px; }
+.tir-data-grid .dx-datagrid-filter-row input { text-align: right; }
+.tir-data-grid .dx-datagrid-rowsview .dx-row > td { line-height: 1.8; }
+.tir-data-grid .dx-toolbar { background: #fff; }
+.tir-data-grid .dx-datagrid { color: #24344f; }
+.tir-data-grid .dx-datagrid-headers { background: #f7f8fc; color: #596982; }
+.tir-data-grid .dx-datagrid-headers .dx-header-row > td { font-weight: 650; }
+.tir-data-grid .dx-datagrid-rowsview .dx-row > td { vertical-align: middle; }
+.tir-data-grid .dx-datagrid .dx-row-alt > td { background: #fafbff; }
+.tir-data-grid .dx-datagrid .dx-data-row:hover > td { background: #f4f7ff; }
+.tir-data-grid .dx-datagrid .dx-scrollable-content { min-width: 100%; }
+.tir-data-grid .dx-datagrid .dx-datagrid-nodata { color: #8792a8; }
+.tir-data-grid .tir-grid-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: .4rem; width: max-content; }
+.tir-data-grid .dx-data-row > td.tir-operations-column { white-space: nowrap; }
+.tir-data-grid .tir-show-deleted-toggle { white-space: nowrap; }
+.tir-data-grid .tir-grid-actions form { margin: 0; }
+.tir-data-grid .tir-grid-actions .tir-icon-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 34px;
+    line-height: 1;
+}
+.tir-data-grid .tir-grid-actions .tir-icon-btn .dx-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+.tir-data-grid .dx-header-row > td, .tir-data-grid .dx-data-row > td { text-align: right; }

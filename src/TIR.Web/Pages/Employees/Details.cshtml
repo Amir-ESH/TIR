@@ -1,86 +1,92 @@
 @page "{id:long}"
+@using System.Text.Json
 @model TIR.Web.Pages.Employees.DetailsModel
 @{
     ViewData["Title"] = "جزئیات کارمند";
+    var inPopup = ViewContext.HttpContext.Request.Query["popup"] == "1";
 }
 @if (Model.Employee is not null)
 {
-    <div class="toolbar">
-        <div>
-            <h2 class="section-title mb-1">@Model.Employee.FirstName @Model.Employee.LastName</h2>
-            <p class="page-lead mb-0">کد کارمند: <span class="mono">@Model.Employee.EmployeeCode</span></p>
+    <section id="employeeDetailsScreen" class="employee-details-screen"
+             data-employee-id="@Model.Employee.Id"
+             data-values-url="@(Url.Page("/Employees/Edit", "AllValues", new { id = Model.Employee.Id }))"
+             data-calculate-url="@(Url.Page("/Employees/Details", "CalculateJson", new { id = Model.Employee.Id }))">
+        <div class="employee-details-toolbar d-flex justify-content-between align-items-center gap-3 flex-wrap">
+            <div>
+                <h2 class="section-title mb-1">@Model.Employee.FirstName @Model.Employee.LastName</h2>
+                <div class="employee-details-meta small text-muted" aria-label="اطلاعات ثبت کارمند">
+                    <span>شناسه: <strong class="mono">@Model.Employee.Id</strong></span>
+                    <span>تاریخ ایجاد: <strong>@Model.PersianDate(Model.Employee.CreatedAtUtc)</strong></span>
+                    <span>آخرین ویرایش: <strong>@(Model.Employee.UpdatedAtUtc.HasValue ? Model.PersianDate(Model.Employee.UpdatedAtUtc.Value) : "ویرایش نشده")</strong></span>
+                    <span>وضعیت: <strong>@(Model.Employee.IsDeleted ? "حذف شده" : "فعال")</strong></span>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                @if (!Model.Employee.IsDeleted)
+                {
+                    <button type="button" class="btn btn-primary js-employee-save">ذخیره</button>
+                    <button type="button" id="employeeDetailsCalculate" class="btn btn-outline-primary">محاسبه فرمول ها</button>
+                }
+                @if (!inPopup)
+                {
+                    <a asp-page="/Employees/Index" class="btn btn-outline-secondary">بازگشت به فهرست</a>
+                }
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <a asp-page="/Employees/Index" class="btn btn-outline-secondary">بازگشت</a>
-            @if (!Model.Employee.IsDeleted) 
-            { 
-                <a asp-page="/Employees/Edit" asp-route-id="@Model.Employee.Id" class="btn btn-primary">ویرایش اطلاعات</a>
+
+
+        @if (Model.Employee.IsDeleted)
+        {
+            <div class="alert alert-warning mx-3 mt-3">این کارمند حذف منطقی شده است و تا زمان بازیابی قابل ویرایش نیست.</div>
+        }
+
+        <div class="employee-details-layout">
+            <div class="employee-details-dynamic card">
+                <div class="card-header d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                    <h3 class="section-title mb-0">مشخصه های داینامیک</h3>
+                    <span class="text-muted small">مقادیر را ویرایش کنید و دکمه ذخیره را بزنید.</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="employeeDetailsGrid" class="tir-data-grid" aria-label="مشخصه های داینامیک کارمند"></div>
+                </div>
+            </div>
+
+            <aside class="employee-details-static card">
+                <div class="card-header"><h3 class="section-title mb-0">اطلاعات ثابت کارمند</h3></div>
+                <form id="employeeDetailsFixedForm" method="post"
+                      asp-page-handler="SaveFixed" asp-route-id="@Model.Employee.Id">
+                    <div class="card-body">
+                        <input asp-for="Input.ExpectedRowVersion" type="hidden" />
+                        <div class="mb-3">
+                            <label asp-for="Input.EmployeeCode" class="form-label">کد پرسنلی</label>
+                            <input asp-for="Input.EmployeeCode" class="form-control" maxlength="50" required readonly="@Model.Employee.IsDeleted" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.FirstName" class="form-label">نام</label>
+                            <input asp-for="Input.FirstName" class="form-control" maxlength="50" required readonly="@Model.Employee.IsDeleted" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.LastName" class="form-label">نام خانوادگی</label>
+                            <input asp-for="Input.LastName" class="form-control" maxlength="50" required readonly="@Model.Employee.IsDeleted" />
+                        </div>
+                    </div>
+                </form>
+            </aside>
+        </div>
+
+        <script id="employeeDetailsGridData" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Fields.Select(field => new { field.AttributeId, field.Code, field.Name, TypeTitle = Model.DataKindTitle(field.DataKind), field.SourceKind })))</script>
+        <div id="employeeDetailsFieldTemplates" hidden>
+            @foreach (var field in Model.Fields)
+            {
+                field.Prefix = "Field";
+                <div class="employee-detail-template" data-attribute-id="@field.AttributeId">
+                    <partial name="_Field" model="field" />
+                </div>
             }
         </div>
-    </div>
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <div class="info-tile">
-                        <dt>شناسه</dt>
-                        <dd>@Model.Employee.Id</dd>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="info-tile">
-                        <dt>کد کارمند</dt>
-                        <dd>@Model.Employee.EmployeeCode</dd>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="info-tile">
-                        <dt>تاریخ ایجاد</dt>
-                        <dd>@Model.PersianDate(Model.Employee.CreatedAtUtc)</dd>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="info-tile">
-                        <dt>وضعیت</dt>
-                        <dd>@(Model.Employee.IsDeleted ? "حذف شده" : "فعال")</dd>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    @if (Model.Employee.IsDeleted)
-    {
-        <div class="alert alert-warning">این کارمند حذف منطقی شده است. برای مشاهده و ویرایش مقدارها ابتدا او را بازیابی کنید.</div>
-    }
-    else
-    {
-        <div class="card">
-            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <h3 class="section-title mb-0">مشخصه های داینامیک</h3>
-                <form method="post" asp-page-handler="Calculate" asp-route-id="@Model.Employee.Id" data-confirm="فرمول های این کارمند دوباره محاسبه شوند؟">
-                    <button class="btn btn-outline-primary">⟳ محاسبه فرمول ها</button>
-                </form>
-            </div>
-            <div class="card-body">
-                <div class="field-grid">
-                    @foreach (var field in Model.Fields)
-                    {
-                        <div class="info-tile">
-                            <dt>
-                                @field.Name @if (field.SourceKind == 2) 
-                                { 
-                                    <span class="badge text-bg-@field.StatusColor">@field.StatusText</span>
-                                }
-                            </dt>
-                            <dd>@Model.DisplayValue(field)</dd>
-                            @if (field.SourceKind == 2 && !string.IsNullOrWhiteSpace(field.CalculationErrorMessage)) 
-                            {
-                                <small class="text-danger">@field.CalculationErrorMessage</small>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    }
+    </section>
+}
+
+@section Scripts {
+    <script src="~/js/employee-details.js" asp-append-version="true"></script>
 }

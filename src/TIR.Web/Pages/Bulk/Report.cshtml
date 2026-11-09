@@ -1,4 +1,5 @@
 @page "{id:guid}"
+@using System.Text.Json
 @model TIR.Web.Pages.Bulk.ReportModel
 @{
     ViewData["Title"] = "گزارش پردازش گروهی";
@@ -40,33 +41,9 @@
             <span class="badge text-bg-light border">@Model.Report.Errors.Count خطا</span>
         </div>
         <div class="table-wrap">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ردیف کارمند</th>
-                        <th>شناسه</th>
-                        <th>مشخصه</th>
-                        <th>کد خطا</th>
-                        <th>دلیل</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var error in Model.Report.Errors.Take(200))
-                {
-                    <tr>
-                        <td>@error.InputOrdinal</td>
-                        <td>@error.EmployeeId</td>
-                        <td>@error.AttributeId</td>
-                        <td class="mono">@error.ErrorCode</td>
-                        <td>@error.ErrorMessage</td></tr>
-                }
-                </tbody>
-            </table>
+            <div id="bulkReportGrid" class="tir-data-grid" data-grid-kind="report" data-data-id="bulkReportGridData" data-empty-message="خطایی ثبت نشده است."></div>
         </div>
-        @if (Model.Report.Errors.Count == 0) 
-        {
-            <div class="table-empty">خطایی ثبت نشده است.</div> 
-        }
+        <script id="bulkReportGridData" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Report.Errors.Take(200).Select(error => new { error.InputOrdinal, error.EmployeeId, error.AttributeId, error.ErrorCode, error.ErrorMessage })))</script>
         @if (Model.Report.Errors.Count > 200) 
         { 
             <div class="alert alert-warning mx-3 mt-3">فقط 200 خطای اول نمایش داده شده است. تعداد کل: @Model.Report.Errors.Count</div> 
@@ -78,7 +55,7 @@
                 <h3 class="section-title mb-1">پایان بررسی گزارش</h3>
                 <p class="text-muted mb-0 small">پس از حذف فیزیکی درخواست، این گزارش دیگر در سیستم قابل بازیابی نیست.</p>
             </div>
-            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Report.Header.BatchId" data-confirm="گزارش و اطلاعات موقت این درخواست به صورت فیزیکی پاک شوند؟">
+            <form method="post" data-tir-ajax-report-delete="true" asp-page-handler="Delete" asp-route-id="@Model.Report.Header.BatchId" data-confirm="گزارش و اطلاعات موقت این درخواست به صورت فیزیکی پاک شوند؟">
                 <button class="btn btn-outline-danger">حذف اطلاعات موقت</button>
             </form>
         </div>

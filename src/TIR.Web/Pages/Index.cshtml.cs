@@ -8,8 +8,11 @@ public sealed class IndexModel(IEmployeeService employees, IAttributeService att
     IFormulaService formulas, ILogger<IndexModel> logger) : PageModel
 {
     public long EmployeeCount { get; private set; }
+    
     public long AttributeCount { get; private set; }
+    
     public int ActiveFormulaCount { get; private set; }
+    
     public string? ErrorMessage { get; private set; }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)

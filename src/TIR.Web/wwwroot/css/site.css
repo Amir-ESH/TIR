@@ -1,6 +1,6 @@
 :root { --ink:#162441; --muted:#7886a1; --line:#e5eaf5; --primary:#5146db; --bg:#f3f5fb; --sidebar:#101935; }
 * { box-sizing:border-box; }
-body { font-family:Tahoma,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); font-size:.93rem; }
+body { color:var(--ink); background:var(--bg); font-size:.93rem; }
 a { text-decoration:none; }
 .app-shell { display:flex; min-height:100vh; }
 .app-sidebar { width:263px; flex:0 0 263px; background:linear-gradient(170deg,#101935,#1b2550 70%,#17244b); color:#c7cde1; min-height:100vh; padding:27px 18px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; z-index:50; }
@@ -75,10 +75,12 @@ a { text-decoration:none; }
 .page-item.active .page-link { background:#5146db; border-color:#5146db; }
 .text-muted { color:#7a8aa2 !important; }
 .ltr-input { direction:ltr; text-align:right; }
-.mono { font-family:Consolas,monospace; font-size:.88em; }
+.mono { font-size:.88em; }
 .busy-overlay { position:fixed; inset:0; background:#10193577; z-index:1055; display:none; align-items:center; justify-content:center; }
 .busy-overlay.show { display:flex; }
 .busy-overlay .busy-content { background:#fff; padding:24px 32px; border-radius:16px; box-shadow:0 15px 55px #10193533; min-width:210px; text-align:center; }
+.tir-loading-button::after { content:""; display:inline-block; width:1rem; height:1rem; margin-inline-start:.5rem; border:.15rem solid currentColor; border-inline-end-color:transparent; border-radius:50%; vertical-align:-.2rem; animation:tir-loading-rotate .7s linear infinite; }
+@keyframes tir-loading-rotate { to { transform:rotate(360deg); } }
 @media(max-width:1090px) { .app-sidebar { width:220px; flex-basis:220px; } .content-container { padding:24px; } .topbar { padding:18px 24px; } .query-row { grid-template-columns:1fr 1fr 1fr; } }
 @media(max-width:991px) { .app-sidebar { position:fixed; right:-270px; top:0; width:263px; transition:right .2s ease; box-shadow:none; } .app-sidebar.open { right:0; box-shadow:-20px 0 70px #10193555; } .app-main { width:100%; } }
 @media(max-width:650px) { .content-container { padding:16px; } .topbar { padding:16px; } .topbar-actions .badge { display:none; } .topbar h1 { font-size:1.02rem; } .field-grid { grid-template-columns:1fr; } .card-body { padding:17px; } .metric-card { min-height:120px; padding:18px; } .query-row { grid-template-columns:1fr 1fr; } .toolbar { align-items:stretch; } .filter-bar { width:100%; } }
