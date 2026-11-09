@@ -12,12 +12,15 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
     public NewOptionInput Input { get; set; } = new();
 
     public AttributeDefinitionDto Attribute { get; private set; } = new();
+    
     public IReadOnlyList<AttributeOptionDto> Options { get; private set; } = [];
+    
     private bool IsPopup => Request.Query["popup"] == "1";
 
     public async Task<IActionResult> OnGetAsync(long id, CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken)) return NotFound();
+        if (!await LoadAsync(id, cancellationToken))
+            return NotFound();
 
         Input.DisplayOrder = Options.Count + 1;
 
@@ -26,8 +29,11 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
     public async Task<IActionResult> OnPostCreateAsync(long id, CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken)) return NotFound();
-        if (!ModelState.IsValid) return Page();
+        if (!await LoadAsync(id, cancellationToken))
+            return NotFound();
+
+        if (!ModelState.IsValid)
+            return Page();
 
         try
         {
@@ -43,6 +49,7 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
         {
             logger.LogError(error, "خطا در ثبت گزینه مشخصه {AttributeId}", id);
             ModelState.AddModelError(string.Empty, UiErrors.Message(error));
+
             return Page();
         }
     }
@@ -51,9 +58,11 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
         long id, long optionId, string rowVersion, string title, int displayOrder,
         CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken)) return NotFound();
+        if (!await LoadAsync(id, cancellationToken))
+            return NotFound();
 
         var succeeded = false;
+
         try
         {
             var version = UiFieldFactory.DecodeRowVersion(rowVersion)
@@ -79,9 +88,11 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
         long id, long optionId, string rowVersion, bool isEnabled,
         CancellationToken cancellationToken)
     {
-        if (!await LoadAsync(id, cancellationToken)) return NotFound();
+        if (!await LoadAsync(id, cancellationToken))
+            return NotFound();
 
         var succeeded = false;
+
         try
         {
             var version = UiFieldFactory.DecodeRowVersion(rowVersion)
@@ -118,17 +129,18 @@ public sealed class OptionsModel(IAttributeService attributes, ILogger<OptionsMo
 
         Attribute = definition;
         Options = await attributes.ListOptionsAsync(id, includeDisabled: true, cancellationToken);
+
         return true;
     }
 
     public sealed class NewOptionInput
     {
         [Required(ErrorMessage = "کد گزینه الزامی است.")]
-        [StringLength(100, ErrorMessage = "کد گزینه حداکثر ۱۰۰ کاراکتر است.")]
+        [StringLength(100, ErrorMessage = "کد گزینه حداکثر 100 کاراکتر است.")]
         public string OptionCode { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "عنوان گزینه الزامی است.")]
-        [StringLength(200, ErrorMessage = "عنوان گزینه حداکثر ۲۰۰ کاراکتر است.")]
+        [StringLength(200, ErrorMessage = "عنوان گزینه حداکثر 200 کاراکتر است.")]
         public string Title { get; set; } = string.Empty;
 
         public int DisplayOrder { get; set; }

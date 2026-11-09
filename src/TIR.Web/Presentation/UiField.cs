@@ -11,21 +11,40 @@ namespace TIR.Web.Presentation;
 public sealed class UiField
 {
     public long AttributeId { get; set; }
-    [ValidateNever] public string Name { get; set; } = string.Empty;
-    [ValidateNever] public string Code { get; set; } = string.Empty;
+    
+    [ValidateNever]
+    public string Name { get; set; } = string.Empty;
+    
+    [ValidateNever]
+    public string Code { get; set; } = string.Empty;
+    
     public byte DataKind { get; set; }
+    
     public byte SourceKind { get; set; }
+    
     public bool IsRequired { get; set; }
-    [ValidateNever] public string Prefix { get; set; } = "Field";
+    
+    [ValidateNever]
+    public string Prefix { get; set; } = "Field";
+    
     public string? RawValue { get; set; }
+    
     public bool BooleanChecked { get; set; }
+    
     public bool BooleanIsSet { get; set; }
+    
     public bool ClearValue { get; set; }
+    
     public string? ExpectedRowVersion { get; set; }
+    
     public byte? CalculationStatus { get; set; }
+    
     public string? CalculationErrorMessage { get; set; }
+    
     public DateTime? ValidUntilUtc { get; set; }
-    [ValidateNever] public List<AttributeOptionDto> Options { get; set; } = [];
+    
+    [ValidateNever]
+    public List<AttributeOptionDto> Options { get; set; } = [];
 
     /// <summary>
     /// حتی اگر اجرای جاب شبانه با تاخیر انجام شود پایان اعتبار در نمایش رعایت می شود.
@@ -130,7 +149,8 @@ public static class UiFieldFactory
 
             all.AddRange(batch.Items);
 
-            if (all.Count >= batch.TotalCount || batch.Items.Count == 0) break;
+            if (all.Count >= batch.TotalCount || batch.Items.Count == 0)
+                break;
         }
 
         return all;
@@ -147,7 +167,9 @@ public static class UiFieldFactory
         CancellationToken cancellationToken)
     {
         foreach (var field in fields.Where(x => x.DataKind == 8 && x.SourceKind == 1))
+        {
             field.Options = (await service.ListOptionsAsync(field.AttributeId, false, cancellationToken)).ToList();
+        }
     }
 
     /// <summary>
@@ -158,7 +180,8 @@ public static class UiFieldFactory
     /// <exception cref="FormatException"></exception>
     public static byte[]? DecodeRowVersion(string? version)
     {
-        if (string.IsNullOrWhiteSpace(version)) return null;
+        if (string.IsNullOrWhiteSpace(version))
+            return null;
 
         var bytes = Convert.FromBase64String(version);
 
@@ -208,6 +231,7 @@ public static class UiFieldFactory
                     OptionId: long.Parse(input, CultureInfo.InvariantCulture)),
                 _ => throw new FormatException("نوع مشخصه ناشناخته است.")
             };
+
             return (true, typed);
         }
         catch (Exception exception) when (exception is FormatException or OverflowException or ArgumentOutOfRangeException)
@@ -263,6 +287,7 @@ public static class UiFieldFactory
             throw new FormatException("قالب تاریخ و زمان معتبر نیست.");
 
         var day = IranDateConverter.ParsePersianDate(pieces[0]);
+
         return IranDateConverter.TehranLocalToUtc(day.Add(clock));
     }
 }

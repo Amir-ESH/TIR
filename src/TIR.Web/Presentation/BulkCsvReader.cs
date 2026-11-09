@@ -17,6 +17,7 @@ public static class BulkCsvReader
     {
         using var reader = new StreamReader(stream, new UTF8Encoding(false),
             detectEncodingFromByteOrderMarks: true, bufferSize: 64 * 1024, leaveOpen: true);
+
         long? currentEmployee = null;
         List<BulkValueInput> currentValues = [];
         var hasCurrent = false;
@@ -25,17 +26,24 @@ public static class BulkCsvReader
         while (await reader.ReadLineAsync(cancellationToken) is { } line)
         {
             lineNumber++;
-            if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#')) continue;
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#'))
+                continue;
+
             var columns = SplitCsvLine(line);
+
             if (lineNumber == 1 && columns.Count > 0 &&
-                columns[0].Trim().Equals("EmployeeId", StringComparison.OrdinalIgnoreCase)) continue;
+                columns[0].Trim().Equals("EmployeeId", StringComparison.OrdinalIgnoreCase))
+                continue;
+
             if (columns.Count != 5)
                 throw new FormatException($"خط {lineNumber}: هر ردیف باید دقیقا 5 ستون داشته باشد.");
 
             var employeeId = long.TryParse(columns[0], NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var parsedEmployee) ? parsedEmployee : (long?)null;
+
             var attributeId = long.TryParse(columns[1], NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var parsedAttribute) ? parsedAttribute : (long?)null;
+
             var operation = byte.TryParse(columns[2], NumberStyles.Integer,
                 CultureInfo.InvariantCulture, out var parsedOperation) ? parsedOperation : (byte?)null;
 
@@ -44,36 +52,41 @@ public static class BulkCsvReader
                 yield return new BulkEmployeeInput(currentEmployee, currentValues);
                 currentValues = [];
             }
+
             currentEmployee = employeeId;
             hasCurrent = true;
 
             byte[]? version = null;
+
             if (!string.IsNullOrWhiteSpace(columns[4]))
             {
                 try
                 {
                     var decoded = Convert.FromBase64String(columns[4]);
-                    if (decoded.Length == 8) version = decoded;
+
+                    if (decoded.Length == 8)
+                        version = decoded;
                 }
-                catch (FormatException) 
-                { 
-                    /* SQL عدم ارسال نسخه را به عنوان تعارض بررسی می کند. */ 
-                }
+                catch (FormatException) { }
             }
 
             var raw = columns[3].Trim();
             currentValues.Add(ParseValue(attributeId, operation, version, raw, attributeKinds));
         }
 
-        if (hasCurrent) yield return new BulkEmployeeInput(currentEmployee, currentValues);
+        if (hasCurrent)
+            yield return new BulkEmployeeInput(currentEmployee, currentValues);
     }
 
     private static BulkValueInput ParseValue(long? attributeId, byte? operation, byte[]? version,
         string raw, IReadOnlyDictionary<long, byte> kinds)
     {
-        if (operation == 2) return new BulkValueInput(attributeId, operation, version);
+        if (operation == 2)
+            return new BulkValueInput(attributeId, operation, version);
+
         if (attributeId is null || !kinds.TryGetValue(attributeId.Value, out var kind))
             return new BulkValueInput(attributeId, operation, version, StringValue: raw);
+
         try
         {
             return kind switch
@@ -100,7 +113,6 @@ public static class BulkCsvReader
         }
         catch (Exception error) when (error is FormatException or OverflowException or ArgumentOutOfRangeException)
         {
-            // مقدار ناسازگار به SQL فرستاده می شود تا خطای همان کارمند ثبت شود.
             return new BulkValueInput(attributeId, operation, version, StringValue: raw);
         }
     }
@@ -110,7 +122,10 @@ public static class BulkCsvReader
         if (raw.Contains('/'))
         {
             var parts = raw.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length != 2) throw new FormatException();
+
+            if (parts.Length != 2)
+                throw new FormatException();
+
             return IranDateConverter.TehranLocalToUtc(
                 IranDateConverter.ParsePersianDate(parts[0]).Add(TimeSpan.Parse(parts[1], CultureInfo.InvariantCulture)));
         }
@@ -123,21 +138,39 @@ public static class BulkCsvReader
         var fields = new List<string>();
         var buffer = new StringBuilder();
         var quoted = false;
+
         for (var i = 0; i < line.Length; i++)
         {
             var current = line[i];
+
             if (current == '"')
             {
                 if (quoted && i + 1 < line.Length && line[i + 1] == '"')
-                { buffer.Append('"'); i++; }
-                else quoted = !quoted;
+                { 
+                    buffer.Append('"');
+                    i++;
+                }
+                else
+                {
+                    quoted = !quoted;
+                }
             }
             else if (current == ',' && !quoted)
-            { fields.Add(buffer.ToString()); buffer.Clear(); }
-            else buffer.Append(current);
+            {
+                fields.Add(buffer.ToString());
+                buffer.Clear();
+            }
+            else
+            {
+                buffer.Append(current);
+            }
         }
-        if (quoted) throw new FormatException("علامت نقل قول CSV کامل نشده است.");
+
+        if (quoted)
+            throw new FormatException("علامت نقل قول CSV کامل نشده است.");
+
         fields.Add(buffer.ToString());
+
         return fields;
     }
 }

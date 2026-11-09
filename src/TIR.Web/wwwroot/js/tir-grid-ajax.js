@@ -38,8 +38,13 @@
             currentHeader.html(updatedHeader.html());
 
         node.attr('data-include-deleted', $(updated).attr('data-include-deleted') || 'false');
+        var columnsId = node.attr('data-columns-id');
+        var columnsJson = columnsId && doc.getElementById(columnsId);
+        if (columnsJson) $('#' + columnsId).text(columnsJson.textContent);
         grid.option('dataSource', JSON.parse(json.textContent || '[]'));
 
+        if (window.TIRDataGrid && typeof window.TIRDataGrid.syncEmployeeColumns === 'function')
+            window.TIRDataGrid.syncEmployeeColumns(node);
         if (window.TIRDataGrid && typeof window.TIRDataGrid.refreshActionsWidth === 'function')
             window.TIRDataGrid.refreshActionsWidth(node);
         return true;

@@ -21,9 +21,10 @@
         </form>
     </div>
     <div class="table-wrap">
-        <div id="employeesGrid" class="tir-data-grid" data-grid-kind="employees" data-include-deleted="@(Model.IncludeDeleted ? "true" : "false")" data-data-id="employeesGridData" data-empty-message="کارمندی مطابق فیلتر انتخاب شده پیدا نشد."></div>
+        <div id="employeesGrid" class="tir-data-grid" data-grid-kind="employees" data-include-deleted="@(Model.IncludeDeleted ? "true" : "false")" data-data-id="employeesGridData" data-columns-id="employeesGridColumns" data-empty-message="کارمندی مطابق فیلتر انتخاب شده پیدا نشد."></div>
     </div>
-    <script id="employeesGridData" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Result.Items.Select(item => new { item.Id, item.EmployeeCode, item.FirstName, item.LastName, item.IsDeleted })))</script>
+    <script id="employeesGridData" type="application/json">@Html.Raw(Model.Grid.RowsJson)</script>
+    <script id="employeesGridColumns" type="application/json">@Html.Raw(Model.Grid.ColumnsJson)</script>
     <div hidden>
         @foreach (var item in Model.Result.Items)
         {

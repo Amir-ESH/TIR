@@ -25,7 +25,7 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
         parameters.Add("EmployeeCode", request.EmployeeCode);
         parameters.Add("FirstName", request.FirstName);
         parameters.Add("LastName", request.LastName);
-        // مسیر واحد: TVP خالی به معنی نداشتن مشخصه اولیه است.
+
         var initialValues = request.InitialValues ?? Array.Empty<TypedValueInput>();
         parameters.Add("Values", CreateInitialValuesTable(initialValues).AsTableValuedParameter("dbo.EmployeeNewValueType"));
 

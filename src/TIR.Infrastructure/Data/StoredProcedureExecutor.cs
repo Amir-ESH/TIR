@@ -142,7 +142,9 @@ internal sealed class StoredProcedureExecutor(SqlConnectionFactory connectionFac
 /// </summary>
 internal static class DatabaseErrorMapper
 {
-    // شماره خطاهایی که در زمان همزمانی برگشت داده می شود.
+    /// <summary>
+    /// شماره خطاهایی که در زمان همزمانی برگشت داده می شود.
+    /// </summary>
     private static readonly HashSet<int> ConcurrencyNumbers =
     [
         52005, 52006, 52008, 52010, 52105, 52106, 52108, 52110,

@@ -48,6 +48,11 @@
             var pageFrame = $('#tirPageFrame');
 
             function synchronizeParentData() {
+                // پس از ویرایش در پاپ آپ، مقادیر ستون های داینامیک جستجوی پیشرفته نیز تازه شوند.
+                if ($('#employeeSearchGrid').length && $('#advancedSearchForm').length) {
+                    $('#advancedSearchForm').trigger('submit');
+                    return;
+                }
                 var gridNode = $('#employeesGrid,#attributesGrid').first();
                 if (!gridNode.length && path !== '/') return;
                 if (window.TIRLoading) window.TIRLoading.show('در حال به روزرسانی فهرست...');
@@ -74,7 +79,12 @@
                     var nextFooter = $(snapshot.getElementById(gridNode.attr('id')))
                         .closest('.card').children('.card-body').last();
                     if (oldFooter.length && nextFooter.length) oldFooter.html(nextFooter.html());
+                    var columnsId = gridNode.attr('data-columns-id');
+                    var nextColumns = columnsId && snapshot.getElementById(columnsId);
+                    if (nextColumns) $('#' + columnsId).text(nextColumns.textContent);
                     gridNode.dxDataGrid('instance').option('dataSource', JSON.parse(nextData.textContent || '[]'));
+                    if (window.TIRDataGrid && typeof window.TIRDataGrid.syncEmployeeColumns === 'function')
+                        window.TIRDataGrid.syncEmployeeColumns(gridNode);
                     if (window.TIRDataGrid && typeof window.TIRDataGrid.refreshActionsWidth === 'function')
                         window.TIRDataGrid.refreshActionsWidth(gridNode);
                 }).always(function () {

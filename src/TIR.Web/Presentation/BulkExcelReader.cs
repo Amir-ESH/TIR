@@ -19,91 +19,144 @@ public static class BulkExcelReader
         IReadOnlyList<AttributeDefinitionDto> attributes)
     {
         using var workbook = new XLWorkbook(stream);
+
         if (!workbook.Worksheets.TryGetWorksheet("Employees", out var sheet) || sheet is null)
+        {
             throw new FormatException("برگه Employees در اکسل وجود ندارد.");
+        }
 
         var columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var cell in sheet.Row(1).CellsUsed())
         {
             var name = cell.GetString().Trim();
+
             if (name.Length == 0 || !columns.TryAdd(name, cell.Address.ColumnNumber))
+            {
                 throw new FormatException("عنوان ستون ها تکراری یا خالی است.");
+            }
         }
+
         var requiredColumns = update
             ? new[] { "EmployeeId", "EmployeeRowVersion", "EmployeeCode", "FirstName", "LastName" }
             : new[] { "EmployeeCode", "FirstName", "LastName" };
+
         foreach (var name in requiredColumns)
+        {
             if (!columns.ContainsKey(name))
+            {
                 throw new FormatException($"ستون {name} در فایل وجود ندارد.");
+            }
+        }
 
         var inputAttributes = attributes.Where(x => !x.IsDeleted && x.SourceKind == 1).ToArray();
         var validCodes = new HashSet<string>(requiredColumns, StringComparer.OrdinalIgnoreCase);
+
         foreach (var attribute in inputAttributes)
         {
             validCodes.Add(attribute.AttributeCode);
+
             if (update)
+            {
                 validCodes.Add(attribute.AttributeCode + "__RowVersion");
+            }
         }
-        // ستون فرمولی ممکن است در نمونه های قدیمی وجود داشته باشد؛ محتوای آن نباید پردازش شود.
+
         var ignoredFormulaColumns = new HashSet<string>(
             attributes.Where(x => !x.IsDeleted && x.SourceKind == 2).Select(x => x.AttributeCode),
             StringComparer.OrdinalIgnoreCase);
+
         validCodes.UnionWith(ignoredFormulaColumns);
+
         if (columns.Keys.Any(x => !validCodes.Contains(x)))
+        {
             throw new FormatException("فایل دارای ستون ناشناخته است. نمونه جدید دریافت کنید.");
+        }
 
         var effectiveColumnPositions = columns.Where(x => !ignoredFormulaColumns.Contains(x.Key))
             .Select(x => x.Value).ToArray();
 
-        // اگر فایل از خروجی کارکنان تولید شده باشد، فقط مشخصه های تغییر کرده ارسال می شوند.
-        // فایل نمونه بدون برگه مرجع، همه خانه ها را به عنوان مقدار جدید یا دستور پاک کردن می پذیرد.
         var originals = new Dictionary<long, Dictionary<string, string>>();
+
         if (update && workbook.Worksheets.TryGetWorksheet("OriginalValues", out var baseline) && baseline is not null)
         {
             var headers = baseline.Row(1).CellsUsed().ToDictionary(
                 x => x.GetString().Trim(), x => x.Address.ColumnNumber, StringComparer.OrdinalIgnoreCase);
+
             if (!headers.TryGetValue("EmployeeId", out var keyColumn))
+            {
                 throw new FormatException("برگه OriginalValues فاقد شناسه کارمند است.");
+            }
+
             foreach (var baseRow in baseline.RowsUsed().Skip(1))
             {
                 var id = ParseId(baseRow.Cell(keyColumn).GetString().Trim(), baseRow.RowNumber());
+
                 if (!id.HasValue) continue;
+
                 var snapshot = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
                 foreach (var attribute in inputAttributes)
+                {
                     if (headers.TryGetValue(attribute.AttributeCode, out var position))
+                    {
                         snapshot[attribute.AttributeCode] = baseRow.Cell(position).GetString().Trim();
+                    }
+                }
+
                 if (!originals.TryAdd(id.Value, snapshot))
+                {
                     throw new FormatException("شناسه کارمند در برگه OriginalValues تکراری است.");
+                }
             }
         }
 
-        // ردیف های اضافه که فقط مقدار ستون فرمولی دارند، ردیف داده محسوب نمی شوند.
         var last = effectiveColumnPositions.Select(column =>
             sheet.Column(column).LastCellUsed()?.Address.RowNumber ?? 1).DefaultIfEmpty(1).Max();
+
         var output = new List<BulkExcelEmployeeRow>(Math.Max(0, last - 1));
+
         for (var number = 2; number <= last; number++)
         {
             var row = sheet.Row(number);
+
             if (effectiveColumnPositions.All(column => row.Cell(column).IsEmpty())) continue;
+
             string? Get(string code) => columns.TryGetValue(code, out var col)
                 ? row.Cell(col).GetFormattedString().Trim() : null;
 
             var id = ParseId(Get("EmployeeId"), number);
             var employeeVersion = Decode(Get("EmployeeRowVersion"), number);
+
             if (update && (id is null || employeeVersion is null))
+            {
                 throw new FormatException($"ردیف {number}: شناسه کارمند و نسخه آن الزامی است.");
+            }
+
             var values = new List<BulkValueInput>();
             var original = id.HasValue && originals.TryGetValue(id.Value, out var stored) ? stored : null;
+
             foreach (var attribute in inputAttributes)
             {
                 if (!columns.ContainsKey(attribute.AttributeCode)) continue;
-                var raw = Get(attribute.AttributeCode) ?? "";
-                if (original is not null && original.TryGetValue(attribute.AttributeCode, out var oldRaw)
+
+                var raw = Get(attribute.AttributeCode) ?? string.Empty;
+                
+                if (original is not null
+                    && original.TryGetValue(attribute.AttributeCode, out var oldRaw)
                     && string.Equals(raw, oldRaw, StringComparison.Ordinal))
+                {
                     continue;
-                var version = update ? Decode(Get(attribute.AttributeCode + "__RowVersion"), number) : null;
+                }
+
+                var version = update
+                    ? Decode(Get(attribute.AttributeCode + "__RowVersion"), number)
+                    : null;
+                
                 if (!update && raw.Length == 0) continue;
+
                 var operation = raw.Length == 0 ? (byte)2 : (byte)1;
+
                 try
                 {
                     values.Add(Parse(attribute, operation, version, raw));
@@ -113,10 +166,16 @@ public static class BulkExcelReader
                     throw new FormatException($"ردیف {number}، مشخصه {attribute.Title}: {error.Message}", error);
                 }
             }
+
             output.Add(new BulkExcelEmployeeRow(number, id, employeeVersion,
                 Get("EmployeeCode"), Get("FirstName"), Get("LastName"), values));
         }
-        if (output.Count == 0) throw new FormatException("فایل اکسل هیچ کارمندی ندارد.");
+
+        if (output.Count == 0)
+        {
+            throw new FormatException("فایل اکسل هیچ کارمندی ندارد.");
+        }
+
         return output;
     }
 
@@ -124,7 +183,12 @@ public static class BulkExcelReader
         byte[]? version, string raw)
     {
         var id = attribute.Id;
-        if (operation == 2) return new BulkValueInput(id, 2, version);
+
+        if (operation == 2)
+        {
+            return new BulkValueInput(id, 2, version);
+        }
+
         return attribute.DataKind switch
         {
             1 => new(id, 1, version, StringValue: raw),
@@ -147,29 +211,51 @@ public static class BulkExcelReader
     private static DateTime ParseDateTime(string raw)
     {
         var parts = raw.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
         if (parts.Length != 2)
-            throw new FormatException("تاریخ و ساعت باید به صورت 1405/08/12 14:30 باشد.");
+        {
+            throw new FormatException("تاریخ و ساعت باید به صورت 1405/08/01 14:30 باشد.");
+        }
+
         return IranDateConverter.TehranLocalToUtc(IranDateConverter.ParsePersianDate(parts[0]) +
             TimeSpan.ParseExact(parts[1], @"hh\:mm", CultureInfo.InvariantCulture));
     }
 
     private static long? ParseId(string? raw, int line)
     {
-        if (string.IsNullOrWhiteSpace(raw)) return null;
-        if (long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0)
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        if (long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id)
+            && id != 0)
+        {
             return id;
+        }
+
         throw new FormatException($"ردیف {line}: شناسه کارمند معتبر نیست.");
     }
 
     private static byte[]? Decode(string? raw, int line)
     {
-        if (string.IsNullOrWhiteSpace(raw)) return null;
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
         try
         {
             var decoded = Convert.FromBase64String(raw);
-            if (decoded.Length == 8) return decoded;
+
+            if (decoded.Length == 8)
+            {
+                return decoded;
+            }
+                
         }
         catch (FormatException) { }
+
         throw new FormatException($"ردیف {line}: نسخه داده باید هشت بایت Base64 باشد.");
     }
 }

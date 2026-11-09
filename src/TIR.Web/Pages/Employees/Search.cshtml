@@ -29,8 +29,9 @@
 {
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center"><h3 class="section-title mb-0">نتیجه جستجو</h3><span class="badge text-bg-light border">@Model.Result.TotalCount کارمند</span></div>
-        <div class="table-wrap"><div id="employeeSearchGrid" class="tir-data-grid" data-grid-kind="employees" data-include-deleted="@(Model.IncludeDeleted ? "true" : "false")" data-data-id="employeeSearchGridData" data-empty-message="نتیجه ای یافت نشد."></div></div>
-        <script id="employeeSearchGridData" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Result.Items.Select(item => new { item.Id, item.EmployeeCode, item.FirstName, item.LastName, item.IsDeleted })))</script>
+        <div class="table-wrap"><div id="employeeSearchGrid" class="tir-data-grid" data-grid-kind="employees" data-include-deleted="@(Model.IncludeDeleted ? "true" : "false")" data-data-id="employeeSearchGridData" data-columns-id="employeeSearchGridColumns" data-empty-message="نتیجه ای یافت نشد."></div></div>
+        <script id="employeeSearchGridData" type="application/json">@Html.Raw(Model.Grid.RowsJson)</script>
+        <script id="employeeSearchGridColumns" type="application/json">@Html.Raw(Model.Grid.ColumnsJson)</script>
         <div hidden>
             @foreach (var item in Model.Result.Items)
             {

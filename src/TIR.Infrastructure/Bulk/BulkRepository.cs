@@ -12,7 +12,6 @@ internal sealed class BulkRepository(StoredProcedureExecutor executor) : IBulkRe
         BulkRequestOptions options, CancellationToken cancellationToken) =>
         executor.WithConnectionAsync(async connection =>
         {
-            // ساخت Batch و بارگذاری تمام ورودی ها اتمیک است. بارگذاری ناقص ثبت نمی شود.
             await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(cancellationToken);
 
             var parameters = new DynamicParameters();
@@ -79,7 +78,6 @@ internal sealed class BulkRepository(StoredProcedureExecutor executor) : IBulkRe
     public Task<BulkReportDto> ProcessAsync(Guid batchId, int employeesPerTransaction, CancellationToken cancellationToken)
         => executor.WithConnectionAsync(async connection =>
         {
-            // پردازش تنها یک بار برای هر Batch اجرا می شود. در خطای مبهم تکرار خودکار نداریم.
             using var results = await connection.QueryMultipleAsync(StoredProcedureExecutor.Command(
                 "dbo.SP_Batch_Process", new { BatchId = batchId, EmployeesPerTransaction = employeesPerTransaction },
                 cancellationToken, timeoutSeconds: 1200));
@@ -156,9 +154,10 @@ internal sealed class BulkRepository(StoredProcedureExecutor executor) : IBulkRe
             BulkCopyTimeout = 600
         };
 
-        // نگاشت نامی از درج داده در ستون Id و RowVersion جلوگیری می کند.
         foreach (DataColumn column in rows.Columns)
+        {
             bulk.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+        }
 
         await bulk.WriteToServerAsync(rows, cancellationToken);
         rows.Clear();

@@ -119,11 +119,15 @@ public sealed record AttributeListRequest(
 public sealed record AttributeOptionCreateRequest(
     long AttributeId, string OptionCode, string Title, int DisplayOrder = 0);
 
-/// <summary>ویرایش عنوان و ترتیب گزینه بدون تغییر کد ثابت آن.</summary>
+/// <summary>
+/// ویرایش عنوان و ترتیب گزینه بدون تغییر کد ثابت آن.
+/// </summary>
 public sealed record AttributeOptionUpdateRequest(
     long AttributeId, long Id, byte[] ExpectedRowVersion, string Title, int DisplayOrder);
 
-/// <summary>تغییر وضعیت فعال بودن گزینه با کنترل نسخه.</summary>
+/// <summary>
+/// تغییر وضعیت فعال بودن گزینه با کنترل نسخه.
+/// </summary>
 public sealed record AttributeOptionStateRequest(
     long AttributeId, long Id, byte[] ExpectedRowVersion, bool IsEnabled);
 

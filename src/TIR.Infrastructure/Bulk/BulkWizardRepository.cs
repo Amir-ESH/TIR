@@ -11,7 +11,6 @@ namespace TIR.Infrastructure.Bulk;
 internal sealed class BulkWizardRepository(
     StoredProcedureExecutor executor, ILogger<BulkWizardRepository> logger) : IBulkWizardRepository
 {
-    // هر بخش ده هزار تایی هنگفایر در تراکنش های کوتاه تر دیتابیس اجرا می شود.
     private const int SqlTransactionRows = 1000;
     private const int FormulaSqlRows = 500;
     private const int DeadlockRetryCount = 5;
@@ -21,7 +20,9 @@ internal sealed class BulkWizardRepository(
         IReadOnlyList<BulkWizardEntry> rows, CancellationToken cancellationToken) =>
         executor.WithConnectionAsync(async connection =>
         {
-            if (rows.Count == 0) throw new ArgumentException("درخواست خالی است.");
+            if (rows.Count == 0)
+                throw new ArgumentException("درخواست خالی است.");
+
             var workId = Guid.NewGuid();
             await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(cancellationToken);
             try
@@ -33,6 +34,7 @@ internal sealed class BulkWizardRepository(
 
                 var employees = CreateItemsTable();
                 var values = CreateValuesTable();
+
                 foreach (var row in rows)
                 {
                     employees.Rows.Add(workId, row.InputOrdinal, Db(row.ExcelRow),
@@ -42,6 +44,7 @@ internal sealed class BulkWizardRepository(
                     if (employees.Rows.Count >= 3000)
                         await CopyAsync(connection, transaction, "dbo.BulkWorkItem", employees, cancellationToken);
                 }
+
                 await CopyAsync(connection, transaction, "dbo.BulkWorkItem", employees, cancellationToken);
 
                 foreach (var row in rows)
@@ -57,8 +60,10 @@ internal sealed class BulkWizardRepository(
                             await CopyAsync(connection, transaction, "dbo.BulkWorkValue", values, cancellationToken);
                     }
                 }
+
                 await CopyAsync(connection, transaction, "dbo.BulkWorkValue", values, cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
+
                 return workId;
             }
             catch
@@ -73,8 +78,10 @@ internal sealed class BulkWizardRepository(
         CancellationToken cancellationToken)
     {
         if (chunkNumber < 0 || chunkSize < 1 || chunkSize % SqlTransactionRows != 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(chunkSize),
                 "اندازه بخش باید مضربی از هزار باشد.");
+        }
 
         var firstSqlChunk = checked(chunkNumber * (chunkSize / SqlTransactionRows));
         for (var offset = 0; offset < chunkSize / SqlTransactionRows; offset++)
@@ -90,13 +97,12 @@ internal sealed class BulkWizardRepository(
                         ChunkNumber = sqlChunk,
                         ChunkSize = SqlTransactionRows
                     }, cancellationToken, timeoutSeconds: 180);
+
                     break;
                 }
                 catch (DatabaseFailureException error)
                     when ((error.ErrorNumber is 1205 or 52816) && attempt < DeadlockRetryCount)
                 {
-                    // فقط تراکنشی تکرار می شود که SQL در بن بست آن را برگردانده است.
-                    // بخش های تکمیل شده به کمک وضعیت هر ردیف دوباره اجرا نمی شوند.
                     var delay = TimeSpan.FromMilliseconds(200 * (1 << attempt) + Random.Shared.Next(50, 250));
                     logger.LogWarning(error,
                         "بن بست موقت در درخواست {WorkId}، بخش دیتابیس {SqlChunk}، تلاش {Attempt}",
@@ -123,7 +129,6 @@ internal sealed class BulkWizardRepository(
             throw new ArgumentOutOfRangeException(nameof(chunkSize),
                 "اندازه بخش فرمول باید مضربی از پانصد باشد.");
 
-        // Job ده هزار نفری حفظ می شود اما هر محاسبه با تراکنش کوتاه تری انجام می شود.
         var firstSqlChunk = checked(chunkNumber * (chunkSize / FormulaSqlRows));
         for (var offset = 0; offset < chunkSize / FormulaSqlRows; offset++)
         {
@@ -144,7 +149,6 @@ internal sealed class BulkWizardRepository(
                 catch (DatabaseFailureException error)
                     when ((error.ErrorNumber is 1205 or -2) && attempt < FormulaTransientRetryCount)
                 {
-                    // تکرار از همان زیرگروه است؛ وضعیت هر کارمند از اجرای دوباره جلوگیری می کند.
                     var delay = TimeSpan.FromMilliseconds(500 * (1 << attempt) + Random.Shared.Next(100, 450));
                     logger.LogWarning(error,
                         "خطای موقت محاسبه فرمول {WorkId}، زیرگروه {SqlChunk}، تلاش {Attempt}",
@@ -215,14 +219,19 @@ internal sealed class BulkWizardRepository(
         string target, DataTable source, CancellationToken cancellationToken)
     {
         if (source.Rows.Count == 0) return;
+
         using var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction)
         {
             DestinationTableName = target,
             BatchSize = source.Rows.Count,
             BulkCopyTimeout = 600
         };
+
         foreach (DataColumn column in source.Columns)
+        {
             copy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+        }
+
         await copy.WriteToServerAsync(source, cancellationToken);
         source.Clear();
     }

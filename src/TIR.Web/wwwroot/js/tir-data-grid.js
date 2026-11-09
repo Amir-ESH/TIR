@@ -164,6 +164,44 @@
         ]
     };
 
+    // مشخصه های داینامیک در هر دو گرید کارمندان از یک تعریف مشترک ساخته می شوند.
+    // پیش فرض همه ستون های داینامیک مخفی است و کاربر از انتخاب ستون آنها را فعال می کند.
+    function employeeColumns(node, visibleColumns) {
+        var metadata = $('#' + node.attr('data-columns-id')).text();
+        var attributes = metadata ? JSON.parse(metadata) : [];
+        var dynamicColumns = attributes.map(function (attribute) {
+            var field = 'Attribute_' + attribute.id;
+            return {
+                name: field,
+                dataField: field,
+                caption: attribute.title || attribute.code,
+                visible: !!(visibleColumns && visibleColumns[field]),
+                showInColumnChooser: true,
+                minWidth: 150,
+                allowGrouping: false,
+                cssClass: 'tir-dynamic-attribute-column'
+            };
+        });
+        return columns.employees.slice(0, -1).concat(dynamicColumns, columns.employees.slice(-1));
+    }
+
+    function syncEmployeeColumns(node) {
+        node = $(node);
+        if (node.attr('data-grid-kind') !== 'employees') return;
+        var grid = node.data('dxDataGrid') && node.dxDataGrid('instance');
+        if (!grid) return;
+        var metadata = $('#' + node.attr('data-columns-id')).text() || '[]';
+        if (node.data('tirEmployeeColumnsMetadata') === metadata) return;
+        var visibleColumns = {};
+        (grid.option('columns') || []).forEach(function (column) {
+            if (column.dataField && /^Attribute_\d+$/.test(column.dataField) && column.visible)
+                visibleColumns[column.dataField] = true;
+        });
+        node.data('tirEmployeeColumnsMetadata', metadata);
+        grid.option('columns', employeeColumns(node, visibleColumns));
+        refreshActionsWidth(node);
+    }
+
     function mountStaticGrids() {
         $('.tir-data-grid[data-grid-kind]').each(function () {
             var node = $(this);
@@ -175,7 +213,7 @@
             create(node, {
                 keyExpr: kind === 'report' ? undefined : 'Id',
                 dataSource: rows,
-                columns: columns[kind],
+                columns: kind === 'employees' ? employeeColumns(node) : columns[kind],
                 paging: { enabled: kind === 'report', pageSize: 20 },
                 pager: { visible: kind === 'report', showPageSizeSelector: true,
                     allowedPageSizes: [10, 20, 50, 100], showNavigationButtons: true, showInfo: true },
@@ -211,10 +249,13 @@
                 },
                 noDataText: node.attr('data-empty-message') || 'رکوردی یافت نشد.'
             });
+            if (kind === 'employees')
+                node.data('tirEmployeeColumnsMetadata', $('#' + node.attr('data-columns-id')).text() || '[]');
         });
     }
 
     window.TIRDataGrid = { create: create, createEmployeeFieldGrid: createEmployeeFieldGrid,
-        mount: mountStaticGrids, refreshActionsWidth: refreshActionsWidth };
+        mount: mountStaticGrids, refreshActionsWidth: refreshActionsWidth,
+        syncEmployeeColumns: syncEmployeeColumns };
     $(mountStaticGrids);
 })(jQuery);

@@ -4,7 +4,11 @@ using TIR.Application.Contracts;
 
 namespace TIR.Web.Jobs;
 
-// هر Job تنها یک بخش ده هزار تایی را پردازش می کند.
+/// <summary>
+/// هر Job تنها یک بخش ده هزار تایی را پردازش می کند.
+/// </summary>
+/// <param name="repository"></param>
+/// <param name="logger"></param>
 [AutomaticRetry(Attempts = 0)]
 public sealed class BulkWizardJob(IBulkWizardRepository repository, ILogger<BulkWizardJob> logger)
 {
@@ -14,10 +18,14 @@ public sealed class BulkWizardJob(IBulkWizardRepository repository, ILogger<Bulk
         try
         {
             if (operationKind == 3)
+            {
                 await repository.ProcessFormulaChunkAsync(workId, chunkNumber, 10000,
                     IranDateConverter.TehranOffsetMinutes(DateTime.UtcNow), cancellationToken);
+            }
             else
+            {
                 await repository.ProcessChunkAsync(workId, chunkNumber, 10000, cancellationToken);
+            }
 
             logger.LogInformation("بخش {Chunk} از عملیات گروهی {WorkId} انجام شد", chunkNumber + 1, workId);
         }
