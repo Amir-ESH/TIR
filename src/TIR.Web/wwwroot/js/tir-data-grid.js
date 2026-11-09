@@ -178,7 +178,7 @@
                 visible: !!(visibleColumns && visibleColumns[field]),
                 showInColumnChooser: true,
                 minWidth: 150,
-                allowGrouping: false,
+                allowGrouping: true,
                 cssClass: 'tir-dynamic-attribute-column'
             };
         });
