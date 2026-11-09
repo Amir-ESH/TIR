@@ -13,13 +13,11 @@
                 .toLowerCase()
                 .replace(/\/+$/, '') || '/';
 
-            // اگر آدرس دقیق پیدا شد همان منو انتخاب شود.
             if (href === path) {
                 activeLink = this;
                 return false;
             }
 
-            // اگر آدرس دقیق نبود نزدیک ترین مسیر والد انتخاب شود.
             if (
                 href !== '/' &&
                 href !== '/hangfire' &&
@@ -31,7 +29,6 @@
             }
         });
 
-        // فقط یک منو فعال باشد.
         if (activeLink) {
             $(activeLink).addClass('active');
         }
@@ -42,12 +39,10 @@
                 $('#appSidebar').removeClass('open');
         });
 
-        // فرم های داخل جدول های داینامیک نیز باید تایید حذف و بازیابی داشته باشند.
         $(document).on('submit', 'form[data-confirm]', function (event) {
             if (!window.confirm($(this).attr('data-confirm'))) event.preventDefault();
         });
 
-        // همه صفحات مدیریتی از یک پاپ آپ تمام صفحه استفاده می کنند؛ آدرس مستقیم هم معتبر است.
         var pageHost = $('#tirPageHostModal');
         if (pageHost.length) {
             var pageFrame = $('#tirPageFrame');
@@ -80,6 +75,8 @@
                         .closest('.card').children('.card-body').last();
                     if (oldFooter.length && nextFooter.length) oldFooter.html(nextFooter.html());
                     gridNode.dxDataGrid('instance').option('dataSource', JSON.parse(nextData.textContent || '[]'));
+                    if (window.TIRDataGrid && typeof window.TIRDataGrid.refreshActionsWidth === 'function')
+                        window.TIRDataGrid.refreshActionsWidth(gridNode);
                 }).always(function () {
                     if (window.TIRLoading) window.TIRLoading.hide();
                 });
@@ -159,7 +156,6 @@
                         form.find('[name="Field.RawValue"]').val('');
                         form.find('.js-bool-set,.js-bool-check').prop('checked', false);
                     }
-                    // پس از ذخیره مستقل، مقدار مبنای تشخیص تغییرات فرم اصلاح می شود.
                     form.trigger('tir:field-saved');
                     window.TIRMessages.success('مقدار ذخیره شد. وضعیت فرمول های وابسته را در صفحه جزئیات بررسی کنید.');
                 },
@@ -178,7 +174,6 @@
         initializePersianPicker();
     });
 
-    // ورودی های تاریخ، تاریخ و ساعت و ساعت از انتخابگرهای مشترک استفاده می کنند.
     function initializePersianPicker() {
         if (!window.TirJalaliNavigation || !window.TirTimePicker) return;
 
@@ -196,7 +191,6 @@
 
                 popup.hide();
                 if (target.hasClass('js-jalali-datetime')) {
-                    // ابتدا تاریخ و سپس ساعت انتخاب می شود؛ لغو ساعت مقدار قبلی را حفظ می کند.
                     var parts = target.val().toString().trim().split(/\s+/);
                     timePicker.open(target, {
                         value: parts.length > 1 ? parts[1] : '',
@@ -233,7 +227,6 @@
             popup.css('left', Math.min(Math.max(10, position.left), maxLeft));
         });
 
-        // کلیک روی هر نقطه فیلد ساعت، انتخابگر را باز می کند.
         $(document).on('focus click', '.js-tir-time', function () {
             var target = $(this);
             if (timePicker.isOpenFor(target)) return;

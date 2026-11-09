@@ -1,7 +1,6 @@
 (function ($) {
     'use strict';
 
-    // ورودی ساعت و تاریخ و ساعت همیشه از یک انتخابگر استفاده می کنند.
     function createPicker() {
         var backdrop = $('<div class="tir-clock-backdrop" role="presentation"></div>').hide().appendTo('body');
         var dialog = $('<div class="tir-clock-dialog" role="dialog" aria-modal="true" aria-label="انتخاب ساعت"></div>').appendTo(backdrop);
@@ -104,7 +103,6 @@
                 })(slot);
             }
 
-            // دقیقه های بین نشانگرهای پنج دقیقه ای نیز از روی صفحه ساعت قابل انتخاب هستند.
             if (stage === 'minute' && minute % 5 !== 0) {
                 var radians = minute * Math.PI / 30;
                 $('<span class="tir-clock-dial__precise is-selected"></span>')

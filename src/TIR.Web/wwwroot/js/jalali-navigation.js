@@ -1,7 +1,6 @@
 (function ($) {
     'use strict';
 
-    // تمام تقویم های هدر و ورودی ها از همین ماژول استفاده می کنند.
     var DAY = 86400000;
     var months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
         'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
@@ -15,11 +14,11 @@
         timeZone: 'Asia/Tehran', year: 'numeric', month: 'numeric', day: 'numeric'
     });
 
-    // در نمایش راست به چپ، ماه قبل فلش راست و ماه بعد فلش چپ دارد.
     var previousIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" ' +
         'width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" ' +
         'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
         '<path d="m9 18 6-6-6-6"/></svg>';
+
     var nextIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" ' +
         'width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" ' +
         'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
@@ -56,7 +55,6 @@
     }
 
     function epochForMonth(year, month) {
-        // بازه ماه با تقویم خورشیدی مرورگر محاسبه می شود.
         var start = startOfMonth(Date.UTC(year + 621, 2, 21) + (month - 1) * 30 * DAY);
         for (var i = 0; i < 5; i++) {
             var current = persianDay(start);

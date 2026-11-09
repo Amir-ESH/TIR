@@ -143,7 +143,6 @@
 
         function renderErrors(items) {
             if (!errorGrid) {
-                // داده های هر صفحه از سرور می آیند و صفحه بندی سراسری حفظ می شود.
                 errorGrid = window.TIRDataGrid.create('#bulkErrorGrid', {
                     dataSource: [],
                     columns: [
@@ -166,7 +165,7 @@
                     $('#bulkTotal').text(number(h.totalCount));
                     $('#bulkProcessed').text(number(h.processedCount));
                     $('#bulkErrorCount').text(number(h.failedCount));
-                    // درصد فقط از شمارنده کل درخواست محاسبه می شود، نه از اندازه هر بخش 10 هزار تایی.
+
                     var percent = h.totalCount ? Math.floor(h.processedCount * 100 / h.totalCount) : 100;
                     updateBar(percent);
                     renderErrors(report.errors || []);
@@ -227,7 +226,6 @@
             if (!employeeGrid) {
                 employeeGrid = window.TIRDataGrid.create('#bulkEmployeeSearchResults', {
                     dataSource: [], keyExpr: 'id',
-                    // انتخاب ردیف ها از قابلیت اصلی DataGrid استفاده می کند.
                     selection: { mode: 'multiple', showCheckBoxesMode: 'always', allowSelectAll: false },
                     onSelectionChanged: function (event) {
                         if (syncingGridSelection) return;

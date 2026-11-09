@@ -45,7 +45,6 @@
             originals[id] = readField(field);
         });
 
-        // بازخوانی بی صدای اطلاعات جدید، به جای رفرش صفحه و از دست دادن وضعیت گرید.
         function refreshFields() {
             return $.get(window.location.href).then(function (markup) {
                 var documentResponse = new DOMParser().parseFromString(markup, 'text/html');

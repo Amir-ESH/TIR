@@ -34,7 +34,6 @@
         hostFor(options).empty();
     }
 
-    // پیام های موفقیت، خطا، هشدار و اطلاع فقط از این API ساخته می شوند.
     function show(message, kind, options) {
         if (message === null || message === undefined || String(message).trim() === '')
             return null;

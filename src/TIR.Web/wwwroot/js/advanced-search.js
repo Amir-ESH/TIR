@@ -13,7 +13,7 @@
 
         function createRow(condition) {
             if (container.children().length >= 64) {
-                window.TIRMessages.warning('حداکثر ۶۴ شرط مجاز است.');
+                window.TIRMessages.warning('حداکثر 64 شرط مجاز است.');
                 return;
             }
             var row = $('<div class="query-row"></div>');
@@ -88,7 +88,7 @@
                 kind === 5 ? 'HH:mm' :
                 kind === 7 ? '0 یا 1' : kind === 8 ? 'شناسه گزینه' : 'مقدار';
             row.find('.condition-value').attr('placeholder', placeholder);
-            // عملگر مقدار دارد یا ندارد به ورودی مقدار احتیاج ندارد.
+
             row.find('.condition-value,.condition-to')
                 .prop('disabled', isValuePresenceFilter)
                 .toggleClass('d-none', isValuePresenceFilter);

@@ -54,7 +54,6 @@
             drafts[Number(root.attr('data-attribute-id'))] = readValue(root);
         });
 
-        // مقادیر تمام مشخصه ها حتی مشخصه های فیلتر شده در فرم اصلی ثبت می شوند.
         form.on('submit', function (event) {
             event.preventDefault();
             if (submitting || !form[0].reportValidity()) return;
@@ -81,7 +80,6 @@
                 appendValue(prefix + 'BooleanChecked', value.BooleanChecked ? 'true' : 'false');
             });
 
-            // فقط فیلدهای مخفی گردآوری شده و مشخصات ثابت به سرور ارسال شوند.
             gridNode.find(':input').prop('disabled', true);
             submitting = true;
             $('#employeeCreateSubmit').prop('disabled', true).text('در حال افزودن...');

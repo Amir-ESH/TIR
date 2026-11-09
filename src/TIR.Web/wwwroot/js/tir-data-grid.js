@@ -64,14 +64,34 @@
         $('<span>').addClass('badge ' + className).text(label).appendTo(container);
     }
 
-    // عرض عملیات دقیقاً بر اساس بیشترین تعداد دکمه های همان گرید محاسبه می شود.
-    function actionsWidth(kind) {
+    function actionsWidth(node) {
+        var kind = node.attr('data-grid-kind');
         var prefix = kind === 'employees' ? 'employee' : 'attribute';
         var maxCount = 0;
-        $('[id^="' + prefix + '-actions-"]').each(function () {
+        node.closest('.card').children('[hidden]').first()
+            .find('[id^="' + prefix + '-actions-"]').each(function () {
             maxCount = Math.max(maxCount, $(this).children('a,form,button').length);
         });
-        return Math.max(70, Math.ceil(20 + maxCount * 34 + Math.max(0, maxCount - 1) * 6.4));
+
+        return Math.max(70, Math.ceil(28 + maxCount * 34 + Math.max(0, maxCount - 1) * 6.4));
+    }
+
+    function refreshActionsWidth(node) {
+        node = $(node);
+        if (node.attr('data-grid-kind') !== 'employees' &&
+            node.attr('data-grid-kind') !== 'attributes') return;
+        var grid = node.data('dxDataGrid') && node.dxDataGrid('instance');
+        if (!grid) return;
+        var width = actionsWidth(node);
+        if (grid.columnOption('tirActions', 'width') === width &&
+            grid.columnOption('tirActions', 'minWidth') === width) return;
+        grid.beginUpdate();
+        try {
+            grid.columnOption('tirActions', 'minWidth', width);
+            grid.columnOption('tirActions', 'width', width);
+        } finally {
+            grid.endUpdate();
+        }
     }
 
     function createEmployeeFieldGrid(element, rows, renderValue) {
@@ -147,7 +167,6 @@
     function mountStaticGrids() {
         $('.tir-data-grid[data-grid-kind]').each(function () {
             var node = $(this);
-            // بعد از بارگذاری Ajax، گرید موجود نباید دوباره ساخته شود.
             if (node.data('dxDataGrid')) return;
             var kind = node.attr('data-grid-kind');
             var dataId = node.attr('data-data-id');
@@ -160,12 +179,7 @@
                 paging: { enabled: kind === 'report', pageSize: 20 },
                 pager: { visible: kind === 'report', showPageSizeSelector: true,
                     allowedPageSizes: [10, 20, 50, 100], showNavigationButtons: true, showInfo: true },
-                onContentReady: function (event) {
-                    if (kind !== 'employees' && kind !== 'attributes') return;
-                    var width = actionsWidth(kind);
-                    if (event.component.columnOption('tirActions', 'width') !== width)
-                        event.component.columnOption('tirActions', 'width', width);
-                },
+                onContentReady: function () { refreshActionsWidth(node); },
                 onToolbarPreparing: function (event) {
                     if (kind !== 'attributes' && kind !== 'employees') return;
                     var items = event.toolbarOptions.items || [];
@@ -201,6 +215,6 @@
     }
 
     window.TIRDataGrid = { create: create, createEmployeeFieldGrid: createEmployeeFieldGrid,
-        mount: mountStaticGrids };
+        mount: mountStaticGrids, refreshActionsWidth: refreshActionsWidth };
     $(mountStaticGrids);
 })(jQuery);

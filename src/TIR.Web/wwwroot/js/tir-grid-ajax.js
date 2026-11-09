@@ -39,6 +39,9 @@
 
         node.attr('data-include-deleted', $(updated).attr('data-include-deleted') || 'false');
         grid.option('dataSource', JSON.parse(json.textContent || '[]'));
+
+        if (window.TIRDataGrid && typeof window.TIRDataGrid.refreshActionsWidth === 'function')
+            window.TIRDataGrid.refreshActionsWidth(node);
         return true;
     }
 
