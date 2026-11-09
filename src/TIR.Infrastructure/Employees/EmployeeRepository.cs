@@ -90,7 +90,7 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
             to = x.To
         }));
 
-        return executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_SearchAdvanced", new
+        var parameters = new DynamicParameters(new
         {
             FiltersJson = filtersJson,
             request.EmployeeSearch,
@@ -99,7 +99,10 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
             request.SortDescending,
             request.PageNumber,
             request.PageSize
-        }, cancellationToken);
+        });
+        // پیش از اجرای migration 021 نیز درخواست های قدیمی جستجو بدون تغییر کار می کنند.
+        if (request.IncludeDeleted) parameters.Add("IncludeDeleted", true, DbType.Boolean);
+        return executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_SearchAdvanced", parameters, cancellationToken);
     }
 
     /// <summary>

@@ -74,58 +74,6 @@
         return Math.max(70, Math.ceil(20 + maxCount * 34 + Math.max(0, maxCount - 1) * 6.4));
     }
 
-    function attributeFilterUrl(includeDeleted) {
-        var url = new URL(window.location.href);
-        // هر دو مقدار قدیمی true و false با هم حذف می شوند.
-        url.searchParams.delete('IncludeDeleted');
-        url.searchParams.delete('Search');
-        url.searchParams.delete('PageNumber');
-        if (includeDeleted) url.searchParams.set('IncludeDeleted', 'true');
-        return url;
-    }
-
-    function reloadAttributes(gridNode, grid, checkBox, includeDeleted) {
-        var wasChecked = gridNode.attr('data-include-deleted') === 'true';
-        var target = attributeFilterUrl(includeDeleted);
-        checkBox.option('disabled', true);
-        grid.beginCustomLoading('در حال دریافت مشخصه ها...');
-
-        $.ajax({ url: target.toString(), type: 'GET', dataType: 'html' })
-            .done(function (markup) {
-                var updatedDocument = new DOMParser().parseFromString(markup, 'text/html');
-                var updatedJson = updatedDocument.getElementById('attributesGridData');
-                var updatedGrid = updatedDocument.getElementById('attributesGrid');
-                if (!updatedJson || !updatedGrid) {
-                    checkBox.option('value', wasChecked);
-                    DevExpress.ui.notify('اطلاعات جدید مشخصه ها دریافت نشد.', 'error', 3500);
-                    return;
-                }
-
-                var oldCard = gridNode.closest('.card');
-                var newCard = $(updatedGrid).closest('.card');
-                var oldActions = oldCard.children('[hidden]').first();
-                var newActions = newCard.children('[hidden]').first();
-                if (oldActions.length && newActions.length) oldActions.html(newActions.html());
-
-                var oldFooter = oldCard.children('.card-body').last();
-                var newFooter = newCard.children('.card-body').last();
-                if (oldFooter.length && newFooter.length) oldFooter.html(newFooter.html());
-
-                gridNode.attr('data-include-deleted', String(includeDeleted));
-                grid.option('dataSource', JSON.parse(updatedJson.textContent || '[]'));
-                window.history.replaceState(window.history.state, '',
-                    target.pathname + target.search + target.hash);
-            })
-            .fail(function () {
-                checkBox.option('value', wasChecked);
-                DevExpress.ui.notify('ارتباط با سرور برقرار نشد. دوباره تلاش کنید.', 'error', 3500);
-            })
-            .always(function () {
-                grid.endCustomLoading();
-                checkBox.option('disabled', false);
-            });
-    }
-
     function createEmployeeFieldGrid(element, rows, renderValue) {
         return create(element, {
             keyExpr: 'AttributeId', dataSource: rows,

@@ -68,7 +68,8 @@ public sealed record SearchCondition(
 public sealed record AdvancedEmployeeSearchRequest(
     IReadOnlyList<SearchCondition> Filters, string? EmployeeSearch = null,
     string SortBy = "Id", long? SortAttributeId = null,
-    bool SortDescending = false, int PageNumber = 1, int PageSize = 50);
+    bool SortDescending = false, int PageNumber = 1, int PageSize = 50,
+    bool IncludeDeleted = false);
 
 /// <summary>
 /// 

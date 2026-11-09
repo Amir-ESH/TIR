@@ -27,15 +27,24 @@ public sealed class IndexModel(IAttributeService attributes, ILogger<IndexModel>
 
     private async Task<IActionResult> ChangeStateAsync(long id, string rowVersion, bool restore, CancellationToken cancellationToken)
     {
+        var ajax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
         try
         {
             var version = UiFieldFactory.DecodeRowVersion(rowVersion)
                 ?? throw new FormatException("نسخه مشخصه ارسال نشده است.");
             if (restore) await attributes.RestoreAsync(new StateChangeRequest(id, version), cancellationToken);
             else await attributes.SoftDeleteAsync(new StateChangeRequest(id, version), cancellationToken);
-            TempData["Success"] = restore ? "مشخصه بازیابی شد." : "مشخصه حذف منطقی شد.";
+            var message = restore ? "مشخصه بازیابی شد." : "مشخصه حذف منطقی شد.";
+            if (ajax) return new JsonResult(new { success = true, message });
+            TempData["Success"] = message;
         }
-        catch (Exception error) { logger.LogError(error, "خطا در تغییر وضعیت مشخصه {Id}", id); TempData["Error"] = UiErrors.Message(error); }
+        catch (Exception error)
+        {
+            logger.LogError(error, "خطا در تغییر وضعیت مشخصه {Id}", id);
+            var message = UiErrors.Message(error);
+            if (ajax) return new JsonResult(new { success = false, message }) { StatusCode = 400 };
+            TempData["Error"] = message;
+        }
         return RedirectToPage("/Attributes/Index", new { IncludeDeleted = true });
     }
 

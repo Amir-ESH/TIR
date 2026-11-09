@@ -16,6 +16,7 @@ public sealed class SearchModel(IEmployeeService employees, IAttributeService at
     [BindProperty] public string SortBy { get; set; } = "Id";
     [BindProperty] public long? SortAttributeId { get; set; }
     [BindProperty] public bool SortDescending { get; set; }
+    [BindProperty] public bool IncludeDeleted { get; set; }
     [BindProperty] public int PageNumber { get; set; } = 1;
 
     public bool HasSearched { get; private set; }
@@ -46,7 +47,7 @@ public sealed class SearchModel(IEmployeeService employees, IAttributeService at
 
             ExportRequest = new AdvancedEmployeeSearchRequest(
                 normalized, EmployeeSearch, SortBy, SortAttributeId, SortDescending,
-                Math.Max(1, PageNumber));
+                Math.Max(1, PageNumber), IncludeDeleted: IncludeDeleted);
             Result = await employees.SearchAdvancedAsync(ExportRequest, cancellationToken);
         }
         catch (Exception error)

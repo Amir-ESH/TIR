@@ -111,7 +111,7 @@
         }
         $(settings.form).on('submit', serializeConditions);
 
-        $(settings.pagination || '.js-search-page').on('click', function () {
+        $(document).on('click', settings.pagination || '.js-search-page', function () {
             $(settings.pageNumber).val($(this).data('page'));
             $(settings.form).trigger('submit');
         });
@@ -120,7 +120,9 @@
         try { previous = JSON.parse($(settings.filtersJson).val() || '[]'); } catch (_) { previous = []; }
         if (previous.length) previous.forEach(createRow);
         else createRow({ group: 1 });
-        return { serialize: serializeConditions };
+        var controller = { serialize: serializeConditions };
+        window.TIRAdvancedSearch.active = controller;
+        return controller;
     }
     window.TIRAdvancedSearch = { setup: setup };
     $(function () {

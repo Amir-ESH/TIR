@@ -18,15 +18,19 @@ public sealed class ReportModel(IBulkService bulk, ILogger<ReportModel> logger) 
 
     public async Task<IActionResult> OnPostDeleteAsync(Guid id, CancellationToken cancellationToken)
     {
+        var ajax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
         try
         {
             await bulk.DeleteAsync(id, cancellationToken);
+            if (ajax) return new JsonResult(new { success = true, message = "اطلاعات موقت درخواست حذف شدند." });
             TempData["Success"] = "اطلاعات موقت درخواست به صورت فیزیکی حذف شدند.";
         }
         catch (Exception error)
         {
             logger.LogError(error, "خطا در پاکسازی درخواست {BatchId}", id);
-            TempData["Error"] = UiErrors.Message(error);
+            var message = UiErrors.Message(error);
+            if (ajax) return new JsonResult(new { success = false, message }) { StatusCode = 400 };
+            TempData["Error"] = message;
             return RedirectToPage("/Bulk/Report", new { id });
         }
         return RedirectToPage("/Bulk/Index");

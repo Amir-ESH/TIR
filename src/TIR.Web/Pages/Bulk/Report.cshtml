@@ -55,7 +55,7 @@
                 <h3 class="section-title mb-1">پایان بررسی گزارش</h3>
                 <p class="text-muted mb-0 small">پس از حذف فیزیکی درخواست، این گزارش دیگر در سیستم قابل بازیابی نیست.</p>
             </div>
-            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Report.Header.BatchId" data-confirm="گزارش و اطلاعات موقت این درخواست به صورت فیزیکی پاک شوند؟">
+            <form method="post" data-tir-ajax-report-delete="true" asp-page-handler="Delete" asp-route-id="@Model.Report.Header.BatchId" data-confirm="گزارش و اطلاعات موقت این درخواست به صورت فیزیکی پاک شوند؟">
                 <button class="btn btn-outline-danger">حذف اطلاعات موقت</button>
             </form>
         </div>
