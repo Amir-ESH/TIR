@@ -80,7 +80,6 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
     /// <returns></returns>
     public Task<PageResult<EmployeeListItem>> SearchAdvancedAsync(AdvancedEmployeeSearchRequest request, CancellationToken cancellationToken)
     {
-        // JSON مقدارها را به صورت داده ارسال می کند. SQL نام ستون و عملگر را کنترل می کند.
         var filtersJson = JsonSerializer.Serialize(request.Filters.Select(x => new
         {
             group = x.Group,
@@ -100,8 +99,10 @@ internal sealed class EmployeeRepository(StoredProcedureExecutor executor) : IEm
             request.PageNumber,
             request.PageSize
         });
-        // پیش از اجرای migration 021 نیز درخواست های قدیمی جستجو بدون تغییر کار می کنند.
-        if (request.IncludeDeleted) parameters.Add("IncludeDeleted", true, DbType.Boolean);
+
+        if (request.IncludeDeleted)
+            parameters.Add("IncludeDeleted", true, DbType.Boolean);
+
         return executor.PageAsync<EmployeeListItem>("dbo.SP_Employee_SearchAdvanced", parameters, cancellationToken);
     }
 

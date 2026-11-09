@@ -33,20 +33,14 @@
         function operation() { return $('input[name="bulkOperation"]:checked').val(); }
 
         function message(value, type) {
-            var box = $('#bulkWizardMessage');
-            if (!value) { box.addClass('d-none').text(''); return; }
-            box.removeClass('d-none alert-danger alert-success alert-info')
-                .addClass('alert-' + (type || 'info')).text(value);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (!value) window.TIRMessages.clear();
+            else window.TIRMessages.show(value, type || 'info');
         }
 
         function modalMessage(value, type) {
-            var box = $('#bulkModalMessage');
-            if (!value) { box.addClass('d-none').text(''); return; }
-            box.removeClass('d-none alert-danger alert-success alert-info')
-                .addClass('alert-' + (type || 'danger')).text(value);
-            var modalBody = $('#bulkEmployeeModal .modal-body');
-            modalBody.scrollTop(0);
+            var options = { container: '#bulkEmployeeModal .modal-content' };
+            if (!value) window.TIRMessages.clear(options);
+            else window.TIRMessages.show(value, type || 'danger', options);
         }
 
         function errorText(xhr) {

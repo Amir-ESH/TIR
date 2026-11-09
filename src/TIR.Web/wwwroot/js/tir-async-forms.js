@@ -23,12 +23,7 @@
     window.TIRLoading = { show: showLoading, hide: hideLoading };
 
     function messageBox(message, kind) {
-        var region = $('#tirAsyncMessage');
-        if (!region.length) {
-            region = $('<div id="tirAsyncMessage" role="status" aria-live="polite">')
-                .prependTo($('#main-content').length ? '#main-content' : 'body');
-        }
-        region.empty().append($('<div class="alert">').addClass('alert-' + kind).text(message));
+        window.TIRMessages.show(message, kind);
     }
 
     $(document).on('click', 'form[data-tir-ajax-form] [type="submit"]', function () {
@@ -70,6 +65,7 @@
             }
             var nodes = $(nextMain).children().filter(function () { return this.tagName !== 'SCRIPT'; });
             $('#main-content').empty().append(nodes);
+            window.TIRMessages.readServerMessages($('#main-content'));
             if (markup.indexOf('tir:popup-changed') >= 0 && window.parent !== window) {
                 window.parent.postMessage({ type: 'tir:popup-changed', scope: 'attributes' },
                     window.location.origin);

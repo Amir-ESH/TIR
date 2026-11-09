@@ -149,12 +149,11 @@
         $(document).on('submit', 'form[data-dynamic-save]', function (event) {
             event.preventDefault();
             var form = $(this), button = form.find('button[type=submit]');
-            var message = $('#valueSaveMessage');
             button.prop('disabled', true).text('در حال ذخیره...');
             $.ajax({
                 url: form.attr('action'), type: 'POST', data: form.serialize(),
                 success: function (answer) {
-                    if (!answer.success) { showMessage(answer.message, 'danger'); return; }
+                    if (!answer.success) { window.TIRMessages.error(answer.message); return; }
                     form.find('.js-rowversion').val(answer.rowVersion);
                     if (form.find('.js-clear-value').val() === 'true') {
                         form.find('[name="Field.RawValue"]').val('');
@@ -162,11 +161,11 @@
                     }
                     // پس از ذخیره مستقل، مقدار مبنای تشخیص تغییرات فرم اصلاح می شود.
                     form.trigger('tir:field-saved');
-                    showMessage('مقدار ذخیره شد. وضعیت فرمول های وابسته را در صفحه جزئیات بررسی کنید.', 'success');
+                    window.TIRMessages.success('مقدار ذخیره شد. وضعیت فرمول های وابسته را در صفحه جزئیات بررسی کنید.');
                 },
                 error: function (response) {
                     var info = response.responseJSON || {};
-                    showMessage(info.message || 'خطای ارتباط با سرور رخ داد.', 'danger');
+                    window.TIRMessages.error(info.message || 'خطای ارتباط با سرور رخ داد.');
                 },
                 complete: function () {
                     form.find('.js-clear-value').val('false');
@@ -174,10 +173,6 @@
                 }
             });
 
-            function showMessage(text, kind) {
-                message.html($('<div>').addClass('alert alert-' + kind).text(text));
-                message[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
         });
 
         initializePersianPicker();

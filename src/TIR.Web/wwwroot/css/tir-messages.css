@@ -1,0 +1,80 @@
+/* نمایش مشترک همه اعلان ها در بالای صفحه (RTL) */
+.tir-messages-host {
+    position: fixed;
+    top: 18px;
+    right: 20px;
+    width: min(460px, calc(100vw - 40px));
+    z-index: 2200;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+.tir-messages-in-modal {
+    position: absolute;
+    top: 64px;
+    right: 16px;
+    width: min(440px, calc(100% - 32px));
+}
+.tir-message {
+    display: flex;
+    flex-direction: row;
+    direction: rtl;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border-right: 4px solid #637693;
+    box-shadow: 0 12px 35px #1e2d4935;
+    background: #fff;
+    color: #24344f;
+    pointer-events: auto;
+    animation: tir-message-enter .18s ease-out;
+}
+.tir-message-body { flex: 1; min-width: 0; text-align: right; line-height: 1.8; overflow-wrap: anywhere; }
+.tir-message-text { font-size: .9rem; }
+.tir-message-icon {
+    order: 1;
+    flex: 0 0 26px;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 16px;
+    margin-top: 1px;
+}
+.tir-message-close {
+    order: 2;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    color: #52627c;
+    font-size: 24px;
+    line-height: 20px;
+    cursor: pointer;
+}
+.tir-message-close:hover, .tir-message-close:focus { color: #172235; }
+.tir-message-close:focus-visible { outline: 2px solid #6d63df; outline-offset: 2px; }
+.tir-message-errors { padding-right: 20px; padding-left: 0; margin: 8px 0 0; }
+.tir-message-success { border-right-color: #198754; }
+.tir-message-success .tir-message-icon { background: #dbf5e6; color: #147b49; }
+.tir-message-danger { border-right-color: #dc3545; }
+.tir-message-danger .tir-message-icon { background: #ffe3e7; color: #b51f2d; }
+.tir-message-warning { border-right-color: #d99a13; }
+.tir-message-warning .tir-message-icon { background: #fff0cc; color: #986406; }
+.tir-message-info { border-right-color: #3276c7; }
+.tir-message-info .tir-message-icon { background: #e3f0ff; color: #2365b1; }
+@keyframes tir-message-enter {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 600px) {
+    .tir-messages-host { top: 8px; right: 8px; width: calc(100vw - 16px); }
+    .tir-messages-in-modal { top: 64px; right: 8px; width: calc(100% - 16px); }
+}

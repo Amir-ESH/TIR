@@ -13,8 +13,8 @@
         var submitting = false;
 
         function showMessage(text, kind) {
-            var region = $('#employeeCreateMessage');
-            region.empty().append($('<div class="alert">').addClass('alert-' + kind).text(text));
+            if (!text) window.TIRMessages.clear();
+            else window.TIRMessages.show(text, kind);
         }
 
         function readValue(node) {

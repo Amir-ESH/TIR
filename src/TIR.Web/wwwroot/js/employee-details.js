@@ -6,7 +6,6 @@
         if (!screen.length) return;
 
         var form = $('#employeeDetailsFixedForm');
-        var message = $('#employeeDetailsMessage');
         var saveButtons = $('.js-employee-save');
         var gridNode = $('#employeeDetailsGrid');
         var rows = JSON.parse($('#employeeDetailsGridData').text() || '[]');
@@ -96,13 +95,7 @@
         }
 
         function showMessage(value, kind, errors) {
-            var box = $('<div class="alert">').addClass('alert-' + kind).text(value);
-            if (Array.isArray(errors) && errors.length) {
-                var list = $('<ul class="mt-2 mb-0">').appendTo(box);
-                errors.forEach(function (error) { $('<li>').text(error).appendTo(list); });
-            }
-            message.empty().append(box);
-            message[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            window.TIRMessages.show(value, kind, { errors: errors });
         }
 
         function setBusy(value) {
@@ -138,7 +131,7 @@
             if (!token) return showMessage('اطلاعات امنیتی فرم پیدا نشد. صفحه را تازه سازی کنید.', 'danger');
 
             setBusy(true);
-            message.empty();
+            window.TIRMessages.clear();
             $.ajax({
                 url: form.attr('action'), type: 'POST', data: form.serialize(),
                 headers: { RequestVerificationToken: token }

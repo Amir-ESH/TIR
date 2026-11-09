@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="~/css/iran-clock.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/time-picker.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site-font.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tir-messages.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/employee-details.css" asp-append-version="true" />
 </head>
 <body class="@(embeddedPopupPage ? "employee-details-embedded" : "")">
@@ -62,17 +63,11 @@
             <main class="content-container" id="main-content">
                 @if (TempData["Success"] is string success)
                 {
-                    <div class="alert alert-success alert-dismissible fade show" role="status">
-                        @success
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
-                    </div>
+                    <div data-tir-flash="success" hidden>@success</div>
                 }
                 @if (TempData["Error"] is string failure)
                 {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        @failure
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
-                    </div>
+                    <div data-tir-flash="danger" hidden>@failure</div>
                 }
                 @RenderBody()
             </main>
@@ -102,6 +97,7 @@
     <script src="~/js/dx.all.js" asp-append-version="true"></script>
 	<script src="~/js/dx.messages.fa.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="~/js/tir-messages.js" asp-append-version="true"></script>
     <script src="~/js/jalali-navigation.js" asp-append-version="true"></script>
     <script src="~/js/time-picker.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

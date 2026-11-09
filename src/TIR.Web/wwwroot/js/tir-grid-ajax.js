@@ -2,22 +2,7 @@
     'use strict';
 
     function notify(message, type) {
-        if (type === 'success') {
-            $('#tirGridAjaxMessage').empty();
-            if (window.DevExpress && DevExpress.ui)
-                DevExpress.ui.notify(message, 'success', 2400);
-            return;
-        }
-        // متن و دکمه بستن پیام خطا در همه گریدها از یک نمایشگر RTL استفاده می کنند.
-        var region = $('#tirGridAjaxMessage');
-        if (!region.length)
-            region = $('<div id="tirGridAjaxMessage" role="status" aria-live="assertive">')
-                .prependTo($('#main-content').length ? '#main-content' : 'body');
-        var alert = $('<div class="alert alert-danger d-flex align-items-center gap-3" role="alert">');
-        $('<span class="flex-grow-1">').text(message).appendTo(alert);
-        $('<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="بستن پیام خطا">')
-            .appendTo(alert);
-        region.empty().append(alert);
+        window.TIRMessages.show(message, type || 'danger');
     }
 
     function messageFrom(xhr, fallback) {
@@ -232,11 +217,10 @@
             }).done(function (response) {
                 if (!response.success) { notify(response.message); return; }
                 $('#main-content > .toolbar, #main-content > .row, #main-content > .card').remove();
-                var content = $('<div class="alert alert-success" role="status">')
-                    .text(response.message || 'اطلاعات گزارش حذف شدند.');
                 var link = $('<a class="btn btn-primary mt-3">')
                     .attr('href', '/Bulk/Index').text('بازگشت به عملیات گروهی');
-                $('#main-content').append(content, link);
+                $('#main-content').append(link);
+                notify(response.message || 'اطلاعات گزارش حذف شدند.', 'success');
             }).fail(function (xhr) {
                 notify(messageFrom(xhr, 'پاکسازی گزارش ممکن نشد.'));
             }).always(function () {

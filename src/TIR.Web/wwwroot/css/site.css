@@ -70,20 +70,6 @@ a { text-decoration:none; }
 .file-zone.has-file { border-color:#756ee6; background:#f4f2ff; }
 .file-zone .file-icon { font-size:2rem; color:#5b51e0; }
 .alert { border-radius:12px; }
-/* در پیام های قابل بستن RTL، دکمه بستن سمت چپ پیام قرار می گیرد. */
-html[dir="rtl"] .alert-dismissible .btn-close {
-    left: 0 !important;
-    right: auto !important;
-}
-html[dir="rtl"] .alert-dismissible {
-    padding-left: 3.5rem;
-    padding-right: 1.25rem;
-}
-#tirGridAjaxMessage .alert { direction: rtl; }
-#tirGridAjaxMessage .btn-close {
-    margin-right: auto !important;
-    margin-left: 0 !important;
-}
 .pagination { margin-bottom:0; }
 .page-link { border-color:#e4e8f3; color:#4d42cf; }
 .page-item.active .page-link { background:#5146db; border-color:#5146db; }

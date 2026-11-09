@@ -39,5 +39,5 @@
 </div>
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
 {
-    <div class="alert alert-warning mt-3">@Model.ErrorMessage</div>
+    <div data-tir-flash="warning" hidden>@Model.ErrorMessage</div>
 }

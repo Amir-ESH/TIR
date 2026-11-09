@@ -7,7 +7,6 @@
 
         var forms = container.find('.dynamic-value-form');
         var buttons = container.find('.js-save-all-values');
-        var message = $('#valueSaveMessage');
 
         // تنها مقدار قابل ویرایش مبنای تشخیص تغییر است و نسخه ردیف جزو مقدار نیست.
         function fingerprint(form) {
@@ -25,15 +24,7 @@
         });
 
         function showMessage(text, kind, errors) {
-            var alert = $('<div class="alert"></div>').addClass('alert-' + kind).text(text);
-            if (errors && errors.length) {
-                var list = $('<ul class="mt-2 mb-0"></ul>').appendTo(alert);
-                errors.forEach(function (error) {
-                    $('<li></li>').text(error).appendTo(list);
-                });
-            }
-            message.empty().append(alert);
-            message[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            window.TIRMessages.show(text, kind, { errors: errors });
         }
 
         buttons.on('click', function () {

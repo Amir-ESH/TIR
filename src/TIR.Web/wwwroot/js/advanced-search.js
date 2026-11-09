@@ -12,7 +12,10 @@
         var optionsUrl = $(settings.attributeData).data('options-url');
 
         function createRow(condition) {
-            if (container.children().length >= 64) { alert('حداکثر 64 شرط مجاز است.'); return; }
+            if (container.children().length >= 64) {
+                window.TIRMessages.warning('حداکثر ۶۴ شرط مجاز است.');
+                return;
+            }
             var row = $('<div class="query-row"></div>');
             $('<input type="number" min="1" max="16" class="form-control condition-group" title="شماره گروه OR" />')
                 .val(condition.group || 1).appendTo(row);
