@@ -2,8 +2,22 @@
     'use strict';
 
     function notify(message, type) {
-        if (window.DevExpress && DevExpress.ui)
-            DevExpress.ui.notify(message, type || 'error', type === 'success' ? 2400 : 4500);
+        if (type === 'success') {
+            $('#tirGridAjaxMessage').empty();
+            if (window.DevExpress && DevExpress.ui)
+                DevExpress.ui.notify(message, 'success', 2400);
+            return;
+        }
+        // متن و دکمه بستن پیام خطا در همه گریدها از یک نمایشگر RTL استفاده می کنند.
+        var region = $('#tirGridAjaxMessage');
+        if (!region.length)
+            region = $('<div id="tirGridAjaxMessage" role="status" aria-live="assertive">')
+                .prependTo($('#main-content').length ? '#main-content' : 'body');
+        var alert = $('<div class="alert alert-danger d-flex align-items-center gap-3" role="alert">');
+        $('<span class="flex-grow-1">').text(message).appendTo(alert);
+        $('<button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="بستن پیام خطا">')
+            .appendTo(alert);
+        region.empty().append(alert);
     }
 
     function messageFrom(xhr, fallback) {
@@ -12,7 +26,8 @@
     }
 
     function gridInstance(node) {
-        return node.length && node.data('dxDataGrid') ? node.dxDataGrid('instance') : null;
+        if (!node.length) return null;
+        try { return node.dxDataGrid('instance'); } catch (_) { return null; }
     }
 
     function applySnapshot(node, markup) {
@@ -143,6 +158,10 @@
             if (event.isDefaultPrevented()) return;
             event.preventDefault();
             var form = $(this), node = form.closest('.tir-data-grid');
+            var actionLabel = form.attr('data-grid-action') === 'restore' ? 'بازیابی' : 'حذف';
+            function actionFailure(reason) {
+                notify(actionLabel + ' با خطا مواجه شد' + (reason ? ': ' + reason : '.'));
+            }
             if (!showLoading(node, 'در حال ثبت عملیات...')) return;
             var button = form.find('button[type="submit"]');
             button.prop('disabled', true);
@@ -155,7 +174,7 @@
                 dataType: 'json', headers: { 'X-Requested-With': 'XMLHttpRequest' }
             }).done(function (response) {
                 if (!response.success) {
-                    notify(response.message || 'انجام عملیات ممکن نشد.');
+                    actionFailure(response.message);
                     finish();
                     return;
                 }
@@ -175,7 +194,7 @@
                     }).always(finish);
                 }
             }).fail(function (xhr) {
-                notify(messageFrom(xhr, 'حذف یا بازیابی ناموفق بود.'));
+                actionFailure(messageFrom(xhr, ''));
                 finish();
             });
         });

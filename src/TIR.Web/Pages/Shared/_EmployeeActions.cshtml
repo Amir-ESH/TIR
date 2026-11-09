@@ -10,7 +10,7 @@
            class="btn btn-sm btn-outline-primary tir-icon-btn" title="ویرایش کارمند" aria-label="ویرایش کارمند">
             <i class="dx-icon dx-icon-edit" aria-hidden="true"></i>
         </a>
-        <form method="post" asp-page="/Employees/Index" asp-page-handler="SoftDelete"
+        <form method="post" asp-page="/Employees/Index" asp-page-handler="SoftDelete" data-grid-action="delete"
               data-confirm="آیا این کارمند و مقادیر وابسته حذف منطقی شوند؟">
             <input type="hidden" name="id" value="@Model.Id" />
             <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(Model.RowVersion)" />
@@ -21,7 +21,7 @@
     }
     else
     {
-        <form method="post" asp-page="/Employees/Index" asp-page-handler="Restore"
+        <form method="post" asp-page="/Employees/Index" asp-page-handler="Restore" data-grid-action="restore"
               data-confirm="کارمند و مقادیر قابل بازیابی او بازگردانده شوند؟">
             <input type="hidden" name="id" value="@Model.Id" />
             <input type="hidden" name="rowVersion" value="@Convert.ToBase64String(Model.RowVersion)" />

@@ -147,6 +147,8 @@
     function mountStaticGrids() {
         $('.tir-data-grid[data-grid-kind]').each(function () {
             var node = $(this);
+            // بعد از بارگذاری Ajax، گرید موجود نباید دوباره ساخته شود.
+            if (node.data('dxDataGrid')) return;
             var kind = node.attr('data-grid-kind');
             var dataId = node.attr('data-data-id');
             if (!columns[kind] || !dataId) return;
@@ -165,10 +167,14 @@
                         event.component.columnOption('tirActions', 'width', width);
                 },
                 onToolbarPreparing: function (event) {
-                    if (kind !== 'attributes') return;
+                    if (kind !== 'attributes' && kind !== 'employees') return;
                     var items = event.toolbarOptions.items || [];
                     var index = items.findIndex(function (item) { return item.name === 'columnChooserButton'; });
-                    if (index < 0) index = items.length;
+                    if (index < 0) {
+                        items.push({ name: 'columnChooserButton', location: 'after' });
+                        index = items.length - 1;
+                    }
+                    if (items.some(function (item) { return item.cssClass === 'tir-show-deleted-toggle'; })) return;
                     items.splice(index, 0, {
                         location: 'after',
                         widget: 'dxCheckBox',
@@ -179,7 +185,11 @@
                             value: node.attr('data-include-deleted') === 'true',
                             onValueChanged: function (changed) {
                                 if (changed.value === (node.attr('data-include-deleted') === 'true')) return;
-                                reloadAttributes(node, event.component, changed.component, changed.value);
+                                if (window.TIRGridAjax && typeof window.TIRGridAjax.toggleDeleted === 'function') {
+                                    window.TIRGridAjax.toggleDeleted(node, changed.component, changed.value);
+                                } else {
+                                    changed.component.option('value', node.attr('data-include-deleted') === 'true');
+                                }
                             }
                         }
                     });
@@ -190,6 +200,7 @@
         });
     }
 
-    window.TIRDataGrid = { create: create, createEmployeeFieldGrid: createEmployeeFieldGrid };
+    window.TIRDataGrid = { create: create, createEmployeeFieldGrid: createEmployeeFieldGrid,
+        mount: mountStaticGrids };
     $(mountStaticGrids);
 })(jQuery);
