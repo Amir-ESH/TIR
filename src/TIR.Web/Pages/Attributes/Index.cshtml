@@ -12,18 +12,10 @@
     <a asp-page="/Attributes/Create" data-popup-page="true" class="btn btn-primary">+ مشخصه جدید</a>
 </div>
 <div class="card">
-    <div class="card-body pb-0">
-        <form method="get" class="filter-bar mb-3">
-            <input asp-for="Search" class="form-control flex-grow-1" placeholder="جستجو در کد یا عنوان مشخصه" />
-            <div class="form-check">
-                <input asp-for="IncludeDeleted" class="form-check-input" />
-                <label asp-for="IncludeDeleted" class="form-check-label">نمایش حذف شده ها</label>
-            </div>
-            <button class="btn btn-outline-primary">جستجو</button>
-        </form>
-    </div>
     <div class="table-wrap">
-        <div id="attributesGrid" class="tir-data-grid" data-grid-kind="attributes" data-data-id="attributesGridData" data-empty-message="مشخصه ای مطابق فیلتر وجود ندارد."></div>
+        <div id="attributesGrid" class="tir-data-grid" data-grid-kind="attributes"
+             data-include-deleted="@(Model.IncludeDeleted ? "true" : "false")"
+             data-data-id="attributesGridData" data-empty-message="مشخصه ای مطابق فیلتر وجود ندارد."></div>
     </div>
     <script id="attributesGridData" type="application/json">@Html.Raw(JsonSerializer.Serialize(Model.Result.Items.Select(item => new { item.Id, item.AttributeCode, item.Title, DataKindTitle = Model.DataKindTitle(item.DataKind), SourceKindTitle = item.SourceKind == 2 ? "فرمول" : "ورودی", item.IsRequired, item.DisplayOrder, item.IsDeleted })))</script>
     <div hidden>
@@ -59,7 +51,7 @@
                 @if (Model.PageNumber > 1) 
                 {
                     <li class="page-item">
-                        <a class="page-link" asp-page="/Attributes/Index" asp-route-Search="@Model.Search" asp-route-IncludeDeleted="@Model.IncludeDeleted" asp-route-PageNumber="@(Model.PageNumber-1)">قبلی</a>
+                        <a class="page-link" asp-page="/Attributes/Index" asp-route-IncludeDeleted="@(Model.IncludeDeleted ? "true" : null)" asp-route-PageNumber="@(Model.PageNumber-1)">قبلی</a>
                     </li>
                 }
                 <li class="page-item active">
@@ -68,7 +60,7 @@
                 @if (Model.PageNumber * 50L < Model.Result.TotalCount) 
                 {
                     <li class="page-item">
-                        <a class="page-link" asp-page="/Attributes/Index" asp-route-Search="@Model.Search" asp-route-IncludeDeleted="@Model.IncludeDeleted" asp-route-PageNumber="@(Model.PageNumber+1)">بعدی</a>
+                        <a class="page-link" asp-page="/Attributes/Index" asp-route-IncludeDeleted="@(Model.IncludeDeleted ? "true" : null)" asp-route-PageNumber="@(Model.PageNumber+1)">بعدی</a>
                     </li>
                 }
             </ul>

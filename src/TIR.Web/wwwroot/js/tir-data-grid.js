@@ -39,7 +39,7 @@
             allowColumnReordering: true,
             columnChooser: { enabled: true, mode: 'select' },
             searchPanel: { visible: true, width: 250, highlightSearchText: true,
-                placeholder: 'جستجو در این صفحه...' },
+                placeholder: 'جستجو در جدول زیر...' },
             filterRow: { visible: true, applyFilter: 'auto', showOperationChooser: true },
             headerFilter: { visible: true },
             groupPanel: { visible: true, emptyPanelText: 'برای گروه بندی ستون را اینجا بکشید.' },
@@ -64,7 +64,68 @@
         $('<span>').addClass('badge ' + className).text(label).appendTo(container);
     }
 
-    // ایجاد و جزئیات کارمند، گرید مشترک مشخصه ها و تنظیمات یکسان دارند.
+    // عرض عملیات دقیقاً بر اساس بیشترین تعداد دکمه های همان گرید محاسبه می شود.
+    function actionsWidth(kind) {
+        var prefix = kind === 'employees' ? 'employee' : 'attribute';
+        var maxCount = 0;
+        $('[id^="' + prefix + '-actions-"]').each(function () {
+            maxCount = Math.max(maxCount, $(this).children('a,form,button').length);
+        });
+        return Math.max(70, Math.ceil(20 + maxCount * 34 + Math.max(0, maxCount - 1) * 6.4));
+    }
+
+    function attributeFilterUrl(includeDeleted) {
+        var url = new URL(window.location.href);
+        // هر دو مقدار قدیمی true و false با هم حذف می شوند.
+        url.searchParams.delete('IncludeDeleted');
+        url.searchParams.delete('Search');
+        url.searchParams.delete('PageNumber');
+        if (includeDeleted) url.searchParams.set('IncludeDeleted', 'true');
+        return url;
+    }
+
+    function reloadAttributes(gridNode, grid, checkBox, includeDeleted) {
+        var wasChecked = gridNode.attr('data-include-deleted') === 'true';
+        var target = attributeFilterUrl(includeDeleted);
+        checkBox.option('disabled', true);
+        grid.beginCustomLoading('در حال دریافت مشخصه ها...');
+
+        $.ajax({ url: target.toString(), type: 'GET', dataType: 'html' })
+            .done(function (markup) {
+                var updatedDocument = new DOMParser().parseFromString(markup, 'text/html');
+                var updatedJson = updatedDocument.getElementById('attributesGridData');
+                var updatedGrid = updatedDocument.getElementById('attributesGrid');
+                if (!updatedJson || !updatedGrid) {
+                    checkBox.option('value', wasChecked);
+                    DevExpress.ui.notify('اطلاعات جدید مشخصه ها دریافت نشد.', 'error', 3500);
+                    return;
+                }
+
+                var oldCard = gridNode.closest('.card');
+                var newCard = $(updatedGrid).closest('.card');
+                var oldActions = oldCard.children('[hidden]').first();
+                var newActions = newCard.children('[hidden]').first();
+                if (oldActions.length && newActions.length) oldActions.html(newActions.html());
+
+                var oldFooter = oldCard.children('.card-body').last();
+                var newFooter = newCard.children('.card-body').last();
+                if (oldFooter.length && newFooter.length) oldFooter.html(newFooter.html());
+
+                gridNode.attr('data-include-deleted', String(includeDeleted));
+                grid.option('dataSource', JSON.parse(updatedJson.textContent || '[]'));
+                window.history.replaceState(window.history.state, '',
+                    target.pathname + target.search + target.hash);
+            })
+            .fail(function () {
+                checkBox.option('value', wasChecked);
+                DevExpress.ui.notify('ارتباط با سرور برقرار نشد. دوباره تلاش کنید.', 'error', 3500);
+            })
+            .always(function () {
+                grid.endCustomLoading();
+                checkBox.option('disabled', false);
+            });
+    }
+
     function createEmployeeFieldGrid(element, rows, renderValue) {
         return create(element, {
             keyExpr: 'AttributeId', dataSource: rows,
@@ -100,7 +161,9 @@
             { dataField: 'IsDeleted', caption: 'وضعیت', dataType: 'boolean', cellTemplate: function (container, options) {
                 badge(container, options.value ? 'حذف شده' : 'فعال', options.value ? 'text-bg-danger' : 'text-bg-success');
             } },
-            { caption: 'عملیات', minWidth: 250, allowSorting: false, allowFiltering: false,
+            { name: 'tirActions', caption: 'عملیات', width: 135, minWidth: 70,
+                allowResizing: false, cssClass: 'tir-operations-column',
+                allowSorting: false, allowFiltering: false,
                 allowGrouping: false, allowSearch: false, cellTemplate: function (container, options) {
                 appendActions(container, 'employee', options.data.Id);
             } }
@@ -117,7 +180,9 @@
             { dataField: 'IsDeleted', caption: 'وضعیت', dataType: 'boolean', cellTemplate: function (container, options) {
                 badge(container, options.value ? 'حذف شده' : 'فعال', options.value ? 'text-bg-danger' : 'text-bg-success');
             } },
-            { caption: 'عملیات', minWidth: 290, allowSorting: false, allowFiltering: false,
+            { name: 'tirActions', caption: 'عملیات', width: 135, minWidth: 70,
+                allowResizing: false, cssClass: 'tir-operations-column',
+                allowSorting: false, allowFiltering: false,
                 allowGrouping: false, allowSearch: false, cellTemplate: function (container, options) {
                 appendActions(container, 'attribute', options.data.Id);
             } }
@@ -145,6 +210,33 @@
                 paging: { enabled: kind === 'report', pageSize: 20 },
                 pager: { visible: kind === 'report', showPageSizeSelector: true,
                     allowedPageSizes: [10, 20, 50, 100], showNavigationButtons: true, showInfo: true },
+                onContentReady: function (event) {
+                    if (kind !== 'employees' && kind !== 'attributes') return;
+                    var width = actionsWidth(kind);
+                    if (event.component.columnOption('tirActions', 'width') !== width)
+                        event.component.columnOption('tirActions', 'width', width);
+                },
+                onToolbarPreparing: function (event) {
+                    if (kind !== 'attributes') return;
+                    var items = event.toolbarOptions.items || [];
+                    var index = items.findIndex(function (item) { return item.name === 'columnChooserButton'; });
+                    if (index < 0) index = items.length;
+                    items.splice(index, 0, {
+                        location: 'after',
+                        widget: 'dxCheckBox',
+                        cssClass: 'tir-show-deleted-toggle',
+                        options: {
+                            rtlEnabled: true,
+                            text: 'نمایش حذف شده ها',
+                            value: node.attr('data-include-deleted') === 'true',
+                            onValueChanged: function (changed) {
+                                if (changed.value === (node.attr('data-include-deleted') === 'true')) return;
+                                reloadAttributes(node, event.component, changed.component, changed.value);
+                            }
+                        }
+                    });
+                    event.toolbarOptions.items = items;
+                },
                 noDataText: node.attr('data-empty-message') || 'رکوردی یافت نشد.'
             });
         });

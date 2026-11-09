@@ -31,14 +31,11 @@
         region.empty().append($('<div class="alert">').addClass('alert-' + kind).text(message));
     }
 
-    // در فرم های دارای چند دکمه، نام و مقدار همان دکمه زده شده ارسال می شود.
     $(document).on('click', 'form[data-tir-ajax-form] [type="submit"]', function () {
         $(this).closest('form').data('tirSubmitter', this);
     });
 
-    // ارسال تمام فرم های مدیریتی پاپ آپ با Ajax، بدون تغییر صفحه یا رفرش مرورگر.
     $(document).on('submit', 'form[data-tir-ajax-form]', function (event) {
-        // تاییدیه عملیات غیرفعال سازی در site.js اجرا می شود؛ لغو تایید باید محترم باشد.
         if (event.isDefaultPrevented()) return;
         event.preventDefault();
         var form = $(this);
@@ -46,7 +43,6 @@
         var clicked = event.originalEvent && event.originalEvent.submitter || form.data('tirSubmitter');
         var button = clicked ? $(clicked) : form.find('[type="submit"]:focus');
         if (!button.length) button = form.find('[type="submit"]').first();
-        // دکمه submit فعال/غیرفعال باید همراه با name/value خودش ارسال شود.
         var values = form.serializeArray();
         if (button.attr('name')) values.push({ name: button.attr('name'), value: button.val() });
         form.data('tirBusy', true);
@@ -56,7 +52,6 @@
             url: form.attr('action') || window.location.href,
             type: 'POST', data: $.param(values), dataType: 'html'
         }).done(function (markup) {
-            // ثبت موفق Create/Edit به PopupComplete هدایت می شود.
             if (markup.indexOf('tir:popup-complete') >= 0) {
                 if (window.parent !== window) {
                     window.parent.postMessage({ type: 'tir:popup-complete', scope: 'attributes' },
@@ -73,7 +68,6 @@
                 messageBox('پاسخ سرور قابل نمایش نیست؛ لطفاً وضعیت عملیات را بررسی کنید.', 'danger');
                 return;
             }
-            // جایگزینی محتوای فرم بدون بارگذاری مجدد Document.
             var nodes = $(nextMain).children().filter(function () { return this.tagName !== 'SCRIPT'; });
             $('#main-content').empty().append(nodes);
             if (markup.indexOf('tir:popup-changed') >= 0 && window.parent !== window) {

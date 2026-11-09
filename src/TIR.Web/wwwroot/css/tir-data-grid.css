@@ -13,7 +13,9 @@
 .tir-data-grid .dx-datagrid .dx-data-row:hover > td { background: #f4f7ff; }
 .tir-data-grid .dx-datagrid .dx-scrollable-content { min-width: 100%; }
 .tir-data-grid .dx-datagrid .dx-datagrid-nodata { color: #8792a8; }
-.tir-data-grid .tir-grid-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.tir-data-grid .tir-grid-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: .4rem; width: max-content; }
+.tir-data-grid .dx-data-row > td.tir-operations-column { white-space: nowrap; }
+.tir-data-grid .tir-show-deleted-toggle { white-space: nowrap; }
 .tir-data-grid .tir-grid-actions form { margin: 0; }
 .tir-data-grid .tir-grid-actions .tir-icon-btn {
     width: 34px;
