@@ -244,6 +244,7 @@
                 allowFiltering: false,
                 allowGrouping: false,
                 allowSearch: false,
+                showInColumnChooser: false,
                 cellTemplate: function (container, options) {
                     appendActions(container, 'employee', options.data.Id);
                 }
@@ -301,6 +302,7 @@
                 allowFiltering: false,
                 allowGrouping: false,
                 allowSearch: false,
+                showInColumnChooser: false,
                 cellTemplate: function (container, options) {
                     appendActions(container, 'attribute', options.data.Id);
                 }

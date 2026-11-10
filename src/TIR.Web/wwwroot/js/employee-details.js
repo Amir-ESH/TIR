@@ -218,6 +218,7 @@
         saveButtons.on('click', saveAll);
         form.on('submit', function (event) {
             event.preventDefault();
+
             saveAll();
         });
 

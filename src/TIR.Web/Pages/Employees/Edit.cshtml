@@ -24,25 +24,7 @@
         <button type="button" class="btn btn-primary js-save-all-values">ذخیره همه مشخصه ها</button>
     </div>
     <div class="card-body">
-        <div class="field-grid">
-            @foreach (var field in Model.Fields)
-            {
-                field.Prefix = "Field";
-                <form method="post" asp-page-handler="Value" asp-route-id="@Model.Id" class="dynamic-value-form" data-dynamic-save="true">
-                    <div class="dynamic-field">
-                        <partial name="_Field" model="field" />
-                        @if (field.SourceKind != 2)
-                        {
-                            <div class="d-flex gap-2 mt-3">
-                                <button class="btn btn-sm btn-outline-primary flex-grow-1" type="submit">ذخیره این مقدار</button>
-                                @if (!field.IsRequired) { <button class="btn btn-sm btn-outline-danger js-clear-field" type="button">خالی کردن</button> }
-                            </div>
-                            <input type="hidden" name="Field.ClearValue" value="false" class="js-clear-value" />
-                        }
-                    </div>
-                </form>
-            }
-        </div>
+        <div class="field-grid"></div>
         @if (Model.Fields.Count == 0) { <div class="table-empty">هنوز مشخصه فعالی وجود ندارد.</div> }
     </div>
     <div class="card-body border-top d-flex justify-content-between flex-wrap gap-2">
