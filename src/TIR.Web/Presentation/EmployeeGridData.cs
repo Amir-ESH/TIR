@@ -6,14 +6,23 @@ using TIR.Application.Contracts;
 namespace TIR.Web.Presentation;
 
 /// <summary>
-/// هر دو گرید کارمندان از متادیتا و قالب مقداردهی یکسان استفاده می کنند.
+/// تبدیل مشخصه های داینامیک به ستون های دیتا گرید
 /// </summary>
-/// <param name="ColumnsJson"></param>
-/// <param name="RowsJson"></param>
+/// <param name="ColumnsJson">داده JSON ستون ها</param>
+/// <param name="RowsJson">داده JSON ردیف ها</param>
 public sealed record EmployeeGridData(string ColumnsJson, string RowsJson)
 {
     public static EmployeeGridData Empty { get; } = new("[]", "[]");
 
+    /// <summary>
+    /// کارمندان، تعریف مشخصه ها و مقدار مشخصه های هر کارمند را کنار هم قرار میده
+    /// و اطلاعات مناسب دیتاگرید را می سازد.
+    /// </summary>
+    /// <param name="page">اطلاعات ثابت کارمندان در یک صفحه</param>
+    /// <param name="definitions">لیست مشخصه ها</param>
+    /// <param name="valueRepository"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public static async Task<EmployeeGridData> BuildAsync(
         PageResult<EmployeeListItem> page,
         IReadOnlyList<AttributeDefinitionDto> definitions,
@@ -30,7 +39,8 @@ public sealed record EmployeeGridData(string ColumnsJson, string RowsJson)
             title = x.Title
         }));
 
-        var values = await valueRepository.ReadAsync(page.Items.Select(x => x.Id).ToArray(), cancellationToken);
+        var values = await valueRepository.ReadAsync(page.Items.Select(x => x.Id)
+            .ToArray(), cancellationToken);
         
         var byEmployeeAndAttribute = values
             .GroupBy(x => (x.EmployeeId, x.AttributeId))
@@ -59,6 +69,12 @@ public sealed record EmployeeGridData(string ColumnsJson, string RowsJson)
         return new EmployeeGridData(columnsJson, JsonSerializer.Serialize(rows));
     }
 
+    /// <summary>
+    /// آماده سازی داده ها برای نمایش
+    /// </summary>
+    /// <param name="value">مقدار داده</param>
+    /// <param name="kind">نوع داده</param>
+    /// <returns></returns>
     private static string Format(EmployeeGridValueDto? value, byte kind)
     {
         if (value is null)
@@ -78,6 +94,11 @@ public sealed record EmployeeGridData(string ColumnsJson, string RowsJson)
         };
     }
 
+    /// <summary>
+    /// تبدیل تاریخ و ساعت میلادی وقت گرینویچ به تاریخ خورشیدی و وقت تهران
+    /// </summary>
+    /// <param name="utc">تاریخ و ساعت میلادی به وقت گرینویچ</param>
+    /// <returns>تاریخ خورشیدی به وقت تهران</returns>
     private static string FormatTehranDateTime(DateTime utc)
     {
         var tehran = IranDateConverter.UtcToTehran(utc);

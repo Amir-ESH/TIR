@@ -46,11 +46,13 @@
             var values = [];
             changed.each(function () {
                 var value = {};
+
                 $(this).serializeArray().forEach(function (entry) {
                     if (entry.name.startsWith('Field.')) {
                         value[entry.name.substring(6)] = entry.value;
                     }
                 });
+
                 value.AttributeId = Number(value.AttributeId);
                 value.BooleanIsSet = value.BooleanIsSet === 'true';
                 value.BooleanChecked = value.BooleanChecked === 'true';

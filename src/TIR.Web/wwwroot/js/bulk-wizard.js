@@ -29,22 +29,36 @@
             filtersJson: '#bulkFiltersJson', pagination: '#bulkUnusedPagination'
         });
 
-        function number(value) { return Number(value || 0).toLocaleString('fa-IR'); }
-        function operation() { return $('input[name="bulkOperation"]:checked').val(); }
+        function number(value) {
+            return Number(value || 0).toLocaleString('fa-IR');
+        }
+        function operation() {
+            return $('input[name="bulkOperation"]:checked').val();
+        }
 
         function message(value, type) {
-            if (!value) window.TIRMessages.clear();
-            else window.TIRMessages.show(value, type || 'info');
+            if (!value) {
+                window.TIRMessages.clear();
+            }
+            else {
+                window.TIRMessages.show(value, type || 'info');
+            }
         }
 
         function modalMessage(value, type) {
             var options = { container: '#bulkEmployeeModal .modal-content' };
-            if (!value) window.TIRMessages.clear(options);
-            else window.TIRMessages.show(value, type || 'danger', options);
+
+            if (!value) {
+                window.TIRMessages.clear(options);
+            }
+            else {
+                window.TIRMessages.show(value, type || 'danger', options);
+            }
         }
 
         function errorText(xhr) {
-            return xhr?.responseJSON?.error || xhr?.responseJSON?.message ||
+            return xhr?.responseJSON?.error ||
+                xhr?.responseJSON?.message ||
                 'ارتباط با سرور برقرار نشد. دوباره تلاش کنید.';
         }
 
@@ -55,8 +69,11 @@
             $('#bulkWizardSteps .step').each(function () {
                 $(this).toggleClass('is-current', Number($(this).data('step')) === step);
             });
+
             message(null);
-            if (step === 3 && errorGrid) errorGrid.updateDimensions();
+
+            if (step === 3 && errorGrid)
+                errorGrid.updateDimensions();
         }
 
         function applyOperation() {
@@ -79,16 +96,25 @@
             $(button).prop('disabled', busy).toggleClass('disabled tir-loading-button', busy);
         }
 
-        $('#bulkGoStep2').on('click', function () { applyOperation(); switchStep(2); });
-        $('#bulkBackStep1').on('click', function () { switchStep(1); });
+        $('#bulkGoStep2').on('click', function () {
+            applyOperation(); switchStep(2);
+        });
+
+        $('#bulkBackStep1').on('click', function () {
+            switchStep(1);
+        });
+
         $('#bulkBackStep2').on('click', function () {
             if (isExecuting) return;
+
             workId = null;
             switchStep(2);
         });
+
         $('#bulkFormulaScope').on('change', function () {
             $('#bulkChooseEmployeeBox').toggleClass('d-none', $(this).val() !== 'selected');
         });
+
         $('input[name="bulkOperation"]').on('change', applyOperation);
 
         $('#bulkPrepare').on('click', function () {
@@ -96,41 +122,62 @@
             var data = new FormData();
             var mode = operation();
             var url = urls.prepare;
+
             if (mode === 'formula') {
-                if (!$('#bulkFormulaId').val()) return message('ابتدا فرمول را انتخاب کنید.', 'danger');
+                if (!$('#bulkFormulaId').val())
+                    return message('ابتدا فرمول را انتخاب کنید.', 'danger');
+
                 data.append('formulaId', $('#bulkFormulaId').val());
-                if ($('#bulkFormulaScope').val() === 'all') data.append('selectionMode', 'all');
+
+                if ($('#bulkFormulaScope').val() === 'all') {
+                    data.append('selectionMode', 'all');
+                }
                 else {
                     if (selectionMode !== 'filtered' && !selectedIds.size)
                         return message('حداقل یک کارمند را در پنجره انتخاب کنید.', 'danger');
+
                     data.append('selectionMode', selectionMode);
                     data.append('selectedIdsJson', JSON.stringify(Array.from(selectedIds)));
                     data.append('filtersJson', activeFilterJson);
                     data.append('employeeSearch', activeEmployeeSearch);
                 }
+
                 url = urls.prepareFormula;
-            } else {
+            }
+            else {
                 var file = $('#bulkExcelFile')[0].files[0];
-                if (!file) return message('ابتدا فایل اکسل را انتخاب کنید.', 'danger');
-                if (!/\.xlsx$/i.test(file.name)) return message('فایل باید xlsx باشد.', 'danger');
+
+                if (!file)
+                    return message('ابتدا فایل اکسل را انتخاب کنید.', 'danger');
+
+                if (!/\.xlsx$/i.test(file.name))
+                    return message('فایل باید xlsx باشد.', 'danger');
+
                 data.append('operationKind', mode === 'create' ? '1' : '2');
                 data.append('excelFile', file);
             }
+
             setBusy(button, true);
             message(null);
+
             post(url, data).done(function (result) {
                 workId = result.workId;
                 errorPage = 1;
+
                 $('#bulkPreparedSummary').text(result.message || 'درخواست آماده شده است.');
                 $('#bulkTotal').text(number(result.total));
                 $('#bulkProcessed,#bulkErrorCount').text(number(0));
                 $('#bulkStatusLabel').text('آماده اجرا');
                 $('#bulkExecute').prop('disabled', false).removeClass('d-none');
                 $('#bulkBackStep2').prop('disabled', false);
+
                 updateBar(0);
                 switchStep(3);
-            }).fail(function (xhr) { message(errorText(xhr), 'danger'); })
-                .always(function () { setBusy(button, false); });
+            }).fail(function (xhr) {
+                message(errorText(xhr), 'danger');
+            }).always(function () {
+                setBusy(button, false);
+            });
         });
 
         function updateBar(percent) {
@@ -146,73 +193,128 @@
                 errorGrid = window.TIRDataGrid.create('#bulkErrorGrid', {
                     dataSource: [],
                     columns: [
-                        { dataField: 'excelRow', caption: 'ردیف اکسل', cellTemplate: function (node, info) { $(node).text(info.value ?? '—'); } },
-                        { dataField: 'employeeId', caption: 'شناسه کارمند', cellTemplate: function (node, info) { $(node).text(info.value ?? '—'); } },
-                        { dataField: 'inputOrdinal', caption: 'ردیف عملیات' },
-                        { dataField: 'errorMessage', caption: 'شرح خطا', minWidth: 300 }
+                        {
+                            dataField: 'excelRow',
+                            caption: 'ردیف اکسل',
+                            cellTemplate: function (node, info) {
+                                $(node).text(info.value ?? '—');
+                            }
+                        },
+                        {
+                            dataField: 'employeeId',
+                            caption: 'شناسه کارمند',
+                            cellTemplate: function (node, info) {
+                                $(node).text(info.value ?? '—');
+                            }
+                        },
+                        {
+                            dataField: 'inputOrdinal',
+                            caption: 'ردیف عملیات'
+                        },
+                        {
+                            dataField: 'errorMessage',
+                            caption: 'شرح خطا',
+                            minWidth: 300
+                        }
                     ],
                     noDataText: 'خطایی در این صفحه ثبت نشده است.'
                 });
             }
+
             errorGrid.option('dataSource', items);
         }
 
         function refreshReport() {
             if (!workId) return;
-            $.getJSON(urls.status, { workId: workId, errorPage: errorPage })
-                .done(function (report) {
-                    var h = report.header;
-                    $('#bulkTotal').text(number(h.totalCount));
-                    $('#bulkProcessed').text(number(h.processedCount));
-                    $('#bulkErrorCount').text(number(h.failedCount));
 
-                    var percent = h.totalCount ? Math.floor(h.processedCount * 100 / h.totalCount) : 100;
-                    updateBar(percent);
-                    renderErrors(report.errors || []);
-                    $('#bulkErrorPageLabel').text('صفحه ' + number(errorPage));
-                    $('#bulkPrevError').prop('disabled', errorPage <= 1);
-                    $('#bulkNextError').prop('disabled', (report.errors || []).length < 100);
-                    var completed = h.status === 2 || h.status === 3 || h.status === 4;
-                    $('#bulkStatusLabel').text(h.status === 2 ? 'تکمیل شد' :
-                        h.status === 3 ? 'پایان با خطا' : h.status === 4 ? 'عملیات متوقف شد' :
+            $.getJSON(urls.status, {
+                workId: workId,
+                errorPage: errorPage
+            }).done(function (report) {
+                var h = report.header;
+
+                $('#bulkTotal').text(number(h.totalCount));
+                $('#bulkProcessed').text(number(h.processedCount));
+                $('#bulkErrorCount').text(number(h.failedCount));
+
+                var percent = h.totalCount ? Math.floor(h.processedCount * 100 / h.totalCount) : 100;
+                updateBar(percent);
+                renderErrors(report.errors || []);
+
+                $('#bulkErrorPageLabel').text('صفحه ' + number(errorPage));
+                $('#bulkPrevError').prop('disabled', errorPage <= 1);
+                $('#bulkNextError').prop('disabled', (report.errors || []).length < 100);
+
+                var completed = h.status === 2 ||
+                    h.status === 3 ||
+                    h.status === 4;
+
+                $('#bulkStatusLabel').text(h.status === 2 ? 'تکمیل شد' :
+                    h.status === 3 ? 'پایان با خطا' : h.status === 4 ? 'عملیات متوقف شد' :
                         h.status === 5 ? 'در صف پردازش' : 'در حال پردازش');
-                    if (completed) {
-                        isExecuting = false;
-                        window.clearInterval(timer);
-                        timer = null;
-                        $('#bulkProgressBar').removeClass('progress-bar-animated');
-                        $('#bulkExecute').removeClass('tir-loading-button').prop('disabled', true);
-                        if (h.failureMessage) message(h.failureMessage, 'danger');
-                        else if (h.status === 3) message('عملیات پایان یافت؛ خطاهای هر ردیف را در گزارش بررسی کنید.', 'info');
+
+                if (completed) {
+                    isExecuting = false;
+                    window.clearInterval(timer);
+                    timer = null;
+
+                    $('#bulkProgressBar').removeClass('progress-bar-animated');
+                    $('#bulkExecute').removeClass('tir-loading-button').prop('disabled', true);
+
+                    if (h.failureMessage) {
+                        message(h.failureMessage, 'danger');
                     }
+                    else if (h.status === 3) {
+                        message('عملیات پایان یافت! خطاهای هر ردیف را در گزارش بررسی کنید.', 'info');
+                    }
+                }
                 }).fail(function () {
-                    $('#bulkStatusLabel').text('خطا در دریافت گزارش؛ برای تلاش دوباره به روز رسانی را بزنید.');
+                    $('#bulkStatusLabel').text('خطا در دریافت گزارش! برای تلاش دوباره به روز رسانی را بزنید.');
                 });
         }
 
         $('#bulkExecute').on('click', function () {
             if (!workId || isExecuting) return;
+
             var data = new FormData();
             data.append('workId', workId);
+
             setBusy(this, true);
+
             $('#bulkBackStep2').prop('disabled', true);
+
             var button = this;
+
             post(urls.execute, data).done(function () {
                 isExecuting = true;
                 $('#bulkStatusLabel').text('در صف پردازش');
+
                 refreshReport();
-                if (timer) window.clearInterval(timer);
+
+                if (timer)
+                    window.clearInterval(timer);
+
                 timer = window.setInterval(refreshReport, 1500);
             }).fail(function (xhr) {
                 message(errorText(xhr), 'danger');
+
                 $('#bulkBackStep2').prop('disabled', false);
+
                 setBusy(button, false);
             });
         });
 
         $('#bulkRefresh').on('click', refreshReport);
-        $('#bulkPrevError').on('click', function () { if (errorPage > 1) { errorPage--; refreshReport(); } });
-        $('#bulkNextError').on('click', function () { errorPage++; refreshReport(); });
+        $('#bulkPrevError').on('click', function () {
+            if (errorPage > 1) {
+                errorPage--; refreshReport();
+            }
+        });
+        $('#bulkNextError').on('click', function () {
+            errorPage++;
+
+            refreshReport();
+        });
 
         function resetFilterSelection() {
             selectionMode = 'selected';
@@ -334,6 +436,7 @@
         $('#bulkConfirmEmployeeSelection').on('click', function () {
             if (selectionMode !== 'filtered' && !selectedIds.size)
                 return modalMessage('حداقل یک کارمند را انتخاب کنید.', 'danger');
+
             $('#bulkSelectedEmployeeSummary').text(selectionMode === 'filtered' ?
                 'تمام ' + number(searchTotal) + ' کارمند مطابق جستجو انتخاب شدند.' :
                 number(selectedIds.size) + ' کارمند انتخاب شدند.');

@@ -17,6 +17,7 @@
         function readField(node) {
             var root = $(node);
             var valueInput = root.find('[name="Field.RawValue"]');
+
             return {
                 AttributeId: Number(root.find('[name="Field.AttributeId"]').val()),
                 ExpectedRowVersion: root.find('[name="Field.ExpectedRowVersion"]').val() || null,
@@ -50,22 +51,33 @@
                 var documentResponse = new DOMParser().parseFromString(markup, 'text/html');
                 var nextTemplates = documentResponse.querySelector('#employeeDetailsFieldTemplates');
                 var nextGridData = documentResponse.querySelector('#employeeDetailsGridData');
-                if (!nextTemplates || !nextGridData) throw new Error('پاسخ بازخوانی ناقص است.');
+
+                if (!nextTemplates || !nextGridData)
+                    throw new Error('پاسخ بازخوانی ناقص است.');
+
                 $('#employeeDetailsFieldTemplates').html(nextTemplates.innerHTML);
+
                 templates = {};
                 originals = {};
                 drafts = {};
+
                 $('#employeeDetailsFieldTemplates .employee-detail-template').each(function () {
                     var id = Number($(this).attr('data-attribute-id'));
                     templates[id] = $(this);
                     originals[id] = readField(this);
                 });
+
                 rows = JSON.parse(nextGridData.textContent || '[]');
                 gridNode.dxDataGrid('instance').option('dataSource', rows);
                 var nextMeta = documentResponse.querySelector('.employee-details-meta');
-                if (nextMeta) $('.employee-details-meta').html(nextMeta.innerHTML);
+
+                if (nextMeta)
+                    $('.employee-details-meta').html(nextMeta.innerHTML);
+
                 var nextTitle = documentResponse.querySelector('#employeeDetailsScreen .section-title');
-                if (nextTitle) screen.find('.employee-details-toolbar .section-title').text(nextTitle.textContent);
+
+                if (nextTitle)
+                    screen.find('.employee-details-toolbar .section-title').text(nextTitle.textContent);
             });
         }
 
@@ -73,9 +85,13 @@
             var id = row.AttributeId;
             var wrapper = $('<div class="employee-detail-editor">')
                 .attr('data-attribute-id', id).appendTo(container);
+
             if (!templates[id]) return;
+
             wrapper.append(templates[id].children().clone());
-            if (drafts[id]) applyField(wrapper, drafts[id]);
+
+            if (drafts[id])
+                applyField(wrapper, drafts[id]);
         });
 
         gridNode.on('input change', '.employee-detail-editor :input', function () {
@@ -85,12 +101,14 @@
         });
 
         var initialFixed = form.serialize();
+
         function changedFields() {
-            return Object.keys(drafts).map(function (id) { return drafts[id]; })
-                .filter(function (value) {
-                    return originals[value.AttributeId] &&
-                        comparable(value) !== comparable(originals[value.AttributeId]);
-                });
+            return Object.keys(drafts).map(function (id) {
+                return drafts[id];
+            }).filter(function (value) {
+                return originals[value.AttributeId] &&
+                    comparable(value) !== comparable(originals[value.AttributeId]);
+            });
         }
 
         function showMessage(value, kind, errors) {
@@ -101,14 +119,20 @@
             busy = value;
             saveButtons.prop('disabled', value).text(value ? 'در حال ذخیره...' : 'ذخیره');
             $('#employeeDetailsCalculate').prop('disabled', value);
+
             if (window.TIRLoading) {
-                if (value) window.TIRLoading.show('در حال پردازش اطلاعات کارمند...');
-                else window.TIRLoading.hide();
+                if (value) {
+                    window.TIRLoading.show('در حال پردازش اطلاعات کارمند...');
+                }
+                else {
+                    window.TIRLoading.hide();
+                }
             }
         }
 
         function notifyParent() {
             if (window.parent === window) return;
+
             window.parent.postMessage({
                 type: 'tir:employee-details-saved',
                 id: Number(screen.attr('data-employee-id')),
@@ -120,14 +144,18 @@
 
         function saveAll() {
             if (busy || !form.length || !form[0].reportValidity()) return;
+
             var modifiedValues = changedFields();
+
             if (form.serialize() === initialFixed && !modifiedValues.length) {
                 showMessage('تغییری برای ذخیره وجود ندارد.', 'info');
                 return;
             }
 
             var token = form.find('[name="__RequestVerificationToken"]').val();
-            if (!token) return showMessage('اطلاعات امنیتی فرم پیدا نشد. صفحه را تازه سازی کنید.', 'danger');
+
+            if (!token)
+                return showMessage('اطلاعات امنیتی فرم پیدا نشد. صفحه را تازه سازی کنید.', 'danger');
 
             setBusy(true);
             window.TIRMessages.clear();
@@ -138,15 +166,20 @@
                 if (!fixed.success) {
                     showMessage(fixed.message || 'ذخیره اطلاعات اصلی انجام نشد.', 'danger');
                     setBusy(false);
+
                     return;
                 }
+
                 form.find('[name="Input.ExpectedRowVersion"]').val(fixed.rowVersion);
                 initialFixed = form.serialize();
-                if (fixed.changed) notifyParent();
+
+                if (fixed.changed)
+                    notifyParent();
 
                 if (!modifiedValues.length) {
                     showMessage('اطلاعات اصلی ذخیره شد.', 'success');
                     setBusy(false);
+
                     return;
                 }
 
@@ -160,12 +193,15 @@
                         showMessage(result.message || 'ذخیره مشخصه ها انجام نشد.', 'danger', result.errors);
                         return;
                     }
+
                     notifyParent();
                     refreshFields().done(function () {
                         showMessage('اطلاعات اصلی و مقادیر مشخصه ها با موفقیت ذخیره شدند.', 'success');
                     }).fail(function () {
                         showMessage('اطلاعات ذخیره شد، اما بازخوانی مقادیر جدید انجام نشد.', 'warning');
-                    }).always(function () { setBusy(false); });
+                    }).always(function () {
+                        setBusy(false);
+                    });
                 }).fail(function (response) {
                     var result = response.responseJSON || {};
                     showMessage('ذخیره مشخصه ها موفق نبود. اطلاعات اصلی در صورت تغییر ذخیره شده اند. ' +
@@ -180,16 +216,23 @@
         }
 
         saveButtons.on('click', saveAll);
-        form.on('submit', function (event) { event.preventDefault(); saveAll(); });
+        form.on('submit', function (event) {
+            event.preventDefault();
+            saveAll();
+        });
 
         $('#employeeDetailsCalculate').on('click', function () {
             if (busy) return;
+
             if (form.serialize() !== initialFixed || changedFields().length) {
                 showMessage('ابتدا تغییرات را ذخیره کنید، سپس فرمول ها را محاسبه کنید.', 'warning');
+
                 return;
             }
             if (!window.confirm('فرمول های این کارمند دوباره محاسبه شوند؟')) return;
+
             setBusy(true);
+
             $.ajax({
                 url: screen.attr('data-calculate-url'), type: 'POST',
                 headers: { RequestVerificationToken: form.find('[name="__RequestVerificationToken"]').val() }
@@ -200,7 +243,8 @@
                     }).fail(function () {
                         showMessage('محاسبه انجام شد اما نمایش نتیجه جدید امکان پذیر نبود.', 'warning');
                     }).always(function () { setBusy(false); });
-                } else {
+                }
+                else {
                     showMessage(answer.message || 'محاسبه انجام نشد.', 'danger');
                     setBusy(false);
                 }
