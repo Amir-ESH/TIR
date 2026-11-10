@@ -13,13 +13,18 @@
         var submitting = false;
 
         function showMessage(text, kind) {
-            if (!text) window.TIRMessages.clear();
-            else window.TIRMessages.show(text, kind);
+            if (!text) {
+                window.TIRMessages.clear();
+            }
+            else {
+                window.TIRMessages.show(text, kind);
+            }
         }
 
         function readValue(node) {
             var root = $(node);
             var input = root.find('[name="Field.RawValue"]');
+
             return {
                 RawValue: input.length ? String(input.val() ?? '') : '',
                 BooleanIsSet: root.find('[name="Field.BooleanIsSet"]').prop('checked') === true,
@@ -44,9 +49,12 @@
             var id = row.AttributeId;
             var wrapper = $('<div class="employee-detail-editor">')
                 .attr('data-attribute-id', id).appendTo(container);
+
             if (!templates[id]) return;
             wrapper.append(templates[id].children().clone());
-            if (drafts[id]) applyValue(wrapper, drafts[id]);
+
+            if (drafts[id])
+                applyValue(wrapper, drafts[id]);
         });
 
         gridNode.on('input change', '.employee-detail-editor :input', function () {
@@ -64,6 +72,7 @@
             });
 
             var payload = $('#employeeCreatePayload').empty();
+
             function appendValue(name, value) {
                 $('<input type="hidden">').attr('name', name).val(value).appendTo(payload);
             }
@@ -71,9 +80,13 @@
             var fieldIndex = 0;
             rows.forEach(function (row) {
                 if (row.SourceKind !== 1) return;
+
                 var value = drafts[row.AttributeId] || originalValues[row.AttributeId];
+
                 if (!value) return;
+
                 var prefix = 'Fields[' + fieldIndex++ + '].';
+
                 appendValue(prefix + 'AttributeId', row.AttributeId);
                 appendValue(prefix + 'RawValue', value.RawValue);
                 appendValue(prefix + 'BooleanIsSet', value.BooleanIsSet ? 'true' : 'false');
@@ -82,34 +95,58 @@
 
             gridNode.find(':input').prop('disabled', true);
             submitting = true;
+
             $('#employeeCreateSubmit').prop('disabled', true).text('در حال افزودن...');
+
             showMessage('', 'info');
-            if (window.TIRLoading) window.TIRLoading.show('در حال افزودن کارمند...');
+
+            if (window.TIRLoading)
+                window.TIRLoading.show('در حال افزودن کارمند...');
+
             $.ajax({
                 url: form.attr('action') || window.location.href,
-                type: 'POST', data: form.serialize(), dataType: 'html'
+                type: 'POST',
+                data: form.serialize(),
+                dataType: 'html'
             }).done(function (markup) {
                 if (markup.indexOf('tir:popup-complete') >= 0) {
                     if (window.parent !== window) {
-                        window.parent.postMessage({ type: 'tir:popup-complete', scope: 'employees' },
+                        window.parent.postMessage({
+                            type: 'tir:popup-complete',
+                            scope: 'employees'
+                        },
                             window.location.origin);
-                    } else showMessage('کارمند با موفقیت افزوده شد.', 'success');
+                    }
+                    else {
+                        showMessage('کارمند با موفقیت افزوده شد.', 'success');
+                    }
+
                     return;
                 }
+
                 var documentResponse = new DOMParser().parseFromString(markup, 'text/html');
                 var errors = Array.from(documentResponse.querySelectorAll(
                     '.validation-summary-errors li, .field-validation-error'))
-                    .map(function (node) { return node.textContent.trim(); }).filter(Boolean);
-                showMessage(errors.length ? Array.from(new Set(errors)).join(' ـ ') :
-                    'ثبت کارمند انجام نشد. اطلاعات فرم را بررسی کنید.', 'danger');
+                    .map(function (node) {
+                        return node.textContent.trim();
+                    }).filter(Boolean);
+
+                showMessage(errors.length
+                    ? Array.from(new Set(errors)).join(' ـ ')
+                    : 'ثبت کارمند انجام نشد. اطلاعات فرم را بررسی کنید.', 'danger');
+
             }).fail(function (xhr) {
                 var response = xhr.responseJSON || {};
+
                 showMessage(response.message || 'خطا در افزودن کارمند؛ لطفاً دوباره تلاش کنید.', 'danger');
             }).always(function () {
                 submitting = false;
                 gridNode.find(':input').prop('disabled', false);
+
                 $('#employeeCreateSubmit').prop('disabled', false).text('افزودن');
-                if (window.TIRLoading) window.TIRLoading.hide();
+
+                if (window.TIRLoading)
+                    window.TIRLoading.hide();
             });
         });
     });

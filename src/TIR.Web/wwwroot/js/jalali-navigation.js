@@ -56,12 +56,17 @@
 
     function epochForMonth(year, month) {
         var start = startOfMonth(Date.UTC(year + 621, 2, 21) + (month - 1) * 30 * DAY);
+
         for (var i = 0; i < 5; i++) {
             var current = persianDay(start);
-            if (current.year === year && current.month === month) return start;
+
+            if (current.year === year && current.month === month)
+                return start;
+
             var difference = (year - current.year) * 12 + month - current.month;
             start = difference > 0 ? nextMonthStart(start) : startOfMonth(start - DAY);
         }
+
         throw new Error('ماه خورشیدی قابل تشخیص نیست.');
     }
 
@@ -85,12 +90,18 @@
         function setDate(newYear, newMonth, newDay) {
             year = Number(newYear);
             month = Number(newMonth);
-            if (!Number.isInteger(year) || year < 1 || !Number.isInteger(month) ||
-                month < 1 || month > 12) {
+
+            if (!Number.isInteger(year) ||
+                year < 1 ||
+                !Number.isInteger(month) ||
+                month < 1 ||
+                month > 12)
+            {
                 var today = todayParts();
                 year = today.year;
                 month = today.month;
             }
+
             var day = Number(newDay);
             selected = Number.isInteger(day) && day > 0 && day <= 31
                 ? { year: year, month: month, day: day } : null;
@@ -100,14 +111,27 @@
         }
 
         function move(direction) {
-            if (view === 'years') firstYear = Math.max(1, firstYear + direction * yearsPerPage);
-            else if (view === 'months') year = Math.max(1, year + direction);
-            else if (direction < 0 && year === 1 && month === 1) return;
+            if (view === 'years') {
+                firstYear = Math.max(1, firstYear + direction * yearsPerPage);
+            }
+            else if (view === 'months') {
+                year = Math.max(1, year + direction);
+            }
+            else if (direction < 0 && year === 1 && month === 1) {
+                return;
+            }
             else {
                 month += direction;
-                if (month < 1) { year--; month = 12; }
-                if (month > 12) { year++; month = 1; }
+
+                if (month < 1) {
+                    year--; month = 12;
+                }
+
+                if (month > 12) {
+                    year++; month = 1;
+                }
             }
+
             render();
         }
 
@@ -121,23 +145,36 @@
             container.empty();
             var header = $('<div class="tir-iran-calendar__heading"></div>').appendTo(container);
             var unit = view === 'years' ? '12 سال' : view === 'months' ? 'سال' : 'ماه';
+
             $('<button type="button" class="tir-iran-calendar__arrow"></button>')
                 .html(previousIcon).attr('aria-label', unit + ' قبل')
                 .attr('title', unit + ' قبل').on('click', function () { move(-1); })
                 .appendTo(header);
 
             var center = $('<div class="tir-iran-calendar__period"></div>').appendTo(header);
+
             if (view === 'years') {
                 $('<strong></strong>').text(numberFormatter.format(firstYear) + ' تا ' +
                     numberFormatter.format(firstYear + yearsPerPage - 1)).appendTo(center);
-            } else {
+            }
+            else {
                 if (view === 'days') {
                     periodButton(center, months[month - 1], 'انتخاب ماه خورشیدی',
                         function () { view = 'months'; render(); });
-                } else $('<strong>انتخاب ماه</strong>').appendTo(center);
+                }
+                else {
+                    $('<strong>انتخاب ماه</strong>').appendTo(center);
+                }
 
-                periodButton(center, numberFormatter.format(year), 'انتخاب سال خورشیدی',
-                    function () { firstYear = yearPageStart(year); view = 'years'; render(); });
+                periodButton(center,
+                    numberFormatter.format(year),
+                    'انتخاب سال خورشیدی',
+                    function () {
+                        firstYear = yearPageStart(year);
+                        view = 'years';
+
+                        render();
+                    });
             }
 
             $('<button type="button" class="tir-iran-calendar__arrow"></button>')
@@ -146,29 +183,38 @@
                 .appendTo(header);
 
             var body = $('<div class="tir-iran-calendar__selection"></div>').appendTo(container);
+
             if (view === 'years') {
                 body.addClass('jalali-choice-grid jalali-choice-grid--years');
+
                 for (var valueYear = firstYear; valueYear < firstYear + yearsPerPage; valueYear++) {
                     (function (choice) {
                         addChoice(body, numberFormatter.format(choice), choice === year, function () {
                             year = choice;
                             view = 'months';
+
                             render();
                         });
                     })(valueYear);
                 }
+
                 return;
             }
+
             if (view === 'months') {
                 body.addClass('jalali-choice-grid jalali-choice-grid--months');
+
                 months.forEach(function (name, index) {
                     var choice = index + 1;
+
                     addChoice(body, name, choice === month, function () {
                         month = choice;
                         view = 'days';
+
                         render();
                     });
                 });
+
                 return;
             }
 
@@ -178,23 +224,30 @@
             var todayEpochDay = todayEpoch();
             var weekdaysGrid = $('<div class="tir-iran-calendar__grid tir-iran-calendar__weekdays" aria-hidden="true"></div>')
                 .appendTo(body);
+
             weekdays.forEach(function (label) {
                 $('<span></span>').text(label).appendTo(weekdaysGrid);
             });
 
             var daysGrid = $('<div class="tir-iran-calendar__grid tir-iran-calendar__days" role="grid" aria-label="روزهای ماه"></div>')
                 .appendTo(body);
-            for (var empty = 0; empty < offset; empty++)
+
+            for (var empty = 0; empty < offset; empty++) {
                 $('<span aria-hidden="true"></span>').appendTo(daysGrid);
+            }
 
             for (var day = 1; day <= dayCount; day++) {
                 (function (value) {
                     var epoch = firstDay + (value - 1) * DAY;
-                    var isSelected = selected && selected.year === year &&
-                        selected.month === month && selected.day === value;
+                    var isSelected = selected &&
+                        selected.year === year &&
+                        selected.month === month &&
+                        selected.day === value;
+
                     var cell = $(options.onSelectDay
                         ? '<button type="button" class="tir-jalali-day" role="gridcell"></button>'
                         : '<span class="tir-jalali-day" role="gridcell"></span>');
+
                     cell.text(numberFormatter.format(value))
                         .attr('aria-label', 'روز ' + numberFormatter.format(value))
                         .toggleClass('is-friday', new Date(epoch).getUTCDay() === 5)
@@ -202,10 +255,17 @@
                         .toggleClass('is-selected', Boolean(isSelected))
                         .appendTo(daysGrid);
 
-                    if (epoch === todayEpochDay) cell.attr('aria-current', 'date');
+                    if (epoch === todayEpochDay)
+                        cell.attr('aria-current', 'date');
+
                     if (options.onSelectDay) {
                         cell.on('click', function () {
-                            selected = { year: year, month: month, day: value };
+                            selected = {
+                                year: year,
+                                month: month,
+                                day: value
+                            };
+
                             options.onSelectDay(year, month, value);
                         });
                     }
@@ -215,11 +275,19 @@
 
         function resetToToday() {
             var today = todayParts();
-            setDate(today.year, today.month, options.onSelectDay ? today.day : null);
+
+            setDate(today.year,
+                today.month,
+                options.onSelectDay ? today.day : null);
         }
 
         resetToToday();
-        return { setDate: setDate, resetToToday: resetToToday, refresh: render };
+
+        return {
+            setDate: setDate,
+            resetToToday: resetToToday,
+            refresh: render
+        };
     }
 
     window.TirJalaliNavigation = {

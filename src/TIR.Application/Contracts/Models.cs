@@ -8,117 +8,282 @@ namespace TIR.Application.Contracts;
 /// <param name="Items"></param>
 public sealed record PageResult<T>(long TotalCount, IReadOnlyList<T> Items);
 
+/// <summary>
+/// اطلاعات ثابت یک کارمند
+/// </summary>
 public sealed class EmployeeListItem
 {
+    /// <summary>
+    /// شناسه کارمند
+    /// </summary>
     public long Id { get; set; }
     
+    /// <summary>
+    /// کد پرسنلی
+    /// </summary>
     public string EmployeeCode { get; set; } = string.Empty;
     
+    /// <summary>
+    /// نام کارمند
+    /// </summary>
     public string? FirstName { get; set; }
     
+    /// <summary>
+    /// نام خانوادگی کارمند
+    /// </summary>
     public string? LastName { get; set; }
     
+    /// <summary>
+    /// آیا حذف شده؟
+    /// </summary>
     public bool IsDeleted { get; set; }
     
+    /// <summary>
+    /// تاریخ حذف به وقت گرینویچ
+    /// </summary>
     public DateTime? DeletedAtUtc { get; set; }
     
+    /// <summary>
+    /// نسخه ردیف
+    /// </summary>
     public byte[] RowVersion { get; set; } = [];
     
+    /// <summary>
+    /// آیا نیازمند محاسبه فرمول دوباره است؟
+    /// </summary>
     public bool HasStaleFormula { get; set; }
 }
 
+/// <summary>
+/// مشخصه داینامیک
+/// </summary>
 public sealed class AttributeDefinitionDto
 {
+    /// <summary>
+    /// شناسه مشخصه داینامیک
+    /// </summary>
     public long Id { get; set; }
     
+    /// <summary>
+    /// کد مشخصه داینامیک
+    /// </summary>
     public string AttributeCode { get; set; } = string.Empty;
     
+    /// <summary>
+    /// عنوان فارسی مشخصه داینامیک
+    /// </summary>
     public string Title { get; set; } = string.Empty;
     
+    /// <summary>
+    /// توضیح مشخصه داینامیک
+    /// </summary>
     public string? Description { get; set; }
     
+    /// <summary>
+    /// منبع ورود داده از طریق ورود کاربر یا فرمول
+    /// </summary>
     public byte SourceKind { get; set; }
     
+    /// <summary>
+    /// نوع دیتای ورودی
+    /// </summary>
     public byte DataKind { get; set; }
     
+    /// <summary>
+    /// آیا اجباری هست؟
+    /// </summary>
     public bool IsRequired { get; set; }
     
+    /// <summary>
+    /// ترتیب نمایش
+    /// </summary>
     public int DisplayOrder { get; set; }
     
+    /// <summary>
+    /// آیا حذف شده؟
+    /// </summary>
     public bool IsDeleted { get; set; }
     
+    /// <summary>
+    /// تاریخ حذف
+    /// </summary>
     public DateTime? DeletedAtUtc { get; set; }
     
+    /// <summary>
+    /// تاریخ ایجاد
+    /// </summary>
     public DateTime CreatedAtUtc { get; set; }
     
+    /// <summary>
+    /// تاریخ آخرین بروزرسانی
+    /// </summary>
     public DateTime? UpdatedAtUtc { get; set; }
     
+    /// <summary>
+    /// نسخه ردیف
+    /// </summary>
     public byte[] RowVersion { get; set; } = [];
 }
 
+/// <summary>
+/// گزینه مشخصه انتخابی
+/// </summary>
 public sealed class AttributeOptionDto
 {
+    /// <summary>
+    /// شناسه گزینه
+    /// </summary>
     public long Id { get; set; }
     
+    /// <summary>
+    /// شناسه مشخصه
+    /// </summary>
     public long AttributeId { get; set; }
     
+    /// <summary>
+    /// کد گزینه
+    /// </summary>
     public string OptionCode { get; set; } = string.Empty;
     
+    /// <summary>
+    /// عنوان فارسی گزینه
+    /// </summary>
     public string Title { get; set; } = string.Empty;
     
+    /// <summary>
+    /// ترتیب نمایش در دراپ داون
+    /// </summary>
     public int DisplayOrder { get; set; }
     
+    /// <summary>
+    /// وضعیت فعال بودن
+    /// </summary>
     public bool IsEnabled { get; set; }
     
+    /// <summary>
+    /// تاریخ ایجاد
+    /// </summary>
     public DateTime CreatedAtUtc { get; set; }
     
+    /// <summary>
+    /// نسخه بروزرسانی
+    /// </summary>
     public byte[] RowVersion { get; set; } = [];
 }
 
+/// <summary>
+/// مقدار فیلد مشخصه داینامیک
+/// </summary>
 public sealed class EmployeeAttributeValueDto
 {
+    /// <summary>
+    /// شناسه
+    /// </summary>
     public long Id { get; set; }
     
+    /// <summary>
+    /// شناسه کارمند
+    /// </summary>
     public long EmployeeId { get; set; }
     
+    /// <summary>
+    /// شناسه مشخصه
+    /// </summary>
     public long AttributeId { get; set; }
     
+    /// <summary>
+    /// مقدار متنی
+    /// </summary>
     public string? StringValue { get; set; }
     
+    /// <summary>
+    /// مقدار عدد صحیح
+    /// </summary>
     public long? IntegerValue { get; set; }
     
+    /// <summary>
+    /// مقدار عدد اعشاری
+    /// </summary>
     public decimal? DecimalValue { get; set; }
     
+    /// <summary>
+    /// مقدار تاریخ
+    /// </summary>
     public DateTime? DateValue { get; set; }
     
+    /// <summary>
+    /// مقدار ساعت
+    /// </summary>
     public TimeSpan? TimeValue { get; set; }
     
+    /// <summary>
+    /// مقدار تاریخ و ساعت
+    /// </summary>
     public DateTime? DateTimeUtc { get; set; }
     
+    /// <summary>
+    /// مقدار منطقی
+    /// </summary>
     public bool? BooleanValue { get; set; }
     
+    /// <summary>
+    /// شناسه گزینه انتخابی
+    /// </summary>
     public long? OptionId { get; set; }
     
+    /// <summary>
+    /// وضعیت محاسبه فرمولی
+    /// </summary>
     public byte? CalculationStatus { get; set; }
     
+    /// <summary>
+    /// تاریخ محاسبه فرمولی
+    /// </summary>
     public DateTime? CalculatedAtUtc { get; set; }
     
+    /// <summary>
+    /// تاریخ اعتبار محاسبه فرمولی
+    /// </summary>
     public DateTime? ValidUntilUtc { get; set; }
     
+    /// <summary>
+    /// نسخه فرمول محاسبه کننده
+    /// </summary>
     public int? FormulaRevisionApplied { get; set; }
     
+    /// <summary>
+    /// کد خطای محاسبه
+    /// </summary>
     public string? CalculationErrorCode { get; set; }
     
+    /// <summary>
+    /// متن خطای محاسبه
+    /// </summary>
     public string? CalculationErrorMessage { get; set; }
     
+    /// <summary>
+    /// عنوان
+    /// </summary>
     public string? Title { get; set; }
     
+    /// <summary>
+    /// نوع ورودی
+    /// </summary>
     public byte SourceKind { get; set; }
     
+    /// <summary>
+    /// نوع مقدار
+    /// </summary>
     public byte DataKind { get; set; }
     
+    /// <summary>
+    /// آیا اجباری هست
+    /// </summary>
     public bool IsRequired { get; set; }
     
+    /// <summary>
+    /// نسخه ردیف
+    /// </summary>
     public byte[] RowVersion { get; set; } = [];
 }
 

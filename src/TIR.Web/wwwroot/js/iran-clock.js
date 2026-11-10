@@ -18,10 +18,12 @@
                 timeZone: 'Asia/Tehran', weekday: 'long',
                 year: 'numeric', month: 'long', day: 'numeric'
             });
+
             var timeFormatter = new Intl.DateTimeFormat('fa-IR', {
                 timeZone: 'Asia/Tehran', hour: '2-digit', minute: '2-digit',
                 second: '2-digit', hourCycle: 'h23'
             });
+
             var calendar = window.TirJalaliNavigation.createCalendar($('#tirIranCalendarContent'));
 
             function closeCalendar() {
@@ -36,9 +38,12 @@
 
                 var today = window.TirJalaliNavigation.todayParts();
                 var dateKey = today.year + '/' + today.month + '/' + today.day;
+
                 if (lastLocalDay !== dateKey) {
                     lastLocalDay = dateKey;
-                    if (!popup.prop('hidden')) calendar.refresh();
+
+                    if (!popup.prop('hidden'))
+                        calendar.refresh();
                 }
             }
 
@@ -47,12 +52,15 @@
                     closeCalendar();
                     return;
                 }
+
                 calendar.resetToToday();
                 popup.prop('hidden', false);
                 trigger.attr('aria-expanded', 'true');
             });
 
-            $('#tirIranGoToToday').on('click', function () { calendar.resetToToday(); });
+            $('#tirIranGoToToday').on('click', function () {
+                calendar.resetToToday();
+            });
 
             $('#tirIranCloseCalendar').on('click', function () {
                 closeCalendar();
@@ -60,7 +68,8 @@
             });
 
             $(document).on('pointerdown.tirIranClock', function (event) {
-                if (!$(event.target).closest('#tirIranClock').length) closeCalendar();
+                if (!$(event.target).closest('#tirIranClock').length)
+                    closeCalendar();
             });
 
             $(document).on('keydown.tirIranClock', function (event) {
@@ -71,16 +80,21 @@
             });
 
             $(document).on('visibilitychange.tirIranClock', function () {
-                if (!document.hidden) updateClock();
+                if (!document.hidden)
+                    updateClock();
             });
 
             updateClock();
+
             window.setInterval(updateClock, 1000);
-        } catch (error) {
+        }
+        catch (error) {
             dateText.text('تقویم خورشیدی در دسترس نیست');
             timeText.text('--:--:--');
             trigger.prop('disabled', true);
-            if (window.console && console.error) console.error(error);
+
+            if (window.console && console.error)
+                console.error(error);
         }
     });
 })(jQuery);
